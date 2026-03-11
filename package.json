@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/ai": "^0.6.3",
+    "@tanstack/ai-openai": "^0.6.0",
+    "@tanstack/ai-react": "^0.6.4",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-router": "latest",

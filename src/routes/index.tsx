@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Play, Pause, Plus, RotateCcw, Trash2, Clock } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
+import { useTaskMonitor } from '../hooks/useTaskMonitor'
+
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -9,7 +11,9 @@ export const Route = createFileRoute('/')({
 
 function Dashboard() {
   const { tasks, addTask, toggleTask, resetTask, deleteTask, getDisplayTime } = useTasks()
+  useTaskMonitor()
   const [newTaskName, setNewTaskName] = useState('')
+
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault()

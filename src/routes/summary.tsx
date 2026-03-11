@@ -7,9 +7,14 @@ export const Route = createFileRoute('/summary')({
 })
 
 function SummaryPage() {
-  const { tasks } = useTasks()
+  const { tasks, getDisplayTime } = useTasks()
 
-  const totalSeconds = tasks.reduce((acc, t) => acc + t.totalSeconds, 0)
+  const liveTasks = tasks.map(t => ({
+    ...t,
+    displaySeconds: getDisplayTime(t)
+  }))
+
+  const totalSeconds = liveTasks.reduce((acc, t) => acc + t.displaySeconds, 0)
   
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -80,19 +85,19 @@ function SummaryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {tasks.length === 0 ? (
+              {liveTasks.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-slate-500">
                     No data available for today.
                   </td>
                 </tr>
               ) : (
-                tasks.map((task) => {
-                  const percentage = totalSeconds > 0 ? (task.totalSeconds / totalSeconds) * 100 : 0
+                liveTasks.map((task) => {
+                  const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
                   return (
                     <tr key={task.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-200">{task.name}</td>
-                      <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">{formatFullTime(task.totalSeconds)}</td>
+                      <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">{formatFullTime(task.displaySeconds)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -115,3 +120,4 @@ function SummaryPage() {
     </div>
   )
 }
+
