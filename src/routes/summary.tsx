@@ -29,19 +29,38 @@ function SummaryPage() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
+  const WORK_GOAL_SECONDS = 8 * 3600 // 8 hours
+  const remainingSeconds = Math.max(0, WORK_GOAL_SECONDS - totalSeconds)
+  const isGoalReached = totalSeconds >= WORK_GOAL_SECONDS
+  const totalProgress = Math.min(100, (totalSeconds / WORK_GOAL_SECONDS) * 100)
+
+
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
-      <header className="mb-12">
-        <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-          Daily Summary
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-lg">
-          Overview of your productivity today.
-        </p>
+      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
+            Daily Summary
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-lg">
+            Overview of your productivity today.
+          </p>
+        </div>
+        
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
+          <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div 
+              className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
+              style={{ width: `${totalProgress}%` }}
+            />
+          </div>
+          <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)}% of 8h goal</div>
+        </div>
       </header>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
           <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
             <Timer className="w-6 h-6" />
@@ -67,7 +86,20 @@ function SummaryPage() {
             {tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
           </div>
         </div>
+
+        <div className={`glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ${isGoalReached ? 'ring-2 ring-emerald-500/20' : ''}`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${isGoalReached ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-500'}`}>
+            <Clock className="w-6 h-6" />
+          </div>
+          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+            {isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
+          </div>
+          <div className={`text-3xl font-bold ${isGoalReached ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
+            {isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
+          </div>
+        </div>
       </div>
+
 
 
       {/* Breakdown Table */}
