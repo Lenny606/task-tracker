@@ -35,15 +35,14 @@ async function discoverGitProjects(): Promise<string[]> {
 export const getServerCommits = createServerFn({
   method: 'GET',
 })
-  .validator((d: { targetDate?: string }) => d)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }: { data?: { targetDate?: string } }) => {
     try {
       const projects = await discoverGitProjects()
       
       if (projects.length === 0) return []
 
       // If no date provided, default to today
-      const dateToFetch = data.targetDate ? new Date(data.targetDate) : new Date()
+      const dateToFetch = data?.targetDate ? new Date(data.targetDate) : new Date()
       
       // Setup start and end boundaries for the git log command
       const startOfDay = new Date(dateToFetch)

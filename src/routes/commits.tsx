@@ -16,8 +16,45 @@ export const Route = createFileRoute('/commits')({
   loader: async ({ deps: { date } }) => {
     return await getServerCommits({ data: { targetDate: date } })
   },
+  pendingComponent: CommitsPendingComponent,
   component: CommitsComponent,
 })
+
+function CommitsPendingComponent() {
+  return (
+    <div className="p-8 max-w-5xl mx-auto w-full min-h-screen">
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-pulse">
+        <div>
+          <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl mb-4"></div>
+          <div className="h-6 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-40 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="hidden lg:block h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+        </div>
+      </div>
+
+      <div className="relative border-l-2 border-slate-200 dark:border-slate-800/60 ml-6 space-y-8 pb-12">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="relative pl-8 animate-pulse">
+            <div className="absolute -left-[11px] top-1.5 w-5 h-5 rounded-full border-4 border-slate-50 dark:border-slate-950 bg-slate-300 dark:bg-slate-700" />
+            <div className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 shadow-sm border border-slate-200/60 dark:border-slate-800/60 h-32">
+              <div className="space-y-4">
+                <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+                <div className="flex gap-4">
+                  <div className="h-6 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+                  <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+                  <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function CommitsComponent() {
   const commits = Route.useLoaderData()
