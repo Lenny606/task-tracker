@@ -7,7 +7,9 @@ export const Route = createFileRoute('/summary')({
 })
 
 function SummaryPage() {
-  const { tasks, getDisplayTime } = useTasks()
+  const { date } = Route.useSearch<{ date?: string }>()
+  const displayDate = date || new Date().toISOString().split('T')[0]
+  const { tasks, getDisplayTime } = useTasks(displayDate)
 
   const liveTasks = tasks.map(t => ({
     ...t,
@@ -34,18 +36,18 @@ function SummaryPage() {
   const isGoalReached = totalSeconds >= WORK_GOAL_SECONDS
   const totalProgress = Math.min(100, (totalSeconds / WORK_GOAL_SECONDS) * 100)
 
-
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
       <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-            Daily Summary
+            {displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Overview of your productivity today.
+            {displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
           </p>
         </div>
+
         
         <div className="flex flex-col items-end gap-2">
           <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>

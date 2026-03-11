@@ -18,6 +18,13 @@ const notify = () => {
   listeners.forEach((listener) => listener([...toasts]))
 }
 
+// Request notification permission on initialization if supported
+if (typeof window !== 'undefined' && 'Notification' in window) {
+  if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    Notification.requestPermission()
+  }
+}
+
 export const toast = {
   subscribe: (listener: ToastListener) => {
     listeners.add(listener)
@@ -30,6 +37,14 @@ export const toast = {
     const newToast = { id, message, type, duration }
     toasts = [...toasts, newToast]
     notify()
+
+    // Handle background notifications
+    if (typeof document !== 'undefined' && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification('TimeTrack Alert', {
+        body: message,
+        icon: '/favicon.ico', // Assuming there's a favicon
+      })
+    }
 
     if (duration > 0) {
       setTimeout(() => {

@@ -1,5 +1,5 @@
+import { LayoutDashboard, BarChart3, Clock, Settings, History } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { LayoutDashboard, BarChart3, Clock, Settings } from 'lucide-react'
 
 export function Sidebar() {
   return (
@@ -29,16 +29,27 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Summary</span>
+          <span className="font-semibold tracking-wide">Today's Summary</span>
         </Link>
       </nav>
 
-      <div className="p-6 border-t border-slate-900">
+      <div className="p-6 border-t border-slate-900 space-y-1">
+        <Link
+          to="/history"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">History</span>
+        </Link>
+        
         <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-500 group">
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           <span className="font-medium">Settings</span>
         </button>
       </div>
+
+
     </aside>
 
   )

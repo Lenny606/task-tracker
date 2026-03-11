@@ -3,10 +3,10 @@ import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 import { toast, type Toast as ToastType } from '../store/toastStore'
 
 const toastIcons = {
-  success: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-  error: <AlertCircle className="w-5 h-5 text-red-500" />,
-  info: <Info className="w-5 h-5 text-indigo-500" />,
-  warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
+  success: <CheckCircle2 className="w-6 h-6 text-emerald-500" />,
+  error: <AlertCircle className="w-6 h-6 text-red-500" />,
+  info: <Info className="w-6 h-6 text-indigo-500" />,
+  warning: <AlertTriangle className="w-6 h-6 text-amber-500" />,
 }
 
 const toastStyles = {
@@ -27,17 +27,17 @@ export function Toast({ id, message, type }: ToastType) {
 
   return (
     <div
-      className={`flex items-center gap-3 p-4 rounded-xl border backdrop-blur-md shadow-lg transition-all duration-300 transform ${
+      className={`flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-md shadow-xl transition-all duration-300 transform ${
         isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'
       } ${toastStyles[type]}`}
     >
       <div className="shrink-0">{toastIcons[type]}</div>
-      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{message}</p>
+      <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{message}</p>
       <button
         onClick={() => toast.dismiss(id)}
-        className="ml-auto p-1 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 transition-colors"
+        className="ml-auto p-1.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 transition-colors"
       >
-        <X className="w-4 h-4" />
+        <X className="w-5 h-5" />
       </button>
     </div>
   )
