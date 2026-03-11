@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { Calendar, ChevronRight, Clock, Timer } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Timer, Trash2 } from 'lucide-react'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPage,
 })
 
 function HistoryPage() {
-  const { history } = useTasks()
+  const { history, deleteHistoryDay } = useTasks()
   
   const sortedDates = Object.keys(history).sort().reverse()
 
@@ -76,8 +76,23 @@ function HistoryPage() {
                     </div>
                   </div>
                   
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all">
-                    <ChevronRight size={32} />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (confirm(`Are you sure you want to delete the history for ${date}?`)) {
+                          deleteHistoryDay.mutate(date)
+                        }
+                      }}
+                      className="w-12 h-12 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all z-10 relative"
+                      title="Delete day"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all">
+                      <ChevronRight size={32} />
+                    </div>
                   </div>
                 </div>
               </Link>

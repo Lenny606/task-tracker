@@ -119,6 +119,16 @@ export function useTasks(date: string = getTodayDate()) {
     return task.totalSeconds + extra
   }
 
+  const deleteHistoryDay = useMutation({
+    mutationFn: async (dateToDelete: string) => {
+      const history = getHistoryData()
+      delete history[dateToDelete]
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+      return history
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   return {
     tasks,
     history,
@@ -126,6 +136,7 @@ export function useTasks(date: string = getTodayDate()) {
     toggleTask,
     resetTask,
     deleteTask,
+    deleteHistoryDay,
     getDisplayTime,
   }
 }
