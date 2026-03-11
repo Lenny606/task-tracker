@@ -63,7 +63,7 @@ export const getServerCommits = createServerFn({
       const fetchPromises = projects.map(async (projectPath) => {
         try {
           const projectName = path.basename(projectPath)
-          const { stdout } = await execAsync(`cd ${projectPath} && ${gitCmd}`)
+          const { stdout } = await execAsync(`cd ${projectPath} && ${gitCmd} 2>/dev/null`)
           
           if (!stdout) return
           

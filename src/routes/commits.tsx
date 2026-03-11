@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar } from 'lucide-react'
+import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkles, Loader2, Copy, Check } from 'lucide-react'
 import { getServerCommits } from '../services/git'
+import { aiService } from '../services/ai'
+import { useState } from 'react'
 
 type CommitsSearch = {
   date?: string
@@ -60,6 +62,36 @@ function CommitsComponent() {
   const commits = Route.useLoaderData()
   const { date } = Route.useSearch()
   const navigate = Route.useNavigate()
+  
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleAnalyze = async () => {
+    if (!aiService.isConfigured()) {
+      alert('AI Service is not configured. Please set VITE_GEMINI_API_KEY in your .env file.')
+      return
+    }
+
+    setIsAnalyzing(true)
+    try {
+      const result = await aiService.analyzeCommitsForJira(commits)
+      setAnalysisResult(result)
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      alert('Failed to analyze commits. Check console for details.')
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleCopy = () => {
+    if (analysisResult) {
+      navigator.clipboard.writeText(analysisResult)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     navigate({
@@ -105,8 +137,53 @@ function CommitsComponent() {
               {commits.length} Commits
             </span>
           </div>
+
+          <button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || commits.length === 0}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-sm
+              ${isAnalyzing || commits.length === 0 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
+              }
+            `}
+          >
+            {isAnalyzing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Sparkles className="w-5 h-5" />
+            )}
+            Analyze with AI
+          </button>
         </div>
       </div>
+
+      {analysisResult && (
+        <div className="mb-10 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-950/20 dark:to-indigo-950/20 rounded-3xl p-1 shadow-xl ring-1 ring-violet-200/50 dark:ring-violet-500/20 overflow-hidden">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[calc(1.5rem-1px)] p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div className="p-2 bg-violet-100 dark:bg-violet-900/40 rounded-lg">
+                  <Sparkles className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                </div>
+                JIRA Task Description
+              </h2>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-sm font-semibold text-slate-700 dark:text-slate-200"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy to Clipboard'}
+              </button>
+            </div>
+            <div className="prose prose-slate dark:prose-invert max-w-none">
+              <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent p-0 border-none m-0 overflow-visible">
+                {analysisResult}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative border-l-2 border-slate-200 dark:border-slate-800/60 ml-6 space-y-8 pb-12">
         {commits.map((commit, index) => {

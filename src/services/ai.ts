@@ -1,4 +1,5 @@
 import { createOpenaiChat } from '@tanstack/ai-openai'
+import type { GitCommit } from './git'
 
 /**
  * AI Service configuration for Gemini's OpenAI-compatible endpoint.
@@ -8,15 +9,17 @@ import { createOpenaiChat } from '@tanstack/ai-openai'
  */
 
 export const AI_MODELS = {
-    GEMINI_3_0_FLASH: 'gemini-3.0-flash',
+  GEMINI_3_0_FLASH: 'gemini-3.0-flash',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || ''
+const getGeminiApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || ''
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
-if (!GEMINI_API_KEY) {
+const isConfigured = () => !!getGeminiApiKey()
+
+if (!isConfigured()) {
   console.warn(
     'VITE_GEMINI_API_KEY is not defined. AI features will not work until an API key is provided.'
   )
@@ -26,23 +29,72 @@ if (!GEMINI_API_KEY) {
  * Configured OpenAI text adapter pointing to Gemini.
  * We use createOpenaiChat to explicitly provide the API key and baseURL.
  */
-export const aiAdapter = createOpenaiChat(
+/**
+ * Configured OpenAI text adapter pointing to Gemini.
+ */
+export const getAiAdapter = () => createOpenaiChat(
   AI_MODELS.GEMINI_1_5_FLASH,
-  GEMINI_API_KEY || 'no-key-provided',
+  getGeminiApiKey() || 'no-key-provided',
   {
     baseURL: GEMINI_BASE_URL,
     dangerouslyAllowBrowser: true,
   }
 )
 
+import { chat } from '@tanstack/ai'
+
 /**
  * Service to interact with the AI agent
  */
 export const aiService = {
-  getAdapter: () => aiAdapter,
-  
+  getAdapter: () => getAiAdapter(),
+
   /**
    * Helper to check if AI is configured
    */
-  isConfigured: () => !!GEMINI_API_KEY,
+  isConfigured,
+
+  /**
+   * Simple client to send prompts to LLM
+   */
+  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_1_5_FLASH) => {
+    if (!isConfigured()) {
+      throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
+    }
+
+    return await chat({
+      adapter: getAiAdapter(),
+      messages: [{ role: 'user', content: prompt }],
+      stream: false,
+    })
+  },
+
+  /**
+   * Analyzes commits for Tomas Kravcik and formats them for JIRA
+   */
+  analyzeCommitsForJira: async (commits: GitCommit[]) => {
+    // First filter every user except Tomas Kravcik
+    const tomasCommits = commits.filter(c => c.authorName === 'Tomas Kravcik')
+
+    if (tomasCommits.length === 0) {
+      return "No commits found for Tomas Kravcik in the provided data."
+    }
+
+    // Format commit data for the prompt
+    const commitData = tomasCommits.map(c =>
+      `- [${c.projectName}] ${c.message} (${c.hash.substring(0, 7)})`
+    ).join('\n')
+
+    const prompt = `
+Analyze the following git commits from Tomas Kravcik and generate a concise, professional JIRA task description. 
+The description should summarize the work done, group it by project if applicable, and use a clear "Main Objectives" and "Implementation Details" structure.
+
+Git Commits:
+${commitData}
+
+Formatted JIRA Description:
+`
+
+    return await aiService.generateText(prompt, AI_MODELS.GEMINI_1_5_PRO)
+  }
 }
