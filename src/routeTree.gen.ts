@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as CommitsRouteImport } from './routes/commits'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommitsRoute = CommitsRouteImport.update({
+  id: '/commits',
+  path: '/commits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/history' | '/summary'
+  fullPaths: '/' | '/about' | '/commits' | '/history' | '/summary'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/history' | '/summary'
-  id: '__root__' | '/' | '/about' | '/history' | '/summary'
+  to: '/' | '/about' | '/commits' | '/history' | '/summary'
+  id: '__root__' | '/' | '/about' | '/commits' | '/history' | '/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CommitsRoute: typeof CommitsRoute
   HistoryRoute: typeof HistoryRoute
   SummaryRoute: typeof SummaryRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/commits': {
+      id: '/commits'
+      path: '/commits'
+      fullPath: '/commits'
+      preLoaderRoute: typeof CommitsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CommitsRoute: CommitsRoute,
   HistoryRoute: HistoryRoute,
   SummaryRoute: SummaryRoute,
 }

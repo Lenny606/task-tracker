@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 export function Sidebar() {
@@ -34,6 +34,15 @@ export function Sidebar() {
       </nav>
 
       <div className="p-6 border-t border-slate-900 space-y-1">
+        <Link
+          to="/commits"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <GitCommit className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Commits</span>
+        </Link>
+
         <Link
           to="/history"
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
