@@ -1,4 +1,5 @@
-import { createOpenaiChat } from '@tanstack/ai-openai'
+import { chat } from '@tanstack/ai'
+import { createGeminiChat } from '@tanstack/ai-gemini'
 import type { GitCommit } from './git'
 
 /**
@@ -17,7 +18,9 @@ export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
 const getGeminiApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || ''
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
-const isConfigured = () => !!getGeminiApiKey()
+let adapterInstance: ReturnType<typeof createGeminiChat> | null = null
+
+export const isConfigured = () => !!getGeminiApiKey()
 
 if (!isConfigured()) {
   console.warn(
@@ -26,22 +29,32 @@ if (!isConfigured()) {
 }
 
 /**
- * Configured OpenAI text adapter pointing to Gemini.
- * We use createOpenaiChat to explicitly provide the API key and baseURL.
+ * Returns a configured Gemini adapter instance.
+ * Uses a singleton pattern to reuse the same instance across the application.
+ * @throws Error if the API key is not configured when called.
  */
-/**
- * Configured OpenAI text adapter pointing to Gemini.
- */
-export const getAiAdapter = () => createOpenaiChat(
-  AI_MODELS.GEMINI_1_5_FLASH,
-  getGeminiApiKey() || 'no-key-provided',
-  {
-    baseURL: GEMINI_BASE_URL,
-    dangerouslyAllowBrowser: true,
-  }
-)
+export const getAiAdapter = () => {
+  if (adapterInstance) return adapterInstance
 
-import { chat } from '@tanstack/ai'
+  const apiKey = getGeminiApiKey()
+  
+  if (!apiKey) {
+    throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
+  }
+
+  adapterInstance = createGeminiChat(
+    AI_MODELS.GEMINI_3_0_FLASH,
+    apiKey,
+    {
+      baseURL: GEMINI_BASE_URL,
+      dangerouslyAllowBrowser: true,
+    }
+  )
+
+  return adapterInstance
+}
+
+
 
 /**
  * Service to interact with the AI agent
@@ -57,7 +70,7 @@ export const aiService = {
   /**
    * Simple client to send prompts to LLM
    */
-  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_1_5_FLASH) => {
+  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_3_0_FLASH) => {
     if (!isConfigured()) {
       throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
     }
@@ -95,6 +108,6 @@ ${commitData}
 Formatted JIRA Description:
 `
 
-    return await aiService.generateText(prompt, AI_MODELS.GEMINI_1_5_PRO)
+    return await aiService.generateText(prompt, AI_MODELS.GEMINI_3_0_FLASH)
   }
 }
