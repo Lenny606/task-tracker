@@ -14,8 +14,13 @@ const OLD_STORAGE_KEY = 'task-tracker-tasks'
 
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
+export interface DayData {
+  tasks: Task[]
+  aiSummary?: string
+}
+
 interface HistoryData {
-  [date: string]: Task[]
+  [date: string]: DayData
 }
 
 const getHistoryData = (): HistoryData => {
@@ -27,19 +32,46 @@ const getHistoryData = (): HistoryData => {
     const oldData = localStorage.getItem(OLD_STORAGE_KEY)
     if (oldData) {
       const tasks = JSON.parse(oldData)
-      const migrated = { [getTodayDate()]: tasks }
+      const migrated = { [getTodayDate()]: { tasks } }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
       return migrated
     }
     return {}
   }
   
-  return JSON.parse(stored)
+  const data = JSON.parse(stored)
+  
+  // Migrate from Task[] to DayData if needed
+  let hasMigrated = false
+  const migratedData: HistoryData = {}
+  
+  Object.entries(data).forEach(([date, value]) => {
+    if (Array.isArray(value)) {
+      migratedData[date] = { tasks: value }
+      hasMigrated = true
+    } else {
+      migratedData[date] = value as DayData
+    }
+  })
+
+  if (hasMigrated) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migratedData))
+  }
+  
+  return migratedData
 }
 
 const saveTasksForDate = (date: string, tasks: Task[]) => {
   const history = getHistoryData()
-  history[date] = tasks
+  const dayData = history[date] || { tasks: [] }
+  history[date] = { ...dayData, tasks }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+}
+
+const saveAiSummaryForDate = (date: string, aiSummary: string) => {
+  const history = getHistoryData()
+  const dayData = history[date] || { tasks: [] }
+  history[date] = { ...dayData, aiSummary }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
 }
 
@@ -51,7 +83,8 @@ export function useTasks(date: string = getTodayDate()) {
     queryFn: getHistoryData,
   })
 
-  const tasks = history[date] || []
+  const tasks = history[date]?.tasks || []
+  const aiSummary = history[date]?.aiSummary
 
   const [now, setNow] = useState(Date.now())
 
@@ -113,6 +146,14 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const saveAiSummary = useMutation({
+    mutationFn: async (summary: string) => {
+      saveAiSummaryForDate(date, summary)
+      return summary
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   const getDisplayTime = (task: Task) => {
     if (!task.isRunning || !task.startTime) return task.totalSeconds
     const extra = Math.floor((now - task.startTime) / 1000)
@@ -131,11 +172,13 @@ export function useTasks(date: string = getTodayDate()) {
 
   return {
     tasks,
+    aiSummary,
     history,
     addTask,
     toggleTask,
     resetTask,
     deleteTask,
+    saveAiSummary,
     deleteHistoryDay,
     getDisplayTime,
   }

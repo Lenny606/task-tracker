@@ -1,6 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Timer } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Timer, Sparkles, Loader2, FileText, RotateCcw } from 'lucide-react'
+import { aiService } from '../services/ai'
+import { getServerCommits } from '../services/git'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -9,7 +12,9 @@ export const Route = createFileRoute('/summary')({
 function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const displayDate = date || new Date().toISOString().split('T')[0]
-  const { tasks, getDisplayTime } = useTasks(displayDate)
+  const { tasks, getDisplayTime, aiSummary, saveAiSummary } = useTasks(displayDate)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const liveTasks = tasks.map(t => ({
     ...t,
@@ -29,6 +34,21 @@ function SummaryPage() {
     const m = Math.floor((seconds % 3600) / 60)
     const s = seconds % 60
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleGenerateSummary = async () => {
+    setIsGenerating(true)
+    setError(null)
+    try {
+      const commits = await getServerCommits({ data: { targetDate: displayDate } })
+      const summary = await aiService.analyzeCommitsForJira(commits)
+      saveAiSummary.mutate(summary)
+    } catch (err) {
+      console.error('Failed to generate summary:', err)
+      setError('Failed to generate AI summary. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const WORK_GOAL_SECONDS = 8 * 3600 // 8 hours
@@ -102,7 +122,67 @@ function SummaryPage() {
         </div>
       </div>
 
+      {/* AI Summary Section */}
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-indigo-500" />
+            AI Commits Summary
+          </h2>
+          {!aiSummary && !isGenerating && (
+            <button
+              onClick={handleGenerateSummary}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+            >
+              <Sparkles size={18} />
+              Generate JIRA Summary
+            </button>
+          )}
+        </div>
 
+        {isGenerating ? (
+          <div className="glass-panel p-12 rounded-3xl text-center border-dashed border-indigo-200 dark:border-indigo-900">
+            <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
+            <p className="text-slate-500 font-medium">Analyzing your commits and generating a professional summary...</p>
+          </div>
+        ) : aiSummary ? (
+          <div className="glass-panel p-8 rounded-3xl border-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-900/10 relative group">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                <FileText size={20} />
+              </div>
+              <div className="flex-1">
+                <div className="prose prose-slate dark:prose-invert max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
+                    {aiSummary}
+                  </pre>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleGenerateSummary}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100"
+              title="Regenerate Summary"
+            >
+              <RotateCcw size={18} />
+            </button>
+          </div>
+        ) : error ? (
+          <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl text-red-600 dark:text-red-400 flex items-center justify-between">
+            <p className="font-medium">{error}</p>
+            <button
+              onClick={handleGenerateSummary}
+              className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-500 transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <div className="glass-panel p-10 rounded-3xl text-center border-dashed border-slate-200 dark:border-slate-800">
+            <p className="text-slate-400">Generate a professional JIRA summary based on your git activity for this day.</p>
+          </div>
+        )}
+      </div>
 
       {/* Breakdown Table */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -154,4 +234,5 @@ function SummaryPage() {
     </div>
   )
 }
+
 

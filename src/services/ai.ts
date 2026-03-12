@@ -70,7 +70,7 @@ export const aiService = {
   /**
    * Simple client to send prompts to LLM
    */
-  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_3_0_FLASH) => {
+  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_2_5_FLASH) => {
     if (!isConfigured()) {
       throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
     }
@@ -99,7 +99,7 @@ export const aiService = {
     ).join('\n')
 
     const prompt = `
-Analyze the following git commits from Tomas Kravcik and generate a concise, professional JIRA task description. 
+Analyze the following git commits from Tomas Kravcik and generate a concise, professional JIRA task description. Make it structured and easy to read.
 The description should summarize the work done, group it by project if applicable, and use a clear "Main Objectives" and "Implementation Details" structure.
 
 Git Commits:
@@ -108,6 +108,6 @@ ${commitData}
 Formatted JIRA Description:
 `
 
-    return await aiService.generateText(prompt, AI_MODELS.GEMINI_3_0_FLASH)
+    return await aiService.generateText(prompt, AI_MODELS.GEMINI_2_5_FLASH)
   }
 }
