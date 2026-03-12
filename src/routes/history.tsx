@@ -36,9 +36,10 @@ function HistoryPage() {
           </div>
         ) : (
           sortedDates.map((date) => {
-            const dayTasks = history[date]
-            const totalSeconds = dayTasks.reduce((acc, t) => acc + t.totalSeconds, 0)
-            const taskCount = dayTasks.length
+            const dayData = history[date]
+            const tasks = dayData?.tasks || []
+            const totalSeconds = tasks.reduce((acc, t) => acc + t.totalSeconds, 0)
+            const taskCount = tasks.length
             
             return (
               <Link

@@ -22,7 +22,7 @@ function SummaryPage() {
   }))
 
   const totalSeconds = liveTasks.reduce((acc, t) => acc + t.displaySeconds, 0)
-  
+
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
     const m = Math.floor((seconds % 3600) / 60)
@@ -68,11 +68,11 @@ function SummaryPage() {
           </p>
         </div>
 
-        
+
         <div className="flex flex-col items-end gap-2">
           <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
           <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-            <div 
+            <div
               className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
               style={{ width: `${totalProgress}%` }}
             />
@@ -152,7 +152,7 @@ function SummaryPage() {
                 <FileText size={20} />
               </div>
               <div className="flex-1">
-                <div className="prose prose-slate dark:prose-invert max-w-none">
+                <div className=" prose-slate dark:prose-invert max-w-none">
                   <pre className="whitespace-pre-wrap font-sans text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
                     {aiSummary}
                   </pre>
@@ -215,8 +215,8 @@ function SummaryPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-indigo-500 rounded-full" 
+                            <div
+                              className="h-full bg-indigo-500 rounded-full"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>

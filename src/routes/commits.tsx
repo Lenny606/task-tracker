@@ -30,7 +30,7 @@ function CommitsPendingComponent() {
           <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl mb-4"></div>
           <div className="h-6 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="h-10 w-40 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
           <div className="hidden lg:block h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
@@ -62,7 +62,7 @@ function CommitsComponent() {
   const commits = Route.useLoaderData()
   const { date } = Route.useSearch()
   const navigate = Route.useNavigate()
-  
+
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -117,14 +117,14 @@ function CommitsComponent() {
             Review the latest changes from all your projects.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm p-1 transition-all focus-within:ring-violet-500">
             <div className="pl-3 pr-2 text-slate-400">
               <Calendar className="w-5 h-5" />
             </div>
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={currentDateValue}
               onChange={handleDateChange}
               className="bg-transparent border-none text-slate-700 dark:text-slate-200 font-medium py-2 pr-4 focus:ring-0 outline-none"
@@ -142,8 +142,8 @@ function CommitsComponent() {
             onClick={handleAnalyze}
             disabled={isAnalyzing || commits.length === 0}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-sm
-              ${isAnalyzing || commits.length === 0 
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' 
+              ${isAnalyzing || commits.length === 0
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
               }
             `}
@@ -176,7 +176,7 @@ function CommitsComponent() {
                 {copied ? 'Copied!' : 'Copy to Clipboard'}
               </button>
             </div>
-            <div className="prose prose-slate dark:prose-invert max-w-none">
+            <div className="prose-slate dark:prose-invert max-w-none">
               <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent p-0 border-none m-0 overflow-visible">
                 {analysisResult}
               </pre>
@@ -192,30 +192,30 @@ function CommitsComponent() {
 
           return (
             <div key={`${commit.projectName}-${commit.hash}`} className="relative pl-8 group">
-              <div 
+              <div
                 className={`absolute -left-[11px] top-1.5 w-5 h-5 rounded-full border-4 border-slate-50 dark:border-slate-950 transition-colors
                   ${isLatest ? 'bg-violet-500 ring-4 ring-violet-500/20' : 'bg-slate-300 dark:bg-slate-700 group-hover:bg-violet-400'}
-                `} 
+                `}
               />
-              
+
               <div className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 shadow-sm border border-slate-200/60 dark:border-slate-800/60 hover:shadow-md hover:border-violet-500/30 transition-all duration-300 backdrop-blur-sm">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-3 flex-1">
                     <p className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">
                       {commit.message}
                     </p>
-                    
+
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
-                     <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg ring-1 ring-indigo-500/20">
+                      <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg ring-1 ring-indigo-500/20">
                         <Folder className="w-4 h-4" />
                         <span className="font-semibold">{commit.projectName}</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg">
                         <User className="w-4 h-4" />
                         <span className="font-medium text-slate-700 dark:text-slate-300">{commit.authorName}</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         <time dateTime={commit.date} className="font-medium">
