@@ -10,7 +10,7 @@ import type { GitCommit } from './git'
  */
 
 export const AI_MODELS = {
-  GEMINI_3_0_FLASH: 'gemini-3.0-flash',
+  GEMINI_2_5_FLASH: 'gemini-2.5-flash',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
@@ -37,13 +37,13 @@ export const getAiAdapter = () => {
   if (adapterInstance) return adapterInstance
 
   const apiKey = getGeminiApiKey()
-  
+
   if (!apiKey) {
     throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
   }
 
   adapterInstance = createGeminiChat(
-    AI_MODELS.GEMINI_3_0_FLASH,
+    AI_MODELS.GEMINI_2_5_FLASH,
     apiKey,
     {
       baseURL: GEMINI_BASE_URL,
