@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning'
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'loading' | 'celebrate' | 'delete' | 'reminder' | 'star'
 
 export interface Toast {
   id: string
@@ -57,6 +57,11 @@ export const toast = {
   error: (message: string, duration?: number) => toast.show(message, 'error', duration),
   info: (message: string, duration?: number) => toast.show(message, 'info', duration),
   warning: (message: string, duration?: number) => toast.show(message, 'warning', duration),
+  loading: (message: string, duration?: number) => toast.show(message, 'loading', duration),
+  celebrate: (message: string, duration?: number) => toast.show(message, 'celebrate', duration),
+  delete: (message: string, duration?: number) => toast.show(message, 'delete', duration),
+  reminder: (message: string, duration?: number) => toast.show(message, 'reminder', duration),
+  star: (message: string, duration?: number) => toast.show(message, 'star', duration),
 
   dismiss: (id: string) => {
     toasts = toasts.filter((t) => t.id !== id)
