@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { Sidebar } from '../Sidebar'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // A simple mock for Link component since we are not rendering within a Router
 // We might need a better wrapper if components rely heavily on router context
@@ -11,9 +12,15 @@ vi.mock('@tanstack/react-router', () => ({
   useRouterState: () => ({ location: { pathname: '/' } }),
 }))
 
+const queryClient = new QueryClient()
+
 describe('Sidebar Component', () => {
   it('renders the sidebar navigation links', () => {
-    render(<Sidebar />)
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Sidebar />
+      </QueryClientProvider>
+    )
     
     expect(screen.getByText('TimeTrack')).toBeInTheDocument()
     expect(screen.getByText('Dashboard')).toBeInTheDocument()

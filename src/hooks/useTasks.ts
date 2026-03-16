@@ -9,6 +9,12 @@ export interface Task {
   startTime?: number
 }
 
+export interface GlobalTimer {
+  totalSeconds: number
+  isRunning: boolean
+  startTime?: number
+}
+
 const STORAGE_KEY = 'task-tracker-history'
 const OLD_STORAGE_KEY = 'task-tracker-tasks'
 
@@ -16,6 +22,7 @@ const getTodayDate = () => new Date().toISOString().split('T')[0]
 
 export interface DayData {
   tasks: Task[]
+  globalTimer?: GlobalTimer
   aiSummary?: string
 }
 
@@ -68,6 +75,13 @@ const saveTasksForDate = (date: string, tasks: Task[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
 }
 
+const saveGlobalTimerForDate = (date: string, globalTimer: GlobalTimer) => {
+  const history = getHistoryData()
+  const dayData = history[date] || { tasks: [] }
+  history[date] = { ...dayData, globalTimer }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+}
+
 const saveAiSummaryForDate = (date: string, aiSummary: string) => {
   const history = getHistoryData()
   const dayData = history[date] || { tasks: [] }
@@ -76,16 +90,6 @@ const saveAiSummaryForDate = (date: string, aiSummary: string) => {
 }
 
 export function useTasks(date: string = getTodayDate()) {
-  const queryClient = useQueryClient()
-
-  const { data: history = {} } = useQuery({
-    queryKey: ['history'],
-    queryFn: getHistoryData,
-  })
-
-  const tasks = history[date]?.tasks || []
-  const aiSummary = history[date]?.aiSummary
-
   const [now, setNow] = useState(Date.now())
 
   useEffect(() => {
@@ -94,6 +98,17 @@ export function useTasks(date: string = getTodayDate()) {
     }, 1000)
     return () => clearInterval(interval)
   }, [])
+
+  const queryClient = useQueryClient()
+
+  const { data: history = {} } = useQuery({
+    queryKey: ['history'],
+    queryFn: getHistoryData,
+  })
+
+  const tasks = history[date]?.tasks || []
+  const globalTimer = history[date]?.globalTimer || { totalSeconds: 0, isRunning: false }
+  const aiSummary = history[date]?.aiSummary
 
   const addTask = useMutation({
     mutationFn: async (name: string) => {
@@ -146,6 +161,30 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const toggleGlobalTimer = useMutation({
+    mutationFn: async () => {
+      let newTimer: GlobalTimer
+      if (globalTimer.isRunning) {
+        const elapsed = Math.floor((Date.now() - (globalTimer.startTime || Date.now())) / 1000)
+        newTimer = {
+          ...globalTimer,
+          isRunning: false,
+          totalSeconds: globalTimer.totalSeconds + elapsed,
+          startTime: undefined,
+        }
+      } else {
+        newTimer = {
+          ...globalTimer,
+          isRunning: true,
+          startTime: Date.now(),
+        }
+      }
+      saveGlobalTimerForDate(date, newTimer)
+      return newTimer
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   const saveAiSummary = useMutation({
     mutationFn: async (summary: string) => {
       saveAiSummaryForDate(date, summary)
@@ -160,6 +199,12 @@ export function useTasks(date: string = getTodayDate()) {
     return task.totalSeconds + extra
   }
 
+  const getDisplayGlobalTime = (timer: GlobalTimer) => {
+    if (!timer.isRunning || !timer.startTime) return timer.totalSeconds
+    const extra = Math.floor((now - timer.startTime) / 1000)
+    return timer.totalSeconds + extra
+  }
+
   const deleteHistoryDay = useMutation({
     mutationFn: async (dateToDelete: string) => {
       const history = getHistoryData()
@@ -172,15 +217,18 @@ export function useTasks(date: string = getTodayDate()) {
 
   return {
     tasks,
+    globalTimer,
     aiSummary,
     history,
     addTask,
     toggleTask,
     resetTask,
     deleteTask,
+    toggleGlobalTimer,
     saveAiSummary,
     deleteHistoryDay,
     getDisplayTime,
+    getDisplayGlobalTime,
   }
 }
 

@@ -14,6 +14,8 @@ export interface MyRouterContext {
   queryClient: QueryClient
 }
 
+import { NotFound } from '../components/NotFound'
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     meta: [
@@ -25,17 +27,34 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', type: 'image/png', href: '/favicon.png' },
     ],
-
   }),
   shellComponent: RootDocument,
   component: RootComponent,
+  notFoundComponent: NotFound,
 })
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 ml-64 min-h-screen">
+          <Outlet />
+        </main>
+      </div>
+      <ToastContainer />
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+        ]}
+      />
     </QueryClientProvider>
   )
 }
@@ -49,27 +68,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-100 dark:selection:bg-indigo-900/40">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 ml-64 min-h-screen">
-            {children}
-          </main>
-
-        </div>
-        <ToastContainer />
-
-
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {children}
         <Scripts />
       </body>
     </html>

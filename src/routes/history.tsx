@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { Calendar, ChevronRight, Clock, Timer, Trash2 } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3 } from 'lucide-react'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPage,
@@ -64,13 +64,22 @@ function HistoryPage() {
                         })}
                       </h3>
                       <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400 font-medium">
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1.5" title="Tasks time">
                           <Timer className="w-4 h-4" />
                           {formatTime(totalSeconds)}
                         </span>
+                        {dayData?.globalTimer && (
+                          <>
+                            <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                            <span className="flex items-center gap-1.5 text-indigo-500 dark:text-indigo-400" title="Global time">
+                              <Clock className="w-4 h-4" />
+                              {formatTime(dayData.globalTimer.totalSeconds)}
+                            </span>
+                          </>
+                        )}
                         <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4" />
+                        <span className="flex items-center gap-1.5" title="Task count">
+                          <BarChart3 className="w-4 h-4" />
                           {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
                         </span>
                       </div>

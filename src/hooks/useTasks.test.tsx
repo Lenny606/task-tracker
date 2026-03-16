@@ -89,4 +89,34 @@ describe('useTasks', () => {
     expect(result.tasks[0].isRunning).toBe(false)
     expect(result.tasks[0].totalSeconds).toBeGreaterThanOrEqual(0)
   })
+
+  it('can toggle global timer', async () => {
+    let result: any
+    function TestComponent() {
+      result = useTasks()
+      return <div>Global Timer Running: {String(result.globalTimer.isRunning)}</div>
+    }
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TestComponent />
+      </QueryClientProvider>
+    )
+
+    expect(result.globalTimer.isRunning).toBe(false)
+
+    await act(async () => {
+      await result.toggleGlobalTimer.mutateAsync()
+    })
+
+    expect(result.globalTimer.isRunning).toBe(true)
+    expect(result.globalTimer.startTime).toBeDefined()
+
+    await act(async () => {
+      await result.toggleGlobalTimer.mutateAsync()
+    })
+
+    expect(result.globalTimer.isRunning).toBe(false)
+    expect(result.globalTimer.totalSeconds).toBeGreaterThanOrEqual(0)
+  })
 })

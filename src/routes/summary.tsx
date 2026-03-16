@@ -12,7 +12,7 @@ export const Route = createFileRoute('/summary')({
 function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const displayDate = date || new Date().toISOString().split('T')[0]
-  const { tasks, getDisplayTime, aiSummary, saveAiSummary } = useTasks(displayDate)
+  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary } = useTasks(displayDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -22,6 +22,7 @@ function SummaryPage() {
   }))
 
   const totalSeconds = liveTasks.reduce((acc, t) => acc + t.displaySeconds, 0)
+  const globalSeconds = getDisplayGlobalTime(globalTimer)
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -83,11 +84,19 @@ function SummaryPage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
+        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ring-2 ring-indigo-500/10">
           <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Global Tracked Time</div>
+          <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono tabular-nums">{formatFullTime(globalSeconds)}</div>
+        </div>
+
+        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
+          <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
             <Timer className="w-6 h-6" />
           </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Time Tracked</div>
+          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Time Sum</div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white">{formatTime(totalSeconds)}</div>
         </div>
 
@@ -226,6 +235,15 @@ function SummaryPage() {
                     </tr>
                   )
                 })
+              )}
+              {globalSeconds > 0 && (
+                <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
+                  <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
+                  <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
+                  <td className="px-6 py-6">
+                    <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
