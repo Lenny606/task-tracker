@@ -31,3 +31,6 @@ When building applications with TanStack Start, TanStack Router, and TanStack Qu
 - **DO NOT** use `any`. Leverage the inferred types from `createFileRoute`, `loader`, and router context.
 - Extend `Register` interface if your project manual mapping of router.
 - Use native typescript schemas or `zod` inside the Server Functions to validate data payloads.
+
+## 6. AI CLIENT
+ - **DO NOT** change llm model in `src/services/ai.ts` if not explicitly asked by user.

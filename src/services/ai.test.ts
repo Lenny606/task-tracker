@@ -13,6 +13,6 @@ describe('AI Service', () => {
   })
 
   it('should list common Gemini models', () => {
-    expect(AI_MODELS.GEMINI_3_0_FLASH).toBe('gemini-3.0-flash')
+    expect(AI_MODELS.GEMINI_2_5_FLASH).toBe('gemini-2.5-flash')
   })
 })
