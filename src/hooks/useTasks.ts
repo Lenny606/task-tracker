@@ -161,6 +161,15 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const updateTask = useMutation({
+    mutationFn: async ({ taskId, name }: { taskId: string; name: string }) => {
+      const newTasks = tasks.map((t) => (t.id === taskId ? { ...t, name } : t))
+      saveTasksForDate(date, newTasks)
+      return newTasks
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
       let newTimer: GlobalTimer
@@ -224,6 +233,7 @@ export function useTasks(date: string = getTodayDate()) {
     toggleTask,
     resetTask,
     deleteTask,
+    updateTask,
     toggleGlobalTimer,
     saveAiSummary,
     deleteHistoryDay,

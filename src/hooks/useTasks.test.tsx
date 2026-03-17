@@ -1,122 +1,94 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { useTasks } from './useTasks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      gcTime: 0,
-      retry: false,
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        gcTime: 0,
+        retry: false,
+      },
     },
-  },
-})
+  })
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
 
 describe('useTasks', () => {
   beforeEach(() => {
     localStorage.clear()
-    queryClient.clear()
   })
 
   it('initially returns an empty list', () => {
-    let result: any
-    function TestComponent() {
-      result = useTasks()
-      return <div>Tasks length: {result.tasks.length}</div>
-    }
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
+    })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <TestComponent />
-      </QueryClientProvider>
-    )
-
-    expect(result.tasks).toEqual([])
+    expect(result.current.tasks).toEqual([])
   })
 
   it('can add a task', async () => {
-    let result: any
-    function TestComponent() {
-      result = useTasks()
-      return <div>{result.tasks.length}</div>
-    }
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <TestComponent />
-      </QueryClientProvider>
-    )
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
+    })
     
     await act(async () => {
-      await result.addTask.mutateAsync('Test Task')
+      await result.current.addTask.mutateAsync('Test Task')
     })
 
-    expect(result.tasks.length).toBe(1)
-    expect(result.tasks[0].name).toBe('Test Task')
+    expect(result.current.tasks.length).toBe(1)
+    expect(result.current.tasks[0].name).toBe('Test Task')
   })
 
   it('can toggle a task', async () => {
-    let result: any
-    function TestComponent() {
-      result = useTasks()
-      return <div>{result.tasks.length}</div>
-    }
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <TestComponent />
-      </QueryClientProvider>
-    )
-    
-    await act(async () => {
-      await result.addTask.mutateAsync('Test Task')
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
     })
     
-    const taskId = result.tasks[0].id
-    
     await act(async () => {
-      await result.toggleTask.mutateAsync(taskId)
+      await result.current.addTask.mutateAsync('Test Task')
     })
     
-    expect(result.tasks[0].isRunning).toBe(true)
-    expect(result.tasks[0].startTime).toBeDefined()
+    const taskId = result.current.tasks[0].id
     
     await act(async () => {
-      await result.toggleTask.mutateAsync(taskId)
+      await result.current.toggleTask.mutateAsync(taskId)
     })
     
-    expect(result.tasks[0].isRunning).toBe(false)
-    expect(result.tasks[0].totalSeconds).toBeGreaterThanOrEqual(0)
+    expect(result.current.tasks[0].isRunning).toBe(true)
+    expect(result.current.tasks[0].startTime).toBeDefined()
+    
+    await act(async () => {
+      await result.current.toggleTask.mutateAsync(taskId)
+    })
+    
+    expect(result.current.tasks[0].isRunning).toBe(false)
+    expect(result.current.tasks[0].totalSeconds).toBeGreaterThanOrEqual(0)
   })
 
   it('can toggle global timer', async () => {
-    let result: any
-    function TestComponent() {
-      result = useTasks()
-      return <div>Global Timer Running: {String(result.globalTimer.isRunning)}</div>
-    }
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <TestComponent />
-      </QueryClientProvider>
-    )
-
-    expect(result.globalTimer.isRunning).toBe(false)
-
-    await act(async () => {
-      await result.toggleGlobalTimer.mutateAsync()
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
     })
 
-    expect(result.globalTimer.isRunning).toBe(true)
-    expect(result.globalTimer.startTime).toBeDefined()
+    expect(result.current.globalTimer.isRunning).toBe(false)
 
     await act(async () => {
-      await result.toggleGlobalTimer.mutateAsync()
+      await result.current.toggleGlobalTimer.mutateAsync()
     })
 
-    expect(result.globalTimer.isRunning).toBe(false)
-    expect(result.globalTimer.totalSeconds).toBeGreaterThanOrEqual(0)
+    expect(result.current.globalTimer.isRunning).toBe(true)
+    expect(result.current.globalTimer.startTime).toBeDefined()
+
+    await act(async () => {
+      await result.current.toggleGlobalTimer.mutateAsync()
+    })
+
+    expect(result.current.globalTimer.isRunning).toBe(false)
+    expect(result.current.globalTimer.totalSeconds).toBeGreaterThanOrEqual(0)
   })
 })

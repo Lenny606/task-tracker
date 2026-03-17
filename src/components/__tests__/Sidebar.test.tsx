@@ -12,6 +12,15 @@ vi.mock('@tanstack/react-router', () => ({
   useRouterState: () => ({ location: { pathname: '/' } }),
 }))
 
+vi.mock('../../hooks/useTasks', () => ({
+  useTasks: () => ({
+    globalTimer: { isRunning: false, totalSeconds: 0 },
+    toggleGlobalTimer: { mutate: vi.fn() },
+    updateTask: { mutate: vi.fn() },
+    getDisplayGlobalTime: (t: any) => t.totalSeconds,
+  })
+}))
+
 const queryClient = new QueryClient()
 
 describe('Sidebar Component', () => {

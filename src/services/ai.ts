@@ -10,7 +10,7 @@ import type { GitCommit } from './git'
  */
 
 export const AI_MODELS = {
-  GEMINI_2_5_FLASH: 'gemini-2.5-flash',
+  GEMINI_3_0_FLASH: 'gemini-3.0-flash',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
@@ -43,7 +43,7 @@ export const getAiAdapter = () => {
   }
 
   adapterInstance = createGeminiChat(
-    AI_MODELS.GEMINI_2_5_FLASH,
+    AI_MODELS.GEMINI_3_0_FLASH,
     apiKey,
     {
       baseURL: GEMINI_BASE_URL,
@@ -70,7 +70,7 @@ export const aiService = {
   /**
    * Simple client to send prompts to LLM
    */
-  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_2_5_FLASH) => {
+  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_3_0_FLASH) => {
     if (!isConfigured()) {
       throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
     }
@@ -108,6 +108,6 @@ ${commitData}
 Formatted JIRA Description:
 `
 
-    return await aiService.generateText(prompt, AI_MODELS.GEMINI_2_5_FLASH)
+    return await aiService.generateText(prompt, AI_MODELS.GEMINI_3_0_FLASH)
   }
 }

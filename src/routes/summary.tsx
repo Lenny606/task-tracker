@@ -219,7 +219,25 @@ function SummaryPage() {
                   const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
                   return (
                     <tr key={task.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-200">{task.name}</td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          defaultValue={task.name}
+                          onBlur={(e) => {
+                            if (e.target.value.trim() && e.target.value !== task.name) {
+                              updateTask.mutate({ taskId: task.id, name: e.target.value.trim() })
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              ;(e.target as HTMLInputElement).blur()
+                            }
+                          }}
+                          className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+                        />
+                      </td>
                       <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">{formatFullTime(task.displaySeconds)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">

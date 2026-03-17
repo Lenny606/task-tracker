@@ -51,10 +51,26 @@ function Dashboard() {
                 : 'hover:scale-[1.005] border-transparent'
             }`}
           >
-            <div className="flex flex-col">
-              <span className={`font-semibold text-xl ${task.isRunning ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'}`}>
-                {task.name}
-              </span>
+            <div className="flex flex-col flex-1">
+              <input
+                type="text"
+                defaultValue={task.name}
+                onBlur={(e) => {
+                  if (e.target.value.trim() && e.target.value !== task.name) {
+                    updateTask.mutate({ taskId: task.id, name: e.target.value.trim() })
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    ;(e.target as HTMLInputElement).blur()
+                  }
+                }}
+                className={`font-semibold text-xl bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all ${
+                  task.isRunning ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
+                }`}
+              />
               {task.isRunning && (
                 <span className="text-xs font-bold text-indigo-500 animate-pulse-soft uppercase tracking-wider mt-1 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
