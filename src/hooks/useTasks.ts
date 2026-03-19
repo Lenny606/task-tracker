@@ -198,7 +198,7 @@ export function useTasks(date: string = getTodayDate()) {
       const newTimer: GlobalTimer = {
         isRunning: serverState.isRunning,
         startTime: serverState.startTime,
-        totalSeconds: globalTimer.totalSeconds // totalSeconds is still local-only for now
+        totalSeconds: serverState.accumulatedSeconds || 0
       }
       
       saveGlobalTimerForDate(date, newTimer)
@@ -249,10 +249,10 @@ export function useTasks(date: string = getTodayDate()) {
       
       const newTasksFromExtension = clips.filter((item: any) => !existingIds.has(item.id)).map((item: any) => ({
         id: item.id,
-        name: `[Clip] ${item.title}`,
-        totalSeconds: 0,
+        name: item.isTimerTask ? item.title : `[Clip] ${item.title}`,
+        totalSeconds: item.totalSeconds || 0,
         isRunning: false,
-        isMarked: false,
+        isMarked: item.isTimerTask || false,
         notes: item.notes,
         url: item.url
       }))
@@ -263,6 +263,7 @@ export function useTasks(date: string = getTodayDate()) {
         ...currentGlobalTimer,
         isRunning: timerState.isRunning,
         startTime: timerState.startTime,
+        totalSeconds: timerState.accumulatedSeconds || 0
       }
 
       const updatedTasks = [...dayData.tasks, ...newTasksFromExtension]

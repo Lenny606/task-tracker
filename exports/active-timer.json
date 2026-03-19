@@ -1,5 +1,6 @@
 {
   "isRunning": false,
   "startTime": null,
+  "accumulatedSeconds": 0,
   "taskName": ""
 }

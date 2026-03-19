@@ -1,6 +1,7 @@
 let timerInterval = null;
 let startTime = null;
 let isRunning = false;
+let accumulatedSeconds = 0;
 
 function formatTime(ms) {
   const seconds = Math.floor(ms / 1000);
@@ -12,12 +13,11 @@ function formatTime(ms) {
 
 function updateDisplay() {
   const timerEl = document.getElementById('timer');
+  let totalMs = (accumulatedSeconds || 0) * 1000;
   if (isRunning && startTime) {
-    const elapsed = Date.now() - startTime;
-    timerEl.textContent = formatTime(elapsed);
-  } else {
-    timerEl.textContent = "00:00:00";
+    totalMs += Date.now() - startTime;
   }
+  timerEl.textContent = formatTime(totalMs);
 }
 
 async function syncState() {
@@ -28,12 +28,14 @@ async function syncState() {
     
     isRunning = timerState.isRunning;
     startTime = timerState.startTime;
+    accumulatedSeconds = timerState.accumulatedSeconds || 0;
     
     const toggleBtn = document.getElementById('toggleBtn');
     const playIcon = document.getElementById('play-icon');
     const pauseIcon = document.getElementById('pause-icon');
     const btnText = document.getElementById('btnText');
     const taskInput = document.getElementById('taskName');
+    const activeActions = document.getElementById('active-actions');
     const activeTaskDisplay = document.getElementById('active-task-display');
 
     if (isRunning) {
@@ -43,6 +45,7 @@ async function syncState() {
       btnText.textContent = 'Pause Timer';
       taskInput.style.display = 'none';
       activeTaskDisplay.textContent = timerState.taskName;
+      activeActions.style.display = 'flex';
       
       if (!timerInterval) {
         timerInterval = setInterval(updateDisplay, 1000);
@@ -54,6 +57,13 @@ async function syncState() {
       btnText.textContent = 'Start Timer';
       taskInput.style.display = 'block';
       activeTaskDisplay.textContent = '';
+      
+      // Still show Save button if there was a startTime (paused state)
+      if (startTime) {
+        activeActions.style.display = 'flex';
+      } else {
+        activeActions.style.display = 'none';
+      }
       
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -94,5 +104,38 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       status.textContent = 'Failed to connect to app';
     }
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const status = document.getElementById('status');
+    status.textContent = 'Saving...';
+    try {
+      const response = await fetch('http://localhost:3000/api/extension', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'SAVE_TIMER' }),
+      });
+      if (response.ok) {
+        status.textContent = 'Saved!';
+        setTimeout(() => status.textContent = '', 2000);
+        await syncState();
+      }
+    } catch (err) {
+      status.textContent = 'Error saving timer';
+    }
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to reset the timer without saving?')) return;
+    try {
+      const response = await fetch('http://localhost:3000/api/extension', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'CLEAR_TIMER' }),
+      });
+      if (response.ok) {
+        await syncState();
+      }
+    } catch (err) {}
   });
 });

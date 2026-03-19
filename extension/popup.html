@@ -91,14 +91,28 @@
       background: #4f46e5;
       transform: translateY(-1px);
     }
-    .btn-stop {
-      background: #ef4444;
+    .btn-save {
+      background: #10b981;
       color: white;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      margin-top: 0.5rem;
     }
-    .btn-stop:hover {
-      background: #dc2626;
+    .btn-save:hover {
+      background: #059669;
       transform: translateY(-1px);
+    }
+    .btn-clear {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .btn-clear:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+      color: #ef4444;
     }
     button:active {
       transform: scale(0.98);
@@ -139,6 +153,16 @@
       <svg id="pause-icon" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
       <span id="btnText">Start Timer</span>
     </button>
+
+    <div id="active-actions" style="display:none; flex-direction:column;">
+      <button id="saveBtn" class="btn-save">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save & Complete
+      </button>
+      <button id="clearBtn" class="btn-clear">
+        Reset
+      </button>
+    </div>
 
     <div id="status"></div>
   </div>
