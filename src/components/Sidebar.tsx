@@ -57,11 +57,10 @@ export function Sidebar() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => toggleGlobalTimer.mutate()}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${
-                globalTimer.isRunning
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
                   : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
+                }`}
             >
               {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
             </button>
@@ -90,7 +89,7 @@ export function Sidebar() {
           <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">History</span>
         </Link>
-        
+
         <button className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-500 group">
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           <span className="font-medium">Settings</span>

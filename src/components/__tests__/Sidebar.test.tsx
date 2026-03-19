@@ -30,7 +30,7 @@ describe('Sidebar Component', () => {
         <Sidebar />
       </QueryClientProvider>
     )
-    
+
     expect(screen.getByText('TimeTrack')).toBeInTheDocument()
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText("Today's Summary")).toBeInTheDocument()

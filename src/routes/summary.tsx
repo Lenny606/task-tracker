@@ -232,7 +232,7 @@ function SummaryPage() {
                             if (e.key === 'Enter') {
                               e.preventDefault()
                               e.stopPropagation()
-                              ;(e.target as HTMLInputElement).blur()
+                                ; (e.target as HTMLInputElement).blur()
                             }
                           }}
                           className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
