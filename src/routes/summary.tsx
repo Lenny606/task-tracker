@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Timer, Sparkles, Loader2, FileText, RotateCcw } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/summary')({
 function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const displayDate = date || new Date().toISOString().split('T')[0]
-  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary } = useTasks(displayDate)
+  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary, toggleMarked, updateTask } = useTasks(displayDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -202,6 +202,7 @@ function SummaryPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/50">
+                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-12"></th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
@@ -218,7 +219,24 @@ function SummaryPage() {
                 liveTasks.map((task) => {
                   const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
                   return (
-                    <tr key={task.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                    <tr 
+                      key={task.id} 
+                      className={`transition-colors group ${
+                        task.isMarked 
+                          ? 'bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' 
+                          : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                      }`}
+                    >
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => toggleMarked.mutate(task.id)}
+                          className={`transition-all active:scale-95 ${
+                            task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
+                          }`}
+                        >
+                          {task.isMarked ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                        </button>
+                      </td>
                       <td className="px-6 py-4">
                         <input
                           type="text"
@@ -258,7 +276,7 @@ function SummaryPage() {
                 <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
                   <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
                   <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
-                  <td className="px-6 py-6">
+                  <td className="px-6 py-6" colSpan={2}>
                     <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
                   </td>
                 </tr>

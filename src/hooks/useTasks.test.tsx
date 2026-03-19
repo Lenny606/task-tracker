@@ -91,4 +91,29 @@ describe('useTasks', () => {
     expect(result.current.globalTimer.isRunning).toBe(false)
     expect(result.current.globalTimer.totalSeconds).toBeGreaterThanOrEqual(0)
   })
+
+  it('can toggle marked state', async () => {
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
+    })
+    
+    await act(async () => {
+      await result.current.addTask.mutateAsync('Test Task')
+    })
+    
+    expect(result.current.tasks[0].isMarked).toBe(false)
+    const taskId = result.current.tasks[0].id
+    
+    await act(async () => {
+      await result.current.toggleMarked.mutateAsync(taskId)
+    })
+    
+    expect(result.current.tasks[0].isMarked).toBe(true)
+    
+    await act(async () => {
+      await result.current.toggleMarked.mutateAsync(taskId)
+    })
+    
+    expect(result.current.tasks[0].isMarked).toBe(false)
+  })
 })

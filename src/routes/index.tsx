@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Play, Pause, Plus, RotateCcw, Trash2, Clock } from 'lucide-react'
+import { Play, Pause, Plus, RotateCcw, Trash2, Clock, CheckCircle2, Circle } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 
@@ -10,7 +10,7 @@ export const Route = createFileRoute('/')({
 })
 
 function Dashboard() {
-  const { tasks, addTask, toggleTask, resetTask, deleteTask, getDisplayTime } = useTasks()
+  const { tasks, addTask, toggleTask, toggleMarked, resetTask, deleteTask, updateTask, getDisplayTime } = useTasks()
   useTaskMonitor()
   const [newTaskName, setNewTaskName] = useState('')
 
@@ -45,12 +45,24 @@ function Dashboard() {
         {tasks.map((task) => (
           <div
             key={task.id}
-            className={`group flex items-center justify-between p-5 transition-all rounded-2xl glass-panel ${
+            className={`group flex items-center justify-between p-5 transition-all duration-300 rounded-2xl glass-panel ${
+              task.isMarked 
+                ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-500/20 shadow-sm shadow-emerald-500/5' 
+                : ''
+            } ${
               task.isRunning
                 ? 'ring-4 ring-indigo-500/10 scale-[1.01] border-indigo-500/50'
                 : 'hover:scale-[1.005] border-transparent'
             }`}
           >
+            <button
+              onClick={() => toggleMarked.mutate(task.id)}
+              className={`mr-4 transition-all active:scale-95 ${
+                task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
+              }`}
+            >
+              {task.isMarked ? <CheckCircle2 size={24} /> : <Circle size={24} />}
+            </button>
             <div className="flex flex-col flex-1">
               <input
                 type="text"

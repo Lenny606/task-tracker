@@ -6,6 +6,7 @@ export interface Task {
   name: string
   totalSeconds: number
   isRunning: boolean
+  isMarked?: boolean
   startTime?: number
 }
 
@@ -112,7 +113,7 @@ export function useTasks(date: string = getTodayDate()) {
 
   const addTask = useMutation({
     mutationFn: async (name: string) => {
-      const newTasks = [...tasks, { id: crypto.randomUUID(), name, totalSeconds: 0, isRunning: false }]
+      const newTasks = [...tasks, { id: crypto.randomUUID(), name, totalSeconds: 0, isRunning: false, isMarked: false }]
       saveTasksForDate(date, newTasks)
       return newTasks
     },
@@ -164,6 +165,17 @@ export function useTasks(date: string = getTodayDate()) {
   const updateTask = useMutation({
     mutationFn: async ({ taskId, name }: { taskId: string; name: string }) => {
       const newTasks = tasks.map((t) => (t.id === taskId ? { ...t, name } : t))
+      saveTasksForDate(date, newTasks)
+      return newTasks
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
+  const toggleMarked = useMutation({
+    mutationFn: async (taskId: string) => {
+      const newTasks = tasks.map((t) =>
+        t.id === taskId ? { ...t, isMarked: !t.isMarked } : t
+      )
       saveTasksForDate(date, newTasks)
       return newTasks
     },
@@ -231,6 +243,7 @@ export function useTasks(date: string = getTodayDate()) {
     history,
     addTask,
     toggleTask,
+    toggleMarked,
     resetTask,
     deleteTask,
     updateTask,
