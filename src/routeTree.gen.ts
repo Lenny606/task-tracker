@@ -14,6 +14,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as CommitsRouteImport } from './routes/commits'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiExtensionRouteImport } from './routes/api.extension'
 
 const SummaryRoute = SummaryRouteImport.update({
   id: '/summary',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiExtensionRoute = ApiExtensionRouteImport.update({
+  id: '/api/extension',
+  path: '/api/extension',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
+  '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
+  '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/summary': typeof SummaryRoute
+  '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/commits' | '/history' | '/summary'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/commits'
+    | '/history'
+    | '/summary'
+    | '/api/extension'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/commits' | '/history' | '/summary'
-  id: '__root__' | '/' | '/about' | '/commits' | '/history' | '/summary'
+  to: '/' | '/about' | '/commits' | '/history' | '/summary' | '/api/extension'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/commits'
+    | '/history'
+    | '/summary'
+    | '/api/extension'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +99,7 @@ export interface RootRouteChildren {
   CommitsRoute: typeof CommitsRoute
   HistoryRoute: typeof HistoryRoute
   SummaryRoute: typeof SummaryRoute
+  ApiExtensionRoute: typeof ApiExtensionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/extension': {
+      id: '/api/extension'
+      path: '/api/extension'
+      fullPath: '/api/extension'
+      preLoaderRoute: typeof ApiExtensionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +155,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommitsRoute: CommitsRoute,
   HistoryRoute: HistoryRoute,
   SummaryRoute: SummaryRoute,
+  ApiExtensionRoute: ApiExtensionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

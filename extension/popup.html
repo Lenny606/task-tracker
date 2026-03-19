@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 320px;
+      padding: 1.25rem;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .timer-display {
+      font-family: 'Space Mono', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 1rem 0;
+      color: #fff;
+      tabular-nums: all;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      color: white;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    button {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-start {
+      background: #6366f1;
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .btn-start:hover {
+      background: #4f46e5;
+      transform: translateY(-1px);
+    }
+    .btn-stop {
+      background: #ef4444;
+      color: white;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .btn-stop:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #status {
+      font-size: 0.75rem;
+      text-align: center;
+      color: #94a3b8;
+      min-height: 1rem;
+    }
+    .running-task-name {
+      font-size: 0.875rem;
+      color: #6366f1;
+      text-align: center;
+      font-weight: 600;
+      margin-top: -0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h2>TimeTrack</h2>
+    </header>
+
+    <div class="timer-display" id="timer">00:00:00</div>
+    <div id="active-task-display" class="running-task-name"></div>
+
+    <div class="input-group">
+      <input type="text" id="taskName" placeholder="What are you working on?">
+    </div>
+
+    <button id="toggleBtn" class="btn-start">
+      <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+      <svg id="pause-icon" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      <span id="btnText">Start Timer</span>
+    </button>
+
+    <div id="status"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

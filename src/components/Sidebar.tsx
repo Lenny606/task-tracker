@@ -1,6 +1,7 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
+import React from 'react'
 
 export function Sidebar() {
   const { globalTimer, toggleGlobalTimer, getDisplayGlobalTime } = useTasks()
@@ -94,10 +95,40 @@ export function Sidebar() {
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           <span className="font-medium">Settings</span>
         </button>
+
+        <SyncExtensionButton />
       </div>
 
 
     </aside>
 
+  )
+}
+function SyncExtensionButton() {
+  const { syncExtensionData } = useTasks()
+  const [isSyncing, setIsSyncing] = React.useState(false)
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await syncExtensionData.mutateAsync()
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  return (
+    <button 
+      onClick={handleSync}
+      disabled={isSyncing}
+      className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-indigo-900/20 hover:text-indigo-400 text-slate-500 group ${isSyncing ? 'animate-pulse' : ''}`}
+    >
+      <div className={`w-5 h-5 flex items-center justify-center ${isSyncing ? 'animate-spin' : ''}`}>
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </div>
+      <span className="font-medium">{isSyncing ? 'Syncing...' : 'Sync Extension'}</span>
+    </button>
   )
 }

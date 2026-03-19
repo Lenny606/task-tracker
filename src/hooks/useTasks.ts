@@ -184,22 +184,23 @@ export function useTasks(date: string = getTodayDate()) {
 
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
-      let newTimer: GlobalTimer
-      if (globalTimer.isRunning) {
-        const elapsed = Math.floor((Date.now() - (globalTimer.startTime || Date.now())) / 1000)
-        newTimer = {
-          ...globalTimer,
-          isRunning: false,
-          totalSeconds: globalTimer.totalSeconds + elapsed,
-          startTime: undefined,
-        }
-      } else {
-        newTimer = {
-          ...globalTimer,
-          isRunning: true,
-          startTime: Date.now(),
-        }
+      // First, update the server
+      const response = await fetch('/api/extension', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'TOGGLE_TIMER', taskName: 'Global Task' }),
+      })
+      
+      if (!response.ok) throw new Error('Failed to sync timer with server')
+      const { timerState: serverState } = await response.json()
+
+      // Then update local state to match server (to ensure consistency)
+      const newTimer: GlobalTimer = {
+        isRunning: serverState.isRunning,
+        startTime: serverState.startTime,
+        totalSeconds: globalTimer.totalSeconds // totalSeconds is still local-only for now
       }
+      
       saveGlobalTimerForDate(date, newTimer)
       return newTimer
     },
@@ -236,6 +237,49 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const syncExtensionData = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/extension')
+      if (!response.ok) throw new Error('Failed to fetch extension data')
+      const { clips, timerState } = await response.json()
+      
+      const history = getHistoryData()
+      const dayData = history[date] || { tasks: [] }
+      const existingIds = new Set(dayData.tasks.map(t => t.id))
+      
+      const newTasksFromExtension = clips.filter((item: any) => !existingIds.has(item.id)).map((item: any) => ({
+        id: item.id,
+        name: `[Clip] ${item.title}`,
+        totalSeconds: 0,
+        isRunning: false,
+        isMarked: false,
+        notes: item.notes,
+        url: item.url
+      }))
+
+      // Sync Global Timer
+      const currentGlobalTimer = dayData.globalTimer || { totalSeconds: 0, isRunning: false }
+      const updatedGlobalTimer = {
+        ...currentGlobalTimer,
+        isRunning: timerState.isRunning,
+        startTime: timerState.startTime,
+      }
+
+      const updatedTasks = [...dayData.tasks, ...newTasksFromExtension]
+      
+      // Update history with both new tasks and timer state
+      history[date] = { 
+        ...dayData, 
+        tasks: updatedTasks,
+        globalTimer: updatedGlobalTimer
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history))
+      
+      return history[date]
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   return {
     tasks,
     globalTimer,
@@ -250,6 +294,7 @@ export function useTasks(date: string = getTodayDate()) {
     toggleGlobalTimer,
     saveAiSummary,
     deleteHistoryDay,
+    syncExtensionData,
     getDisplayTime,
     getDisplayGlobalTime,
   }
