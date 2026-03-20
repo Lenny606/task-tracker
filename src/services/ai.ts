@@ -1,6 +1,7 @@
 import { chat } from '@tanstack/ai'
 import { createGeminiChat } from '@tanstack/ai-gemini'
 import type { GitCommit } from './git'
+import { getSettings } from '../store/settingsStore'
 
 /**
  * AI Service configuration for Gemini's OpenAI-compatible endpoint.
@@ -10,15 +11,38 @@ import type { GitCommit } from './git'
  */
 
 export const AI_MODELS = {
-  GEMINI_2_5_FLASH: 'gemini-2.5-flash', // Reverting as requested
+  GEMINI_2_5_FLASH: 'gemini-2.5-flash',
+  GEMINI_2_0_FLASH: 'gemini-2.0-flash',
+  GEMINI_1_5_PRO: 'gemini-1.5-pro',
+  GEMINI_1_5_FLASH: 'gemini-1.5-flash',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
 
+export const AI_MODEL_LABELS: Record<AiModel, { label: string; description: string }> = {
+  'gemini-2.5-flash': {
+    label: 'Gemini 2.5 Flash',
+    description: 'Latest & fastest — best for everyday use',
+  },
+  'gemini-2.0-flash': {
+    label: 'Gemini 2.0 Flash',
+    description: 'Previous generation Flash — reliable & quick',
+  },
+  'gemini-1.5-pro': {
+    label: 'Gemini 1.5 Pro',
+    description: 'Pro-tier reasoning — slower but more thorough',
+  },
+  'gemini-1.5-flash': {
+    label: 'Gemini 1.5 Flash',
+    description: 'Lightweight & low-latency',
+  },
+}
+
 const getGeminiApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || ''
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
 
-let adapterInstance: ReturnType<typeof createGeminiChat> | null = null
+// Cache adapters per model id
+const adapterCache = new Map<string, ReturnType<typeof createGeminiChat>>()
 
 export const isConfigured = () => !!getGeminiApiKey()
 
@@ -29,12 +53,13 @@ if (!isConfigured()) {
 }
 
 /**
- * Returns a configured Gemini adapter instance.
- * Uses a singleton pattern to reuse the same instance across the application.
- * @throws Error if the API key is not configured when called.
+ * Returns a configured Gemini adapter for the given model.
+ * Falls back to the stored settings model if none is provided.
  */
-export const getAiAdapter = () => {
-  if (adapterInstance) return adapterInstance
+export const getAiAdapter = (model?: AiModel) => {
+  const resolvedModel = model ?? getSettings().aiModel
+
+  if (adapterCache.has(resolvedModel)) return adapterCache.get(resolvedModel)!
 
   const apiKey = getGeminiApiKey()
 
@@ -42,8 +67,8 @@ export const getAiAdapter = () => {
     throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
   }
 
-  adapterInstance = createGeminiChat(
-    AI_MODELS.GEMINI_2_5_FLASH, // Changed from GEMINI_3_0_FLASH to GEMINI_2_5_FLASH
+  const adapter = createGeminiChat(
+    resolvedModel,
     apiKey,
     {
       baseURL: GEMINI_BASE_URL,
@@ -51,16 +76,16 @@ export const getAiAdapter = () => {
     }
   )
 
-  return adapterInstance
+  adapterCache.set(resolvedModel, adapter)
+  return adapter
 }
-
 
 
 /**
  * Service to interact with the AI agent
  */
 export const aiService = {
-  getAdapter: () => getAiAdapter(),
+  getAdapter: (model?: AiModel) => getAiAdapter(model),
 
   /**
    * Helper to check if AI is configured
@@ -70,13 +95,15 @@ export const aiService = {
   /**
    * Simple client to send prompts to LLM
    */
-  generateText: async (prompt: string, model: AiModel = AI_MODELS.GEMINI_2_5_FLASH) => {
+  generateText: async (prompt: string, model?: AiModel) => {
     if (!isConfigured()) {
       throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
     }
 
+    const resolvedModel = model ?? getSettings().aiModel
+
     return await chat({
-      adapter: getAiAdapter(),
+      adapter: getAiAdapter(resolvedModel),
       messages: [{ role: 'user', content: prompt }],
       stream: false,
     })
@@ -108,6 +135,6 @@ ${commitData}
 Formatted JIRA Description:
 `
 
-    return await aiService.generateText(prompt, AI_MODELS.GEMINI_2_5_FLASH)
+    return await aiService.generateText(prompt)
   }
 }
