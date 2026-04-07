@@ -207,6 +207,29 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const resetGlobalTimer = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/extension', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'CLEAR_TIMER' }),
+      })
+      
+      if (!response.ok) throw new Error('Failed to reset timer on server')
+      const { timerState: serverState } = await response.json()
+
+      const newTimer: GlobalTimer = {
+        isRunning: serverState.isRunning,
+        startTime: serverState.startTime,
+        totalSeconds: serverState.accumulatedSeconds || 0
+      }
+      
+      saveGlobalTimerForDate(date, newTimer)
+      return newTimer
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+  })
+
   const saveAiSummary = useMutation({
     mutationFn: async (summary: string) => {
       saveAiSummaryForDate(date, summary)
@@ -293,6 +316,7 @@ export function useTasks(date: string = getTodayDate()) {
     deleteTask,
     updateTask,
     toggleGlobalTimer,
+    resetGlobalTimer,
     saveAiSummary,
     deleteHistoryDay,
     syncExtensionData,

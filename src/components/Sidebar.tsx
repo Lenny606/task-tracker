@@ -4,7 +4,7 @@ import { useTasks } from '../hooks/useTasks'
 import React from 'react'
 
 export function Sidebar() {
-  const { globalTimer, toggleGlobalTimer, getDisplayGlobalTime } = useTasks()
+  const { globalTimer, toggleGlobalTimer, resetGlobalTimer, getDisplayGlobalTime } = useTasks()
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -65,9 +65,24 @@ export function Sidebar() {
             >
               {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
             </button>
-            <div className={`font-mono text-xl tabular-nums ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}>
-              {formatTime(getDisplayGlobalTime(globalTimer))}
+            <div className="flex-1">
+              <div className={`font-mono text-xl tabular-nums ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}>
+                {formatTime(getDisplayGlobalTime(globalTimer))}
+              </div>
             </div>
+            {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
+              <button
+                onClick={() => {
+                  if (confirm('Reset global timer?')) {
+                    resetGlobalTimer.mutate()
+                  }
+                }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
+                title="Reset Timer"
+              >
+                <RefreshCw size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>
