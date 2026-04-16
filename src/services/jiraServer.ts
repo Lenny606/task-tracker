@@ -1,12 +1,40 @@
 import { createServerFn } from '@tanstack/react-start'
 import { jiraService } from './jira'
+import { worklogRepository } from '../repositories/worklog.repository'
 import type { JiraCredentials, CreateIssueData, TempoWorklogData } from './jira'
+
+/**
+ * Server function to get recent unique tickets from database
+ */
+export const getRecentTicketsFn = createServerFn({
+  method: 'GET',
+}).handler(async () => {
+  const recentWorklogs = await worklogRepository.getRecent(50)
+  
+  // Extract unique keys and summaries, preserving order (most recent first)
+  const uniqueTickets: { key: string; summary: string }[] = []
+  const keys = new Set<string>()
+
+  for (const log of recentWorklogs) {
+    if (!keys.has(log.jiraIssueKey)) {
+      keys.add(log.jiraIssueKey)
+      uniqueTickets.push({
+        key: log.jiraIssueKey,
+        summary: log.summary,
+      })
+    }
+    if (uniqueTickets.length >= 5) break
+  }
+
+  return uniqueTickets
+})
 
 /**
  * Server function to search Jira issues
  */
 export const searchJiraIssuesFn = createServerFn({
   method: 'POST',
+  // @ts-ignore - Serialization issues with unknown fields
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; jql: string; maxResults?: number } }) => {
   if (!data) throw new Error('Missing input data')
   return await jiraService.searchIssues(data.credentials, data.jql, data.maxResults)
@@ -17,6 +45,7 @@ export const searchJiraIssuesFn = createServerFn({
  */
 export const createJiraIssueFn = createServerFn({
   method: 'POST',
+  // @ts-ignore - Serialization issues with unknown fields
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; issueData: CreateIssueData } }) => {
   if (!data) throw new Error('Missing input data')
   return await jiraService.createIssue(data.credentials, data.issueData)

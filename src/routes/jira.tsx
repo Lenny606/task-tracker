@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { searchJiraIssuesFn, logTempoWorkloadFn } from '../services/jiraServer'
+import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
 import { toast } from '../store/toastStore'
@@ -11,12 +11,23 @@ export const Route = createFileRoute('/jira')({
   component: JiraPage,
 })
 
-function IssueSelector({ onSelect, credentials }: { onSelect: (issue: JiraIssue) => void, credentials: any }) {
+function IssueSelector({ onSelect, credentials, currentSelection }: { 
+  onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void, 
+  credentials: any,
+  currentSelection: string | null 
+}) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<JiraIssue[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Sync internal query with external selection
+  useEffect(() => {
+    if (currentSelection) {
+      setQuery(currentSelection)
+    }
+  }, [currentSelection])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,7 +40,7 @@ function IssueSelector({ onSelect, credentials }: { onSelect: (issue: JiraIssue)
   }, [])
 
   useEffect(() => {
-    if (query.length < 2) {
+    if (query.length < 2 || query === currentSelection) {
       setResults([])
       return
     }
@@ -51,7 +62,7 @@ function IssueSelector({ onSelect, credentials }: { onSelect: (issue: JiraIssue)
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [query, credentials])
+  }, [query, credentials, currentSelection])
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -92,10 +103,52 @@ function IssueSelector({ onSelect, credentials }: { onSelect: (issue: JiraIssue)
   )
 }
 
+function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; summary: string }) => void }) {
+  const [recent, setRecent] = useState<{ key: string; summary: string }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const data = await getRecentTicketsFn()
+        setRecent(data)
+      } catch (error) {
+        console.error('Failed to fetch recent tickets:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchRecent()
+  }, [])
+
+  if (isLoading || recent.length === 0) return null
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
+        <Hash className="w-4 h-4" /> Poslední tickety
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {recent.map((ticket) => (
+          <button
+            key={ticket.key}
+            type="button"
+            onClick={() => onSelect(ticket)}
+            className="group relative px-4 py-3 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-2 hover:ring-blue-500 rounded-2xl transition-all active:scale-95 shadow-sm text-left flex flex-col"
+          >
+            <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase">{ticket.key}</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 line-clamp-1 max-w-[120px]">{ticket.summary}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function WorklogForm() {
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
-  const [selectedIssue, setSelectedIssue] = useState<JiraIssue | null>(null)
+  const [selectedIssue, setSelectedIssue] = useState<any>(null)
   const [duration, setDuration] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
@@ -143,20 +196,36 @@ function WorklogForm() {
     }
   }
 
+  const handleRecentSelect = (ticket: { key: string; summary: string }) => {
+    setSelectedIssue({
+      key: ticket.key,
+      fields: { summary: ticket.summary }
+    })
+  }
+
   return (
     <form onSubmit={handleSubmit} className="p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="space-y-3">
-        <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-          <Hash className="w-4 h-4" /> Jira Ticket
-        </label>
-        <IssueSelector credentials={credentials} onSelect={setSelectedIssue} />
-        {selectedIssue && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300">
-            <CheckCircle2 className="w-4 h-4" />
-            Vybráno: <span className="font-bold">{selectedIssue.key}</span> - {selectedIssue.fields.summary}
-          </div>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="space-y-3">
+          <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <Search className="w-4 h-4" /> Hledat Ticket
+          </label>
+          <IssueSelector 
+            credentials={credentials} 
+            onSelect={setSelectedIssue} 
+            currentSelection={selectedIssue?.key || null}
+          />
+        </div>
+
+        <RecentIssuesSelector onSelect={handleRecentSelect} />
       </div>
+
+      {selectedIssue && (
+        <div className="flex items-center gap-2 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-2xl text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ring-1 ring-blue-500/20 shadow-sm">
+          <CheckCircle2 className="w-5 h-5" />
+          Vybráno: <span className="font-black">{selectedIssue.key}</span> - <span className="opacity-80 font-medium">{selectedIssue.fields.summary}</span>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="space-y-3 w-full md:w-48">

@@ -1,5 +1,7 @@
 import type { JiraIssue, Worklog as TempoWorklogData } from '../models/jira'
 
+export type { JiraIssue, TempoWorklogData }
+
 export interface JiraCredentials {
   url: string
   email: string
