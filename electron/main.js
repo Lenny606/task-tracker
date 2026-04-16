@@ -24,10 +24,16 @@ function isPortOpen(port) {
 
 async function startServer() {
   if (app.isPackaged) {
-    const serverPath = path.join(app.getAppPath(), '.output', 'server', 'index.mjs');
+    const dbPath = path.join(app.getPath('userData'), 'task-tracker.sqlite');
     console.log('Starting production server:', serverPath);
+    console.log('Database path:', dbPath);
+    
     serverProcess = fork(serverPath, [], {
-      env: { ...process.env, PORT: PORT }
+      env: { 
+        ...process.env, 
+        PORT: PORT,
+        DATABASE_URL: dbPath
+      }
     });
     
     // Wait for server to start
