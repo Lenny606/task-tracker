@@ -1,5 +1,8 @@
 {
   "name": "task-tracker",
+  "version": "1.0.0",
+  "description": "Desktop Task Tracker with Git Integration",
+  "author": "Tomas",
   "private": true,
   "type": "module",
   "imports": {
@@ -10,8 +13,11 @@
     "time": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run build && electron-builder"
   },
+  "main": "electron/main.js",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/ai": "^0.6.3",
@@ -42,17 +48,38 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.1.4",
+    "concurrently": "^9.2.1",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1",
     "jsdom": "^28.1.0",
     "msw": "^2.12.10",
     "typescript": "^5.7.2",
     "vite": "^7.3.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "wait-on": "^9.0.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss"
     ]
+  },
+  "build": {
+    "appId": "com.tasktracker.app",
+    "productName": "Task Tracker",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "package.json",
+      "electron/**/*",
+      ".output/**/*"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
   }
 }
