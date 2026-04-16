@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as JiraRouteImport } from './routes/jira'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as CommitsRouteImport } from './routes/commits'
 import { Route as AboutRouteImport } from './routes/about'
@@ -25,6 +26,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JiraRoute = JiraRouteImport.update({
+  id: '/jira',
+  path: '/jira',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
+  '/jira': typeof JiraRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/api/extension': typeof ApiExtensionRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
+  '/jira': typeof JiraRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/api/extension': typeof ApiExtensionRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
+  '/jira': typeof JiraRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/api/extension': typeof ApiExtensionRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/commits'
     | '/history'
+    | '/jira'
     | '/settings'
     | '/summary'
     | '/api/extension'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/commits'
     | '/history'
+    | '/jira'
     | '/settings'
     | '/summary'
     | '/api/extension'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/commits'
     | '/history'
+    | '/jira'
     | '/settings'
     | '/summary'
     | '/api/extension'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   CommitsRoute: typeof CommitsRoute
   HistoryRoute: typeof HistoryRoute
+  JiraRoute: typeof JiraRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
   ApiExtensionRoute: typeof ApiExtensionRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jira': {
+      id: '/jira'
+      path: '/jira'
+      fullPath: '/jira'
+      preLoaderRoute: typeof JiraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   CommitsRoute: CommitsRoute,
   HistoryRoute: HistoryRoute,
+  JiraRoute: JiraRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
   ApiExtensionRoute: ApiExtensionRoute,

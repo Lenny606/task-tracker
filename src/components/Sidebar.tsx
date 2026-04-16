@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
 import React, { useState } from 'react'
@@ -102,6 +102,15 @@ export function Sidebar() {
         >
           <GitCommit className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">Commits</span>
+        </Link>
+
+        <Link
+          to="/jira"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <Database className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Jira</span>
         </Link>
 
         <Link

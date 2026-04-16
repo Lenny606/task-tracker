@@ -13,10 +13,10 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = {
   aiModel: 'gemini-2.5-flash',
-  jiraApiKey: '',
-  jiraEmail: '',
-  jiraTempoApiKey: '',
-  jiraUrl: '',
+  jiraApiKey: import.meta.env.VITE_JIRA_API_KEY || '',
+  jiraEmail: import.meta.env.VITE_JIRA_EMAIL || '',
+  jiraTempoApiKey: import.meta.env.VITE_JIRA_TEMPO_API_KEY || '',
+  jiraUrl: import.meta.env.VITE_JIRA_URL || '',
 }
 
 export const getSettings = (): AppSettings => {
