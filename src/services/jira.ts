@@ -1,6 +1,4 @@
-/**
- * Jira and Tempo API Service
- */
+import type { JiraIssue, Worklog as TempoWorklogData } from '../models/jira'
 
 export interface JiraCredentials {
   url: string
@@ -9,40 +7,11 @@ export interface JiraCredentials {
   tempoApiKey?: string
 }
 
-export interface JiraIssue {
-  id: string
-  key: string
-  self: string
-  fields: {
-    summary: string
-    status: {
-      name: string
-    }
-    project: {
-      key: string
-      name: string
-    }
-    issuetype: {
-      name: string
-    }
-    updated: string
-    [key: string]: any
-  }
-}
-
 export interface CreateIssueData {
   projectKey: string
   summary: string
   description: string
   issueTypeName: string
-}
-
-export interface TempoWorklogData {
-  issueKey: string
-  timeSpentSeconds: number
-  startDate: string
-  startTime: string
-  description: string
 }
 
 /**
