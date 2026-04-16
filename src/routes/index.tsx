@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Play, Pause, Plus, RotateCcw, Trash2, Clock, CheckCircle2, Circle } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
+import { useIsMounted } from '../hooks/useIsMounted'
 
 
 export const Route = createFileRoute('/')({
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/')({
 
 function Dashboard() {
   const { tasks, addTask, toggleTask, toggleMarked, resetTask, deleteTask, updateTask, getDisplayTime } = useTasks()
+  const isMounted = useIsMounted()
   useTaskMonitor()
   const [newTaskName, setNewTaskName] = useState('')
 
@@ -42,7 +44,15 @@ function Dashboard() {
 
       {/* Tasks List */}
       <div className="space-y-4">
-        {tasks.map((task) => (
+        {!isMounted ? (
+          <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl opacity-50">
+            <p className="text-slate-500">Loading tasks...</p>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
+            <p className="text-slate-500">No tasks for today yet. Add one below!</p>
+          </div>
+        ) : tasks.map((task) => (
           <div
             key={task.id}
             className={`group flex items-center justify-between p-5 transition-all duration-300 rounded-2xl glass-panel ${

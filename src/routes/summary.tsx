@@ -4,6 +4,7 @@ import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileT
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
+import { useIsMounted } from '../hooks/useIsMounted'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -11,7 +12,8 @@ export const Route = createFileRoute('/summary')({
 
 function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
-  const displayDate = date || new Date().toISOString().split('T')[0]
+  const isMounted = useIsMounted()
+  const displayDate = date || (isMounted ? new Date().toISOString().split('T')[0] : '')
   const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary, toggleMarked, updateTask } = useTasks(displayDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,10 +64,10 @@ function SummaryPage() {
       <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-            {displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
+            {!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            {displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
+            {!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
           </p>
         </div>
 
@@ -84,51 +86,59 @@ function SummaryPage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ring-2 ring-indigo-500/10">
-          <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
-            <Clock className="w-6 h-6" />
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Global Tracked Time</div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono tabular-nums">{formatFullTime(globalSeconds)}</div>
-        </div>
+        {!isMounted ? (
+           Array.from({length: 4}).map((_, i) => (
+             <div key={i} className="glass-panel p-6 rounded-3xl h-32 animate-pulse bg-slate-100/50 dark:bg-slate-800/50" />
+           ))
+        ) : (
+          <>
+            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ring-2 ring-indigo-500/10">
+              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Global Tracked Time</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono tabular-nums">{formatFullTime(globalSeconds)}</div>
+            </div>
 
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-          <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
-            <Timer className="w-6 h-6" />
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Time Sum</div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">{formatTime(totalSeconds)}</div>
-        </div>
+            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
+              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
+                <Timer className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Time Sum</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">{formatTime(totalSeconds)}</div>
+            </div>
 
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-          <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Worked On</div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">{tasks.length}</div>
-        </div>
+            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
+              <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Worked On</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">{tasks.length}</div>
+            </div>
 
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-          <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-4">
-            <BarChart3 className="w-6 h-6" />
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Average per Task</div>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">
-            {tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
-          </div>
-        </div>
+            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
+              <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Average per Task</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                {tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
+              </div>
+            </div>
 
-        <div className={`glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ${isGoalReached ? 'ring-2 ring-emerald-500/20' : ''}`}>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${isGoalReached ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-500'}`}>
-            <Clock className="w-6 h-6" />
-          </div>
-          <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-            {isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
-          </div>
-          <div className={`text-3xl font-bold ${isGoalReached ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
-            {isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
-          </div>
-        </div>
+            <div className={`glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ${isGoalReached ? 'ring-2 ring-emerald-500/20' : ''}`}>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${isGoalReached ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-500'}`}>
+                <Clock className="w-6 h-6" />
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+                {isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
+              </div>
+              <div className={`text-3xl font-bold ${isGoalReached ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
+                {isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* AI Summary Section */}

@@ -102,19 +102,32 @@ export const aiService = {
 
     const resolvedModel = model ?? getSettings().aiModel
 
-    return await chat({
+    console.log(`[AI] Generating text for model: ${resolvedModel}...`)
+    
+    const response = await chat({
       adapter: getAiAdapter(resolvedModel),
       messages: [{ role: 'user', content: prompt }],
       stream: false,
     })
+
+    return response.text || "AI failed to generate a response. Please check your API key and try again."
   },
 
   /**
    * Analyzes commits for Tomas Kravcik and formats them for JIRA
    */
   analyzeCommitsForJira: async (commits: GitCommit[]) => {
-    // First filter every user except Tomas Kravcik
-    const tomasCommits = commits.filter(c => c.authorName === 'Tomas Kravcik')
+    if (!Array.isArray(commits)) {
+      console.error('[AI] analyzeCommitsForJira: commits is not an array', commits)
+      return "Error: Invalid commit data received."
+    }
+
+    // First filter every user except Tomas Kravcik (case insensitive and handle prefix)
+    const tomasCommits = commits.filter(c => 
+      c.authorName.toLowerCase().includes('tomas')
+    )
+
+    console.log(`[AI] Found ${tomasCommits.length} commits for Tomas out of ${commits.length} total commits.`)
 
     if (tomasCommits.length === 0) {
       return "No commits found for Tomas Kravcik in the provided data."

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
 import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3, ListFilter } from 'lucide-react'
 import { useState } from 'react'
+import { useIsMounted } from '../hooks/useIsMounted'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPage,
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/history')({
 function HistoryPage() {
   const { history, deleteHistoryDay } = useTasks()
   const [filter, setFilter] = useState<'current' | 'all'>('current')
+  const isMounted = useIsMounted()
   
   const sortedDates = Object.keys(history).sort().reverse()
   
@@ -64,10 +66,12 @@ function HistoryPage() {
       </header>
 
       <div className="space-y-4">
-        {filteredDates.length === 0 ? (
+        {!isMounted || filteredDates.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500">No history found for the selected period.</p>
+            <p className="text-slate-500">
+              {!isMounted ? 'Loading history...' : 'No history found for the selected period.'}
+            </p>
           </div>
         ) : (
           filteredDates.map((date) => {
