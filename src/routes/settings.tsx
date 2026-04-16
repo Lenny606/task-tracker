@@ -53,6 +53,77 @@ function SettingsPage() {
             />
           </div>
         </section>
+
+        {/* Jira Configuration Card */}
+        <section className="glass-panel rounded-3xl">
+          <div className="px-8 py-7 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+              <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Jira Configuration</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Set up your Jira and Tempo API credentials for integration.
+              </p>
+            </div>
+          </div>
+
+          <div className="px-8 py-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                  Jira URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://your-domain.atlassian.net"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                  value={settings.jiraUrl}
+                  onChange={(e) => saveSettings({ jiraUrl: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="your-email@example.com"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                  value={settings.jiraEmail}
+                  onChange={(e) => saveSettings({ jiraEmail: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                  Jira API Key
+                </label>
+                <input
+                  type="password"
+                  placeholder="Paste your Jira API Token"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                  value={settings.jiraApiKey}
+                  onChange={(e) => saveSettings({ jiraApiKey: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                  Tempo API Key
+                </label>
+                <input
+                  type="password"
+                  placeholder="Paste your Tempo API Token"
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                  value={settings.jiraTempoApiKey}
+                  onChange={(e) => saveSettings({ jiraTempoApiKey: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   )

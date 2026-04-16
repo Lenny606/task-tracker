@@ -5,10 +5,18 @@ const SETTINGS_KEY = 'task-tracker-settings'
 
 export interface AppSettings {
   aiModel: AiModel
+  jiraApiKey: string
+  jiraEmail: string
+  jiraTempoApiKey: string
+  jiraUrl: string
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   aiModel: 'gemini-2.5-flash',
+  jiraApiKey: '',
+  jiraEmail: '',
+  jiraTempoApiKey: '',
+  jiraUrl: '',
 }
 
 export const getSettings = (): AppSettings => {
