@@ -92,6 +92,7 @@ const saveAiSummaryForDate = (date: string, aiSummary: string) => {
 
 export function useTasks(date: string = getTodayDate()) {
   const [now, setNow] = useState(Date.now())
+  const [isSyncingExtension, setIsSyncingExtension] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -320,6 +321,15 @@ export function useTasks(date: string = getTodayDate()) {
     saveAiSummary,
     deleteHistoryDay,
     syncExtensionData,
+    isSyncingExtension,
+    syncExtension: async () => {
+      setIsSyncingExtension(true)
+      try {
+        await syncExtensionData.mutateAsync()
+      } finally {
+        setIsSyncingExtension(false)
+      }
+    },
     getDisplayTime,
     getDisplayGlobalTime,
   }

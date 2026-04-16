@@ -1,10 +1,17 @@
 import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import React from 'react'
+import React, { useState } from 'react'
 
 export function Sidebar() {
-  const { globalTimer, toggleGlobalTimer, resetGlobalTimer, getDisplayGlobalTime } = useTasks()
+  const { 
+    globalTimer, 
+    toggleGlobalTimer, 
+    resetGlobalTimer, 
+    getDisplayGlobalTime,
+    isSyncingExtension,
+    syncExtension
+  } = useTasks()
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -24,7 +31,7 @@ export function Sidebar() {
         </h1>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 mt-4">
+      <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto">
         <Link
           to="/"
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
@@ -42,52 +49,52 @@ export function Sidebar() {
           <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">Today's Summary</span>
         </Link>
-      </nav>
 
-      <div className="px-6 mb-4">
-        <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Global Timer</span>
-            {globalTimer.isRunning && (
-              <span className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => toggleGlobalTimer.mutate()}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
-            >
-              {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
-            </button>
-            <div className="flex-1">
-              <div className={`font-mono text-xl tabular-nums ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}>
-                {formatTime(getDisplayGlobalTime(globalTimer))}
-              </div>
+        <div className="py-2 px-2">
+          <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Global Timer</span>
+              {globalTimer.isRunning && (
+                <span className="flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+              )}
             </div>
-            {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
+            <div className="flex items-center gap-4">
               <button
-                onClick={() => {
-                  if (confirm('Reset global timer?')) {
-                    resetGlobalTimer.mutate()
-                  }
-                }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
-                title="Reset Timer"
+                onClick={() => toggleGlobalTimer.mutate()}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  }`}
               >
-                <RefreshCw size={14} />
+                {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
               </button>
-            )}
+              <div className="flex-1">
+                <div className={`font-mono text-xl tabular-nums ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}>
+                  {formatTime(getDisplayGlobalTime(globalTimer))}
+                </div>
+              </div>
+              {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
+                <button
+                  onClick={() => {
+                    if (confirm('Reset global timer?')) {
+                      resetGlobalTimer.mutate()
+                    }
+                  }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
+                  title="Reset Timer"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="p-6 border-t border-slate-900 space-y-1">
+        <SyncExtensionButton isSyncing={isSyncingExtension} onSync={syncExtension} />
+
         <Link
           to="/commits"
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
@@ -105,7 +112,9 @@ export function Sidebar() {
           <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">History</span>
         </Link>
+      </nav>
 
+      <div className="p-6 border-t border-slate-900 space-y-1">
         <Link
           to="/settings"
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-500 group"
@@ -114,8 +123,6 @@ export function Sidebar() {
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
           <span className="font-medium">Settings</span>
         </Link>
-
-        <SyncExtensionButton />
       </div>
 
 
@@ -123,22 +130,10 @@ export function Sidebar() {
 
   )
 }
-function SyncExtensionButton() {
-  const { syncExtensionData } = useTasks()
-  const [isSyncing, setIsSyncing] = React.useState(false)
-
-  const handleSync = async () => {
-    setIsSyncing(true)
-    try {
-      await syncExtensionData.mutateAsync()
-    } finally {
-      setIsSyncing(false)
-    }
-  }
-
+function SyncExtensionButton({ isSyncing, onSync }: { isSyncing: boolean, onSync: () => Promise<void> }) {
   return (
     <button 
-      onClick={handleSync}
+      onClick={onSync}
       disabled={isSyncing}
       className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-indigo-900/20 hover:text-indigo-400 text-slate-500 group ${isSyncing ? 'animate-pulse' : ''}`}
     >

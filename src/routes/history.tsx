@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3 } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3, ListFilter } from 'lucide-react'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/history')({
   component: HistoryPage,
@@ -8,8 +9,17 @@ export const Route = createFileRoute('/history')({
 
 function HistoryPage() {
   const { history, deleteHistoryDay } = useTasks()
+  const [filter, setFilter] = useState<'current' | 'all'>('current')
   
   const sortedDates = Object.keys(history).sort().reverse()
+  
+  const now = new Date()
+  const currentPrefix = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`
+
+  const filteredDates = sortedDates.filter(date => {
+    if (filter === 'all') return true
+    return date.startsWith(currentPrefix)
+  })
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -23,19 +33,44 @@ function HistoryPage() {
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
           History
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-lg">
+        <p className="text-slate-500 dark:text-slate-400 text-lg mb-8">
           Review your past productivity and achievements.
         </p>
+
+        <div className="flex items-center gap-3 p-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
+          <button 
+            onClick={() => setFilter('current')}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
+              filter === 'current' 
+                ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            This Month
+          </button>
+          <button 
+            onClick={() => setFilter('all')}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
+              filter === 'all' 
+                ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            <ListFilter className="w-4 h-4" />
+            All History
+          </button>
+        </div>
       </header>
 
       <div className="space-y-4">
-        {sortedDates.length === 0 ? (
+        {filteredDates.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500">No history recorded yet.</p>
+            <p className="text-slate-500">No history found for the selected period.</p>
           </div>
         ) : (
-          sortedDates.map((date) => {
+          filteredDates.map((date) => {
             const dayData = history[date]
             const tasks = dayData?.tasks || []
             const totalSeconds = tasks.reduce((acc, t) => acc + t.totalSeconds, 0)

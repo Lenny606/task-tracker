@@ -1,3 +1,4 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { Sidebar } from '../Sidebar'
 import { describe, it, expect, vi } from 'vitest'
@@ -16,7 +17,11 @@ vi.mock('../../hooks/useTasks', () => ({
   useTasks: () => ({
     globalTimer: { isRunning: false, totalSeconds: 0 },
     toggleGlobalTimer: { mutate: vi.fn() },
+    resetGlobalTimer: { mutate: vi.fn() },
     updateTask: { mutate: vi.fn() },
+    syncExtensionData: { mutateAsync: vi.fn() },
+    isSyncingExtension: false,
+    syncExtension: vi.fn(),
     getDisplayGlobalTime: (t: any) => t.totalSeconds,
   })
 }))
