@@ -51,3 +51,12 @@ export function useSettings() {
 
   return { settings, saveSettings }
 }
+
+export const getJiraCredentials = (settings: AppSettings) => {
+  return {
+    url: settings.jiraUrl,
+    email: settings.jiraEmail,
+    apiKey: settings.jiraApiKey,
+    tempoApiKey: settings.jiraTempoApiKey,
+  }
+}
