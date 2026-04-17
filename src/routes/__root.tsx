@@ -33,8 +33,47 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: NotFound,
 })
 
+import { useEffect } from 'react'
+import { migrateLocalStorageFn } from '../services/migration'
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
+
+  useEffect(() => {
+    const checkMigration = async () => {
+      const isMigrated = localStorage.getItem('migrated_to_sql') === 'true'
+      if (isMigrated) return
+
+      const historyData = localStorage.getItem('task-tracker-history')
+      const settingsData = localStorage.getItem('task-tracker-settings')
+
+      if (historyData || settingsData) {
+        console.log('[Migration] Migration data found in localStorage. Starting...')
+        try {
+          const payload = {
+            history: historyData ? JSON.parse(historyData) : undefined,
+            settings: settingsData ? JSON.parse(settingsData) : undefined,
+          }
+
+          await migrateLocalStorageFn({ data: payload })
+          
+          localStorage.setItem('migrated_to_sql', 'true')
+          console.log('[Migration] Migration successful!')
+          
+          // Invalidate queries to refresh data from SQL
+          queryClient.invalidateQueries()
+        } catch (error) {
+          console.error('[Migration] Migration failed:', error)
+        }
+      } else {
+        // No data to migrate, mark as migrated anyway to skip future checks
+        localStorage.setItem('migrated_to_sql', 'true')
+      }
+    }
+
+    checkMigration()
+  }, [queryClient])
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen">

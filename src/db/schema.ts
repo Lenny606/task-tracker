@@ -29,3 +29,23 @@ export const projects = sqliteTable('projects', {
   avatarUrl: text('avatar_url'),
   lastSyncedAt: integer('last_synced_at', { mode: 'timestamp' }),
 });
+
+export const historyTasks = sqliteTable('history_tasks', {
+  id: text('id').primaryKey(),
+  date: text('date').notNull(), // YYYY-MM-DD
+  name: text('name').notNull(),
+  totalSeconds: integer('total_seconds').notNull().default(0),
+  isRunning: integer('is_running', { mode: 'boolean' }).notNull().default(false),
+  isMarked: integer('is_marked', { mode: 'boolean' }).notNull().default(false),
+  startTime: integer('start_time', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
+});
+
+export const dayMetrics = sqliteTable('day_metrics', {
+  date: text('date').primaryKey(), // YYYY-MM-DD
+  aiSummary: text('ai_summary'),
+  timerTotalSeconds: integer('timer_total_seconds').notNull().default(0),
+  timerIsRunning: integer('timer_is_running', { mode: 'boolean' }).notNull().default(false),
+  timerStartTime: integer('timer_start_time', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date()),
+});

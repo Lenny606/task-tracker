@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { AiModel } from '../services/ai'
+import { getAppSettingsFn, saveAppSettingsFn } from '../services/settingsServer'
 
 const SETTINGS_KEY = 'task-tracker-settings'
 
@@ -19,22 +20,53 @@ const DEFAULT_SETTINGS: AppSettings = {
   jiraUrl: import.meta.env.VITE_JIRA_URL || '',
 }
 
-export const getSettings = (): AppSettings => {
-  if (typeof window === 'undefined') return DEFAULT_SETTINGS
+// Client-side cache for synchronous access
+let settingsCache: AppSettings = DEFAULT_SETTINGS
+
+/**
+ * Fetch settings from server and update cache
+ */
+export const loadSettings = async (): Promise<AppSettings> => {
   try {
-    const stored = localStorage.getItem(SETTINGS_KEY)
-    if (!stored) return DEFAULT_SETTINGS
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
-  } catch {
-    return DEFAULT_SETTINGS
+    const remote = await getAppSettingsFn()
+    if (remote) {
+      settingsCache = { ...DEFAULT_SETTINGS, ...remote } as AppSettings
+    } else {
+      // Fallback to localStorage if any, for migration period
+      const stored = typeof window !== 'undefined' ? localStorage.getItem(SETTINGS_KEY) : null
+      if (stored) {
+        settingsCache = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
+      }
+    }
+  } catch (e) {
+    console.error('[Settings] Failed to load settings from server:', e)
   }
+  return settingsCache
 }
 
-export const saveSettings = (patch: Partial<AppSettings>): AppSettings => {
+export const getSettings = (): AppSettings => {
+  return settingsCache
+}
+
+export const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
   const current = getSettings()
   const updated = { ...current, ...patch }
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated))
-  window.dispatchEvent(new CustomEvent('settings-changed', { detail: updated }))
+  
+  // Save to server
+  try {
+    await saveAppSettingsFn({ data: updated })
+  } catch (e) {
+    console.error('[Settings] Failed to save settings to server:', e)
+  }
+
+  // Update cache
+  settingsCache = updated
+  
+  // Trigger local event for components
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('settings-changed', { detail: updated }))
+  }
+  
   return updated
 }
 
@@ -42,6 +74,9 @@ export function useSettings() {
   const [settings, setSettings] = useState<AppSettings>(getSettings)
 
   useEffect(() => {
+    // Initial load from cache/server
+    loadSettings().then(setSettings)
+
     const handleChange = (e: Event) => {
       setSettings((e as CustomEvent<AppSettings>).detail)
     }
