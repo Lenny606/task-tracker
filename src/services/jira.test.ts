@@ -36,13 +36,14 @@ describe('jiraService', () => {
     expect(result[0].key).toBe('TEST-1')
   })
 
-  it('logWork should use Tempo API with Bearer token', async () => {
+  it('logWork should use Tempo API v4 with numeric issueId', async () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true }),
     } as Response)
 
     const worklogData = {
+      issueId: '10001',
       issueKey: 'TEST-1',
       timeSpentSeconds: 3600,
       startDate: '2023-10-27',
@@ -53,12 +54,13 @@ describe('jiraService', () => {
     await jiraService.logWork(mockCreds, worklogData)
 
     expect(fetch).toHaveBeenCalledWith(
-      'https://api.tempo.io/core/3/worklogs',
+      'https://api.tempo.io/4/worklogs',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
           'Authorization': 'Bearer test-tempo-token',
         }),
+        body: expect.stringContaining('"issueId":10001'),
       })
     )
   })
@@ -83,5 +85,43 @@ describe('jiraService', () => {
     
     expect(body.fields.description.type).toBe('doc')
     expect(body.fields.description.content[0].content[0].text).toBe('Hello world')
+  })
+
+  it('getWorklogs should use v4 endpoint and resolve issue details', async () => {
+    // 1. Mock Tempo response
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ 
+        results: [{ 
+          tempoWorklogId: '123',
+          issue: { id: 10001 },
+          timeSpentSeconds: 3600,
+          startDate: '2023-10-01',
+          startTime: '10:00:00'
+        }] 
+      }),
+    } as Response)
+
+    // 2. Mock Jira lookup response
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ 
+        issues: [{ 
+          id: '10001', 
+          key: 'TEST-1',
+          fields: { summary: 'Test Issue' }
+        }] 
+      }),
+    } as Response)
+
+    const result = await jiraService.getWorklogs(mockCreds, '2023-10-01', '2023-10-31', 'acc-123')
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/4/worklogs?from=2023-10-01&to=2023-10-31&authorAccountIds=acc-123'),
+      expect.objectContaining({ method: 'GET' })
+    )
+    
+    expect(result[0].issue.key).toBe('TEST-1')
+    expect(result[0].issue.summary).toBe('Test Issue')
   })
 })

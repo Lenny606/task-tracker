@@ -80,3 +80,32 @@ export const getJiraMyselfFn = createServerFn({
   if (!data) throw new Error('Missing credentials')
   return await jiraService.getMyself(data.credentials)
 })
+
+/**
+ * Server function to get Tempo worklogs
+ */
+export const getTempoWorklogsFn = createServerFn({
+  method: 'POST',
+}).handler(async ({ data }: { data?: { credentials: JiraCredentials; from: string; to: string } }) => {
+  if (!data) throw new Error('Missing input data')
+  
+  // Debug log (lengths only for security)
+  console.log('[getTempoWorklogsFn] Received credentials:', {
+    hasUrl: !!data.credentials.url,
+    url: data.credentials.url,
+    emailLength: data.credentials.email?.length,
+    apiKeyLength: data.credentials.apiKey?.length,
+    tempoApiKeyLength: data.credentials.tempoApiKey?.length,
+  })
+
+  // First get the account ID of the user
+  const myself = await jiraService.getMyself(data.credentials)
+  const authorAccountId = myself.accountId
+
+  if (!authorAccountId) {
+    throw new Error('Could not retrieve Jira account ID')
+  }
+
+  // Then fetch worklogs for that user
+  return await jiraService.getWorklogs(data.credentials, data.from, data.to, authorAccountId)
+})

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn } from '../services/jiraServer'
+import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
 import { toast } from '../store/toastStore'
@@ -11,10 +11,10 @@ export const Route = createFileRoute('/jira')({
   component: JiraPage,
 })
 
-function IssueSelector({ onSelect, credentials, currentSelection }: { 
-  onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void, 
+function IssueSelector({ onSelect, credentials, currentSelection }: {
+  onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void,
   credentials: any,
-  currentSelection: string | null 
+  currentSelection: string | null
 }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<JiraIssue[]>([])
@@ -121,7 +121,7 @@ function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; 
     fetchRecent()
   }, [])
 
-  if (isLoading || recent.length === 0) return null
+  if (isLoading || !recent || recent.length === 0) return null
 
   return (
     <div className="space-y-3">
@@ -175,6 +175,7 @@ function WorklogForm() {
         data: {
           credentials,
           worklogData: {
+            issueId: selectedIssue.id,
             issueKey: selectedIssue.key,
             timeSpentSeconds: seconds,
             startDate: date,
@@ -210,9 +211,9 @@ function WorklogForm() {
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
             <Search className="w-4 h-4" /> Hledat Ticket
           </label>
-          <IssueSelector 
-            credentials={credentials} 
-            onSelect={setSelectedIssue} 
+          <IssueSelector
+            credentials={credentials}
+            onSelect={setSelectedIssue}
             currentSelection={selectedIssue?.key || null}
           />
         </div>
@@ -292,9 +293,100 @@ function WorklogForm() {
   )
 }
 
+function WorklogList({ credentials, filter }: { credentials: any, filter: 'month' | 'all' }) {
+  const [worklogs, setWorklogs] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchWorklogs = async () => {
+      setIsLoading(true)
+      try {
+        const now = new Date()
+        let from, to
+        if (filter === 'month') {
+          from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+          to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+        } else {
+          // Default to last 30 days if 'all'
+          from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          to = now.toISOString().split('T')[0]
+        }
+        
+        // @ts-ignore
+        const results = await getTempoWorklogsFn({ data: { credentials, from, to } })
+        setWorklogs(results || [])
+      } catch (error) {
+        console.error('Failed to fetch worklogs:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchWorklogs()
+  }, [credentials, filter])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+        <p className="text-slate-500 font-medium">Načítám výkazy z Tempo...</p>
+      </div>
+    )
+  }
+
+  if (!worklogs || worklogs.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-12">
+        <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-2xl flex items-center justify-center mb-6 border border-slate-200 dark:border-slate-800">
+          <Clock className="w-8 h-8 text-slate-400 opacity-40" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Žádné výkazy</h2>
+        <p className="text-slate-500 dark:text-slate-400 max-w-sm">
+          V tomto období nebyly nalezeny žádné záznamy v Tempo.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4 p-6">
+      <div className="grid grid-cols-1 gap-4">
+        {worklogs.map((log) => (
+          <div key={log.tempoId || log.tempoWorklogId} className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-3xl shadow-sm hover:ring-2 hover:ring-blue-500/50 transition-all group">
+            <div className="flex gap-5 items-center">
+              <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter">
+                {log.issue.key}
+              </div>
+              <div>
+                <div className="font-bold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {log.description || <span className="italic opacity-50">Bez popisu</span>}
+                </div>
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                  <Calendar className="w-3 h-3" />
+                  {log.startDate}
+                  <span className="opacity-30">•</span>
+                  <Clock className="w-3 h-3" />
+                  {log.startTime}
+                </div>
+              </div>
+            </div>
+            <div className="text-right pl-4">
+              <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
+              </div>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Duration</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function JiraPage() {
   const [activeTab, setActiveTab] = useState<'list' | 'create'>('list')
   const [filter, setFilter] = useState<'month' | 'all'>('month')
+  const { settings } = useSettings()
+  const credentials = getJiraCredentials(settings)
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
@@ -341,37 +433,29 @@ function JiraPage() {
         {activeTab === 'list' ? (
           <div className="p-8 h-full">
             {/* Filters */}
-            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-sm font-semibold text-slate-500 uppercase tracking-widest mr-2">Filter:</span>
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mr-2 px-1">Období:</span>
               <button
                 onClick={() => setFilter('month')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${filter === 'month'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${filter === 'month'
+                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
+                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
                 Tento měsíc
               </button>
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${filter === 'all'
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${filter === 'all'
+                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
+                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
-                Všechno
+                Předchozích 30 dní
               </button>
             </div>
 
-            <div className="flex flex-col items-center justify-center text-center py-12">
-              <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-6">
-                <List className="w-8 h-8 text-blue-500 opacity-40" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Issue List</h2>
-              <p className="text-slate-500 dark:text-slate-400 max-w-sm">
-                Your Jira issues will be displayed here soon.
-              </p>
-            </div>
+            <WorklogList credentials={credentials} filter={filter} />
           </div>
         ) : (
           <WorklogForm />

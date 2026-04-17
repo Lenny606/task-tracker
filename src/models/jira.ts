@@ -43,7 +43,8 @@ export const JiraIssueSchema = z.object({
  * Matches the payload for POST /core/3/worklogs
  */
 export const WorklogSchema = z.object({
-  issueKey: z.string().describe('The key of the issue to log work for (e.g. TEST-123)'),
+  issueId: z.union([z.string(), z.number()]).optional().describe('The internal ID of the issue (required for Tempo v4)'),
+  issueKey: z.string().optional().describe('The key of the issue to log work for (e.g. TEST-123)'),
   timeSpentSeconds: z.number().positive().describe('Duration in seconds'),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('YYYY-MM-DD format'),
   startTime: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).describe('HH:MM:SS format'),
