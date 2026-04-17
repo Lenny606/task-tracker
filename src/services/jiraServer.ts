@@ -68,7 +68,21 @@ export const logTempoWorkloadFn = createServerFn({
   method: 'POST',
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; worklogData: TempoWorklogData } }) => {
   if (!data) throw new Error('Missing input data')
-  return await jiraService.logWork(data.credentials, data.worklogData)
+
+  // To ensure correct attribution in Tempo v4, we fetch the user's accountId
+  const myself = await jiraService.getMyself(data.credentials)
+  const authorAccountId = myself.accountId
+
+  if (!authorAccountId) {
+    throw new Error('Could not retrieve Jira account ID')
+  }
+
+  const enhancedWorklogData = {
+    ...data.worklogData,
+    authorAccountId,
+  }
+
+  return await jiraService.logWork(data.credentials, enhancedWorklogData)
 })
 
 /**
