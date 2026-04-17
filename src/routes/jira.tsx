@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2 } from 'lucide-react'
+import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw } from 'lucide-react'
 import { z } from 'zod'
 import { useState, useEffect, useRef } from 'react'
 import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
@@ -12,6 +12,7 @@ const jiraSearchSchema = z.object({
   view: z.enum(['list', 'create']).optional().catch('list'),
   description: z.string().optional(),
   duration: z.string().optional(),
+  period: z.enum(['month', 'all']).optional().catch('month'),
 })
 
 export const Route = createFileRoute('/jira')({
@@ -164,6 +165,16 @@ function WorklogForm() {
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
   const [description, setDescription] = useState(search.description || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
+
+  const handleReset = () => {
+    setSelectedIssue(null)
+    setDuration('')
+    setDescription('')
+    navigate({
+      search: { view: 'create' }
+    })
+  }
 
   // Sync state if search params change
   useEffect(() => {
@@ -221,7 +232,19 @@ function WorklogForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 space-y-8 max-w-4xl mx-auto">
+    <form onSubmit={handleSubmit} className="relative p-8 space-y-8 max-w-4xl mx-auto">
+      <div className="absolute top-8 right-8">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all active:scale-95 ring-1 ring-transparent hover:ring-red-500/20"
+          title="Resetovat formulář"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Resetovat
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
@@ -238,9 +261,22 @@ function WorklogForm() {
       </div>
 
       {selectedIssue && (
-        <div className="flex items-center gap-2 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-2xl text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ring-1 ring-blue-500/20 shadow-sm">
-          <CheckCircle2 className="w-5 h-5" />
-          Vybráno: <span className="font-black">{selectedIssue.key}</span> - <span className="opacity-80 font-medium">{selectedIssue.fields.summary}</span>
+        <div className="flex items-center justify-between px-5 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-2xl text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ring-1 ring-blue-500/20 shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5" />
+            Vybráno: <span className="font-black">{selectedIssue.key}</span> - <span className="opacity-80 font-medium">{selectedIssue.fields.summary}</span>
+          </div>
+          {settings.jiraUrl && (
+            <a 
+              href={`${settings.jiraUrl.replace(/\/$/, '')}/browse/${selectedIssue.key}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-blue-200 dark:border-blue-800 hover:bg-blue-600 hover:text-white transition-all text-xs font-bold active:scale-95"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Otevřít v Jira
+            </a>
+          )}
         </div>
       )}
 
@@ -501,9 +537,22 @@ function JiraPage() {
   
   const setActiveTab = (view: 'list' | 'create') => {
     navigate({
-      search: (prev) => ({ ...prev, view }),
+      search: (prev) => {
+        if (view === 'list') {
+          return { view, period: prev.period || 'month' }
+        }
+        return { ...prev, view }
+      },
     })
   }
+
+  const setPeriod = (period: 'month' | 'all') => {
+    navigate({
+      search: (prev) => ({ ...prev, period }),
+    })
+  }
+
+  const activePeriod = search.period || 'month'
 
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
@@ -556,8 +605,8 @@ function JiraPage() {
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
               <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mr-2 px-1">Období:</span>
               <button
-                onClick={() => setFilter('month')}
-                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${filter === 'month'
+                onClick={() => setPeriod('month')}
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${activePeriod === 'month'
                   ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
@@ -565,8 +614,8 @@ function JiraPage() {
                 Tento měsíc
               </button>
               <button
-                onClick={() => setFilter('all')}
-                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${filter === 'all'
+                onClick={() => setPeriod('all')}
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${activePeriod === 'all'
                   ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
@@ -575,7 +624,7 @@ function JiraPage() {
               </button>
             </div>
 
-            <WorklogList credentials={credentials} filter={filter} />
+            <WorklogList credentials={credentials} filter={activePeriod} />
           </div>
         ) : (
           <WorklogForm />
