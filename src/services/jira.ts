@@ -122,7 +122,7 @@ export const jiraService = {
    * Search for issues using JQL
    */
   searchIssues: async (creds: JiraCredentials, jql: string, maxResults = 50): Promise<JiraIssue[]> => {
-    const data = await jiraClient.fetch(creds, `/rest/api/3/search`, {
+    const data = await jiraClient.fetch(creds, `/rest/api/3/search/jql`, {
       method: 'POST',
       body: JSON.stringify({
         jql,
@@ -165,13 +165,36 @@ export const jiraService = {
   },
 
   /**
+   * Fetch a single issue by key or id
+   */
+  getIssue: async (creds: JiraCredentials, issueIdOrKey: string): Promise<JiraIssue> => {
+    return await jiraClient.fetch(creds, `/rest/api/3/issue/${issueIdOrKey}?fields=summary,key,project`)
+  },
+
+  /**
    * Log work using Tempo (API v4)
    */
   logWork: async (creds: JiraCredentials, data: TempoWorklogData): Promise<any> => {
+    let issueId = data.issueId
+    
+    // If ID is missing but key is present, resolve it (Tempo v4 requires numeric ID)
+    if (!issueId && data.issueKey) {
+      try {
+        const issue = await jiraService.getIssue(creds, data.issueKey)
+        issueId = issue.id
+      } catch (error) {
+        console.error(`[Jira Service] Failed to auto-resolve issue key ${data.issueKey}:`, error)
+        throw new Error(`Could not find Jira issue ${data.issueKey}`)
+      }
+    }
+
+    if (!issueId) {
+      throw new Error('Issue ID is required for Tempo v4')
+    }
+
     const payload = {
       ...data,
-      // Tempo v4 requires numeric issueId
-      issueId: typeof data.issueId === 'string' ? parseInt(data.issueId, 10) : data.issueId,
+      issueId: typeof issueId === 'string' ? parseInt(issueId, 10) : issueId,
     }
     
     // Remove issueKey if present as v4 doesn't use it in payload
@@ -200,26 +223,34 @@ export const jiraService = {
     if (logs.length === 0) return []
 
     // v4 only returns issueId, so we need to bridge to issueKey/summary for the UI
-    const issueIds = [...new Set(logs.map((l: any) => l.issue.id))]
+    const issueIds = [...new Set(logs.map((l: any) => String(l.issue.id)))]
     if (issueIds.length > 0) {
       try {
-        const jql = `id IN (${issueIds.join(',')})`
+        // Jira JQL supports both id and issue as field names for IDs. 
+        // Using "id IN (...)" with quoted values for maximum safety.
+        const jql = `id IN ("${issueIds.join('","')}")`
         const issues = await jiraService.searchIssues(creds, jql, issueIds.length)
         const issueMap = new Map(issues.map(i => [String(i.id), i]))
         
         return logs.map((log: any) => {
-          const jiraIssue = issueMap.get(String(log.issue.id))
+          const logIssueId = String(log.issue.id)
+          const jiraIssue = issueMap.get(logIssueId)
+          
+          if (!jiraIssue) {
+            console.warn(`[Jira Service] Could not resolve issue details for ID: ${logIssueId}`)
+          }
+
           return {
             ...log,
             issue: {
               ...log.issue,
-              key: jiraIssue?.key || `ID: ${log.issue.id}`,
+              key: jiraIssue?.key || `ID: ${logIssueId}`,
               summary: jiraIssue?.fields?.summary || '',
             }
           }
         })
       } catch (error) {
-        console.warn('[Jira Service] Failed to bulk resolve issue details:', error)
+        console.error('[Jira Service] Bulk resolve failed:', error)
         // Fallback to showing IDs if lookup fails
         return logs.map((log: any) => ({
           ...log,
