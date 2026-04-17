@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2 } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
+import { parseDurationToSeconds } from '../utils/duration'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -14,9 +15,10 @@ function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const isMounted = useIsMounted()
   const displayDate = date || (isMounted ? new Date().toISOString().split('T')[0] : '')
-  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary, toggleMarked, updateTask } = useTasks(displayDate)
+  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary, toggleMarked, updateTask, addTask, deleteTask } = useTasks(displayDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [newTaskName, setNewTaskName] = useState('')
 
   const liveTasks = tasks.map(t => ({
     ...t,
@@ -52,6 +54,13 @@ function SummaryPage() {
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const handleAddTask = (e?: React.FormEvent) => {
+    e?.preventDefault()
+    if (!newTaskName.trim()) return
+    addTask.mutate({ name: newTaskName.trim() })
+    setNewTaskName('')
   }
 
   const WORK_GOAL_SECONDS = 8 * 3600 // 8 hours
@@ -216,16 +225,17 @@ function SummaryPage() {
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
+                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-16 text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {liveTasks.length === 0 ? (
+              {liveTasks.length === 0 && !newTaskName && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-slate-500">
-                    No data available for today.
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                    No data available for {displayDate}. Use the input below to add tasks retrospectively.
                   </td>
                 </tr>
-              ) : (
+              )}
                 liveTasks.map((task) => {
                   const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
                   return (
@@ -266,7 +276,24 @@ function SummaryPage() {
                           className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
                         />
                       </td>
-                      <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">{formatFullTime(task.displaySeconds)}</td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          defaultValue={formatFullTime(task.displaySeconds)}
+                          onBlur={(e) => {
+                            const seconds = parseDurationToSeconds(e.target.value)
+                            if (seconds !== task.displaySeconds) {
+                              updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              ;(e.target as HTMLInputElement).blur()
+                            }
+                          }}
+                          className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -278,10 +305,47 @@ function SummaryPage() {
                           <span className="text-sm text-slate-500 w-10 text-right">{Math.round(percentage)}%</span>
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => deleteTask.mutate(task.id)}
+                          className="p-2 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Delete task"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
                     </tr>
                   )
                 })
               )}
+
+              {/* Add Task Row */}
+              <tr className="bg-slate-50/30 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800">
+                <td className="px-6 py-4">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center">
+                    <Plus size={18} />
+                  </div>
+                </td>
+                <td className="px-6 py-4" colSpan={4}>
+                  <form onSubmit={handleAddTask} className="flex items-center gap-4">
+                    <input
+                      type="text"
+                      placeholder="Add task retrospectively..."
+                      value={newTaskName}
+                      onChange={(e) => setNewTaskName(e.target.value)}
+                      className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium py-1"
+                    />
+                    {newTaskName.trim() && (
+                      <button
+                        type="submit"
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-md shadow-indigo-500/10"
+                      >
+                        Add Task
+                      </button>
+                    )}
+                  </form>
+                </td>
+              </tr>
               {globalSeconds > 0 && (
                 <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
                   <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>

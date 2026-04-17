@@ -113,8 +113,8 @@ export function useTasks(date: string = getTodayDate()) {
   const aiSummary = history[date]?.aiSummary
 
   const addTask = useMutation({
-    mutationFn: async (name: string) => {
-      const newTasks = [...tasks, { id: crypto.randomUUID(), name, totalSeconds: 0, isRunning: false, isMarked: false }]
+    mutationFn: async ({ name, totalSeconds = 0 }: { name: string; totalSeconds?: number }) => {
+      const newTasks = [...tasks, { id: crypto.randomUUID(), name, totalSeconds, isRunning: false, isMarked: false }]
       saveTasksForDate(date, newTasks)
       return newTasks
     },
@@ -164,8 +164,12 @@ export function useTasks(date: string = getTodayDate()) {
   })
 
   const updateTask = useMutation({
-    mutationFn: async ({ taskId, name }: { taskId: string; name: string }) => {
-      const newTasks = tasks.map((t) => (t.id === taskId ? { ...t, name } : t))
+    mutationFn: async ({ taskId, name, totalSeconds }: { taskId: string; name?: string; totalSeconds?: number }) => {
+      const newTasks = tasks.map((t) => 
+        t.id === taskId 
+          ? { ...t, name: name ?? t.name, totalSeconds: totalSeconds ?? t.totalSeconds } 
+          : t
+      )
       saveTasksForDate(date, newTasks)
       return newTasks
     },

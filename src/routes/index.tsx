@@ -34,7 +34,7 @@ function Dashboard() {
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTaskName.trim()) return
-    addTask.mutate(newTaskName)
+    addTask.mutate({ name: newTaskName })
     setNewTaskName('')
   }
 
