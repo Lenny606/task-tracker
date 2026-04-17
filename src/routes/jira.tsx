@@ -335,7 +335,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
 
   if (!worklogs || worklogs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-12">
+      <div className="flex flex-col items-center justify-center text-center py-20">
         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-2xl flex items-center justify-center mb-6 border border-slate-200 dark:border-slate-800">
           <Clock className="w-8 h-8 text-slate-400 opacity-40" />
         </div>
@@ -347,37 +347,72 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
     )
   }
 
+  // Group worklogs by date
+  const groupedWorklogs = worklogs.reduce((acc, log) => {
+    const date = log.startDate
+    if (!acc[date]) acc[date] = []
+    acc[date].push(log)
+    return acc
+  }, {} as Record<string, any[]>)
+
+  const sortedDates = Object.keys(groupedWorklogs).sort((a, b) => b.localeCompare(a))
+
+  const formatDailyTotal = (logs: any[]) => {
+    const totalSeconds = logs.reduce((sum, log) => sum + log.timeSpentSeconds, 0)
+    const h = Math.floor(totalSeconds / 3600)
+    const m = Math.floor((totalSeconds % 3600) / 60)
+    return `${h}h ${m}m`
+  }
+
+  const getDayName = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return new Intl.DateTimeFormat('cs-CZ', { weekday: 'long' }).format(date)
+  }
+
   return (
-    <div className="space-y-4 p-6">
-      <div className="grid grid-cols-1 gap-4">
-        {worklogs.map((log) => (
-          <div key={log.tempoId || log.tempoWorklogId} className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-3xl shadow-sm hover:ring-2 hover:ring-blue-500/50 transition-all group">
-            <div className="flex gap-5 items-center">
-              <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter">
-                {log.issue.key}
-              </div>
-              <div>
-                <div className="font-bold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {log.description || <span className="italic opacity-50">Bez popisu</span>}
-                </div>
-                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
-                  <Calendar className="w-3 h-3" />
-                  {log.startDate}
-                  <span className="opacity-30">•</span>
-                  <Clock className="w-3 h-3" />
-                  {log.startTime}
-                </div>
-              </div>
+    <div className="space-y-12 p-1">
+      {sortedDates.map((date) => (
+        <div key={date} className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-baseline gap-3">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white capitalize">
+                {date === new Date().toISOString().split('T')[0] ? 'Dnes' : getDayName(date)}
+              </h3>
+              <span className="text-sm font-bold text-slate-400 font-mono">{date}</span>
             </div>
-            <div className="text-right pl-4">
-              <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
-                {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
-              </div>
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Duration</div>
+            <div className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-sm font-black text-slate-600 dark:text-slate-400 shadow-sm border border-slate-200 dark:border-slate-700">
+              Celkem: {formatDailyTotal(groupedWorklogs[date])}
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {groupedWorklogs[date].map((log) => (
+              <div key={log.tempoId || log.tempoWorklogId} className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-3xl shadow-sm hover:ring-2 hover:ring-blue-500/50 transition-all group">
+                <div className="flex gap-5 items-center">
+                  <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter">
+                    {log.issue.key}
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {log.description || <span className="italic opacity-50">Bez popisu</span>}
+                    </div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                      <Clock className="w-3 h-3" />
+                      {log.startTime}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right pl-4">
+                  <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                    {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
+                  </div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Duration</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
