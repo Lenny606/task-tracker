@@ -122,6 +122,7 @@ export const jiraService = {
    * Search for issues using JQL
    */
   searchIssues: async (creds: JiraCredentials, jql: string, maxResults = 50): Promise<JiraIssue[]> => {
+    // Jira recently decommissioned /rest/api/3/search in favor of /rest/api/3/search/jql
     const data = await jiraClient.fetch(creds, `/rest/api/3/search/jql`, {
       method: 'POST',
       body: JSON.stringify({
@@ -130,7 +131,7 @@ export const jiraService = {
         fields: ['summary', 'status', 'project', 'issuetype', 'updated'],
       }),
     })
-    return data.issues
+    return data.issues || []
   },
 
   /**
@@ -211,12 +212,13 @@ export const jiraService = {
    * Fetch worklogs from Tempo (API v4)
    */
   getWorklogs: async (creds: JiraCredentials, from: string, to: string, authorAccountId?: string): Promise<any[]> => {
-    let path = `/4/worklogs?from=${from}&to=${to}`
-    if (authorAccountId) {
-      // v4 uses authorAccountIds (plural)
-      path += `&authorAccountIds=${authorAccountId}`
-    }
+    // For specific user worklogs, Tempo v4 provides a dedicated endpoint: /4/worklogs/user/{accountId}
+    // This is more reliable than query parameters on the global endpoint.
+    let path = authorAccountId 
+      ? `/4/worklogs/user/${authorAccountId}?from=${from}&to=${to}`
+      : `/4/worklogs?from=${from}&to=${to}`
     
+    console.log(`[Jira Service] Fetching Tempo worklogs: ${path}`)
     const data = await jiraClient.tempoFetch(creds, path, { method: 'GET' })
     const logs = data.results || []
     

@@ -14,7 +14,7 @@ async function testSearch() {
   console.log('URL:', JIRA_URL);
   
   try {
-    const response = await axios.post(`${JIRA_URL}/rest/api/3/search`, {
+    const response = await axios.post(`${JIRA_URL}/rest/api/3/search/jql`, {
       jql: 'order by updated DESC',
       maxResults: 5,
       fields: ['summary', 'key']
