@@ -133,3 +133,13 @@ export const getTempoWorklogsFn = createServerFn({
   // Then fetch worklogs for that user
   return await jiraService.getWorklogs(data.credentials, data.from, data.to, authorAccountId)
 })
+
+/**
+ * Server function to delete a Tempo worklog
+ */
+export const deleteTempoWorklogFn = createServerFn({
+  method: 'POST',
+}).handler(async ({ data }: { data?: { credentials: JiraCredentials; worklogId: number } }) => {
+  if (!data) throw new Error('Missing input data')
+  return await jiraService.deleteWorklog(data.credentials, data.worklogId)
+})

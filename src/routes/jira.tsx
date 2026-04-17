@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash } from 'lucide-react'
+import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn } from '../services/jiraServer'
+import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
 import { toast } from '../store/toastStore'
@@ -325,6 +325,20 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
     fetchWorklogs()
   }, [credentials, filter])
 
+  const handleDelete = async (worklogId: number) => {
+    if (!window.confirm('Opravdu chcete smazat tento výkaz?')) return
+    
+    try {
+      // @ts-ignore
+      await deleteTempoWorklogFn({ data: { credentials, worklogId } })
+      setWorklogs(prev => prev.filter(log => (log.tempoWorklogId || log.tempoId) !== worklogId))
+      toast.success('Výkaz byl smazán')
+    } catch (error) {
+      console.error('Delete failed:', error)
+      toast.error('Nepodařilo se smazat výkaz')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -438,11 +452,20 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
                       </div>
                     </div>
                   </div>
-                  <div className="text-right pl-4">
-                    <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
-                      {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
+                  <div className="flex items-center gap-4 pl-4">
+                    <button
+                      onClick={() => handleDelete(log.tempoWorklogId || log.tempoId)}
+                      className="opacity-0 group-hover:opacity-100 p-2.5 text-slate-400 hover:text-red-500 transition-all rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 ring-1 ring-transparent hover:ring-red-500/20"
+                      title="Smazat výkaz"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <div className="text-right">
+                      <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                        {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
+                      </div>
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Duration</div>
                     </div>
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Duration</div>
                   </div>
                 </div>
               ))}

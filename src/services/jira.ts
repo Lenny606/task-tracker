@@ -110,7 +110,9 @@ export const jiraClient = {
       throw new Error(`Tempo API Error: ${response.status} ${response.statusText}`)
     }
 
-    return response.json()
+    if (response.status === 204) return {}
+    const text = await response.text()
+    return text ? JSON.parse(text) : {}
   },
 }
 
@@ -262,5 +264,15 @@ export const jiraService = {
     }
 
     return logs
+  },
+
+  /**
+   * Delete a worklog from Tempo (API v4)
+   */
+  deleteWorklog: async (creds: JiraCredentials, worklogId: number): Promise<void> => {
+    console.log(`[Jira Service] Deleting Tempo worklog: ${worklogId}`)
+    await jiraClient.tempoFetch(creds, `/4/worklogs/${worklogId}`, {
+      method: 'DELETE',
+    })
   },
 }
