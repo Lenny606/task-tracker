@@ -37,7 +37,17 @@ export const searchJiraIssuesFn = createServerFn({
   // @ts-ignore - Serialization issues with unknown fields
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; jql: string; maxResults?: number } }) => {
   if (!data) throw new Error('Missing input data')
-  return await jiraService.searchIssues(data.credentials, data.jql, data.maxResults)
+  
+  // Apply filtering logic: only issues assigned to or reported by the user
+  const myself = await jiraService.getMyself(data.credentials)
+  const accountId = myself.accountId
+  
+  if (!accountId) {
+    return await jiraService.searchIssues(data.credentials, data.jql, data.maxResults)
+  }
+
+  const filteredJql = `(${data.jql}) AND (assignee = "${accountId}" OR reporter = "${accountId}")`
+  return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
 })
 
 /**
