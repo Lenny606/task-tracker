@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Play, Pause, Plus, RotateCcw, Trash2, Clock, CheckCircle2, Circle } from 'lucide-react'
+import { Play, Pause, Plus, RotateCcw, Trash2, Clock, CheckCircle2, Circle, Database } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
+import { formatSecondsToDuration } from '../utils/duration'
 
 
 export const Route = createFileRoute('/')({
@@ -13,8 +14,21 @@ export const Route = createFileRoute('/')({
 function Dashboard() {
   const { tasks, addTask, toggleTask, toggleMarked, resetTask, deleteTask, updateTask, getDisplayTime } = useTasks()
   const isMounted = useIsMounted()
+  const navigate = useNavigate()
   useTaskMonitor()
   const [newTaskName, setNewTaskName] = useState('')
+
+  const handleLogToJira = (task: any) => {
+    const time = getDisplayTime(task)
+    navigate({
+      to: '/jira',
+      search: {
+        view: 'create',
+        description: task.name,
+        duration: formatSecondsToDuration(time)
+      }
+    })
+  }
 
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -133,6 +147,16 @@ function Dashboard() {
                   title="Delete"
                 >
                   <Trash2 className="w-5 h-5" />
+                </button>
+
+                <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1" />
+
+                <button
+                  onClick={() => handleLogToJira(task)}
+                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-all active:scale-90"
+                  title="Log to Jira"
+                >
+                  <Database className="w-5 h-5" />
                 </button>
               </div>
             </div>

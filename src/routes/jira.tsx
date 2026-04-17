@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2 } from 'lucide-react'
+import { z } from 'zod'
 import { useState, useEffect, useRef } from 'react'
 import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
@@ -7,7 +8,14 @@ import { parseDurationToSeconds } from '../utils/duration'
 import { toast } from '../store/toastStore'
 import type { JiraIssue } from '../models/jira'
 
+const jiraSearchSchema = z.object({
+  view: z.enum(['list', 'create']).optional().catch('list'),
+  description: z.string().optional(),
+  duration: z.string().optional(),
+})
+
 export const Route = createFileRoute('/jira')({
+  validateSearch: (search) => jiraSearchSchema.parse(search),
   component: JiraPage,
 })
 
@@ -148,12 +156,20 @@ function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; 
 function WorklogForm() {
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
+  const search = useSearch({ from: '/jira' })
+  
   const [selectedIssue, setSelectedIssue] = useState<any>(null)
-  const [duration, setDuration] = useState('')
+  const [duration, setDuration] = useState(search.duration || '')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState(search.description || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Sync state if search params change
+  useEffect(() => {
+    if (search.duration) setDuration(search.duration)
+    if (search.description) setDescription(search.description)
+  }, [search.duration, search.description])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -478,8 +494,17 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
 }
 
 function JiraPage() {
-  const [activeTab, setActiveTab] = useState<'list' | 'create'>('list')
-  const [filter, setFilter] = useState<'month' | 'all'>('month')
+  const search = useSearch({ from: '/jira' })
+  const navigate = useNavigate({ from: '/jira' })
+  
+  const activeTab = search.view || 'list'
+  
+  const setActiveTab = (view: 'list' | 'create') => {
+    navigate({
+      search: (prev) => ({ ...prev, view }),
+    })
+  }
+
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
 
