@@ -1,11 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2 } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
-import { parseDurationToSeconds } from '../utils/duration'
+import { parseDurationToSeconds, formatSecondsToDuration } from '../utils/duration'
+import { useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -19,6 +20,19 @@ function SummaryPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newTaskName, setNewTaskName] = useState('')
+  const navigate = useNavigate()
+
+  const handleLogToJira = (task: any) => {
+    const durationStr = formatSecondsToDuration(task.displaySeconds)
+    navigate({
+      to: '/jira',
+      search: {
+        view: 'create',
+        description: task.name,
+        duration: durationStr
+      }
+    })
+  }
 
   const liveTasks = tasks.map(t => ({
     ...t,
@@ -225,7 +239,7 @@ function SummaryPage() {
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-16 text-right"></th>
+                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -306,13 +320,22 @@ function SummaryPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => deleteTask.mutate(task.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Delete task"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleLogToJira(task)}
+                          className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                          title="Log to Jira"
+                        >
+                          <Database size={18} />
+                        </button>
+                        <button
+                          onClick={() => deleteTask.mutate(task.id)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                          title="Delete task"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
