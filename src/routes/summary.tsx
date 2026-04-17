@@ -236,88 +236,87 @@ function SummaryPage() {
                   </td>
                 </tr>
               )}
-                liveTasks.map((task) => {
-                  const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
-                  return (
-                    <tr 
-                      key={task.id} 
-                      className={`transition-colors group ${
-                        task.isMarked 
-                          ? 'bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' 
-                          : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => toggleMarked.mutate(task.id)}
-                          className={`transition-all active:scale-95 ${
-                            task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
-                          }`}
-                        >
-                          {task.isMarked ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <input
-                          type="text"
-                          defaultValue={task.name}
-                          onBlur={(e) => {
-                            if (e.target.value.trim() && e.target.value !== task.name) {
-                              updateTask.mutate({ taskId: task.id, name: e.target.value.trim() })
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              e.stopPropagation()
-                                ; (e.target as HTMLInputElement).blur()
-                            }
-                          }}
-                          className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <input
-                          type="text"
-                          defaultValue={formatFullTime(task.displaySeconds)}
-                          onBlur={(e) => {
-                            const seconds = parseDurationToSeconds(e.target.value)
-                            if (seconds !== task.displaySeconds) {
-                              updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              ;(e.target as HTMLInputElement).blur()
-                            }
-                          }}
-                          className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-indigo-500 rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-slate-500 w-10 text-right">{Math.round(percentage)}%</span>
+              {liveTasks.map((task) => {
+                const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
+                return (
+                  <tr 
+                    key={task.id} 
+                    className={`transition-colors group ${
+                      task.isMarked 
+                        ? 'bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' 
+                        : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleMarked.mutate(task.id)}
+                        className={`transition-all active:scale-95 ${
+                          task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
+                        }`}
+                      >
+                        {task.isMarked ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="text"
+                        defaultValue={task.name}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() && e.target.value !== task.name) {
+                            updateTask.mutate({ taskId: task.id, name: e.target.value.trim() })
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            e.stopPropagation()
+                              ; (e.target as HTMLInputElement).blur()
+                          }
+                        }}
+                        className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="text"
+                        defaultValue={formatFullTime(task.displaySeconds)}
+                        onBlur={(e) => {
+                          const seconds = parseDurationToSeconds(e.target.value)
+                          if (seconds !== task.displaySeconds) {
+                            updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            ;(e.target as HTMLInputElement).blur()
+                          }
+                        }}
+                        className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-indigo-500 rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => deleteTask.mutate(task.id)}
-                          className="p-2 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                          title="Delete task"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
+                        <span className="text-sm text-slate-500 w-10 text-right">{Math.round(percentage)}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => deleteTask.mutate(task.id)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete task"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
 
               {/* Add Task Row */}
               <tr className="bg-slate-50/30 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800">

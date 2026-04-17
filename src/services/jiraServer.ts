@@ -38,15 +38,8 @@ export const searchJiraIssuesFn = createServerFn({
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; jql: string; maxResults?: number } }) => {
   if (!data) throw new Error('Missing input data')
   
-  // Apply filtering logic: only issues assigned to or reported by the user
-  const myself = await jiraService.getMyself(data.credentials)
-  const accountId = myself.accountId
-  
-  if (!accountId) {
-    return await jiraService.searchIssues(data.credentials, data.jql, data.maxResults)
-  }
-
-  const filteredJql = `(${data.jql}) AND (assignee = "${accountId}" OR reporter = "${accountId}")`
+  // Refined search: Only issues of type "Task" across all users and statuses
+  const filteredJql = `(${data.jql}) AND issuetype = Task`
   return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
 })
 
