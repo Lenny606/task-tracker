@@ -41,11 +41,26 @@ export const migrateLocalStorageFn = createServerFn({
   if (data.history) {
     console.log('[Migration] Migrating history data...');
     for (const [date, dayData] of Object.entries(data.history)) {
-      // Migrate Tasks
+      // 2a. Migrate/Create Day Metrics first to get the ID
+      let dayMetricId: number | undefined;
+      
+      const metrics = await dayMetricsRepository.saveMetrics(date, {
+        aiSummary: dayData.aiSummary,
+        timerTotalSeconds: dayData.globalTimer?.totalSeconds || 0,
+        timerIsRunning: dayData.globalTimer?.isRunning || false,
+        timerStartTime: dayData.globalTimer?.startTime ? new Date(dayData.globalTimer.startTime) : null,
+      });
+
+      if (metrics) {
+        dayMetricId = metrics.id;
+      }
+
+      // 2b. Migrate Tasks linked to the metric ID
       if (dayData.tasks && Array.isArray(dayData.tasks)) {
         for (const task of dayData.tasks) {
           await historyTasksRepository.create({
             id: task.id,
+            dayMetricId: dayMetricId,
             date: date,
             name: task.name,
             totalSeconds: task.totalSeconds || 0,
@@ -54,16 +69,6 @@ export const migrateLocalStorageFn = createServerFn({
             startTime: task.startTime ? new Date(task.startTime) : null,
           });
         }
-      }
-
-      // Migrate Day Metrics
-      if (dayData.globalTimer || dayData.aiSummary) {
-        await dayMetricsRepository.saveMetrics(date, {
-          aiSummary: dayData.aiSummary,
-          timerTotalSeconds: dayData.globalTimer?.totalSeconds || 0,
-          timerIsRunning: dayData.globalTimer?.isRunning || false,
-          timerStartTime: dayData.globalTimer?.startTime ? new Date(dayData.globalTimer.startTime) : null,
-        });
       }
     }
   }

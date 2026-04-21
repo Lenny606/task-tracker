@@ -41,7 +41,7 @@ function RootComponent() {
 
   useEffect(() => {
     const checkMigration = async () => {
-      const isMigrated = localStorage.getItem('migrated_to_sql') === 'true'
+      const isMigrated = localStorage.getItem('migrated_to_sql_v2') === 'true'
       if (isMigrated) return
 
       const historyData = localStorage.getItem('task-tracker-history')
@@ -57,7 +57,7 @@ function RootComponent() {
 
           await migrateLocalStorageFn({ data: payload })
           
-          localStorage.setItem('migrated_to_sql', 'true')
+          localStorage.setItem('migrated_to_sql_v2', 'true')
           console.log('[Migration] Migration successful!')
           
           // Invalidate queries to refresh data from SQL
@@ -67,7 +67,7 @@ function RootComponent() {
         }
       } else {
         // No data to migrate, mark as migrated anyway to skip future checks
-        localStorage.setItem('migrated_to_sql', 'true')
+        localStorage.setItem('migrated_to_sql_v2', 'true')
       }
     }
 

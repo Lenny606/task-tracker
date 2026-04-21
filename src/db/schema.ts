@@ -32,6 +32,7 @@ export const projects = sqliteTable('projects', {
 
 export const historyTasks = sqliteTable('history_tasks', {
   id: text('id').primaryKey(),
+  dayMetricId: integer('day_metric_id').references(() => dayMetrics.id, { onDelete: 'cascade' }),
   date: text('date').notNull(), // YYYY-MM-DD
   name: text('name').notNull(),
   totalSeconds: integer('total_seconds').notNull().default(0),
@@ -42,7 +43,8 @@ export const historyTasks = sqliteTable('history_tasks', {
 });
 
 export const dayMetrics = sqliteTable('day_metrics', {
-  date: text('date').primaryKey(), // YYYY-MM-DD
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  date: text('date').notNull().unique(), // YYYY-MM-DD
   aiSummary: text('ai_summary'),
   timerTotalSeconds: integer('timer_total_seconds').notNull().default(0),
   timerIsRunning: integer('timer_is_running', { mode: 'boolean' }).notNull().default(false),
