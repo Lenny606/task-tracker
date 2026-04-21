@@ -27,7 +27,10 @@ function CalendarPage() {
     for (let i = 0; i < 5; i++) {
       const d = new Date(baseDate)
       d.setDate(baseDate.getDate() + i)
-      dates.push(d.toISOString().split('T')[0])
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      dates.push(`${year}-${month}-${day}`)
     }
     return dates
   }, [baseDate])
@@ -120,7 +123,11 @@ function CalendarPage() {
           const tasks = dayData?.tasks || []
           const totalSeconds = tasks.reduce((acc, t) => acc + t.totalSeconds, 0)
           const date = new Date(dateString)
-          const isToday = dateString === new Date().toISOString().split('T')[0]
+          const year = new Date().getFullYear()
+          const month = String(new Date().getMonth() + 1).padStart(2, '0')
+          const dayNum = String(new Date().getDate()).padStart(2, '0')
+          const todayStr = `${year}-${month}-${dayNum}`
+          const isToday = dateString === todayStr
 
           return (
             <div 

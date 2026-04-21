@@ -33,7 +33,10 @@ function TempoCalendarPage() {
     for (let i = 0; i < 5; i++) {
       const d = new Date(baseDate)
       d.setDate(baseDate.getDate() + i)
-      dates.push(d.toISOString().split('T')[0])
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      dates.push(`${year}-${month}-${day}`)
     }
     return dates
   }, [baseDate])
@@ -101,9 +104,12 @@ function TempoCalendarPage() {
     return `${first.toLocaleDateString(undefined, options)} - ${last.toLocaleDateString(undefined, options)}, ${last.getFullYear()}`
   }, [weekDates])
 
-  // Calculate total week time
+  // Calculate total week time (Filtered for PCSD-24 as requested)
   const totalWeekSeconds = useMemo(() => {
-    return Object.values(worklogsByDate).flat().reduce((sum, log) => sum + log.timeSpentSeconds, 0)
+    return Object.values(worklogsByDate)
+      .flat()
+      .filter(log => log.issue?.key === 'PCSD-24')
+      .reduce((sum, log) => sum + log.timeSpentSeconds, 0)
   }, [worklogsByDate])
 
   if (!isMounted) return null
@@ -126,7 +132,7 @@ function TempoCalendarPage() {
                 </span>
                 {totalWeekSeconds > 0 && (
                   <span className="text-xs font-black text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-                    Week Total: {formatTime(totalWeekSeconds)}
+                    Week Total (PCSD-24): {formatTime(totalWeekSeconds)}
                   </span>
                 )}
               </div>
@@ -179,7 +185,11 @@ function TempoCalendarPage() {
             const dayWorklogs = worklogsByDate[dateString] || []
             const dailyTotal = dayWorklogs.reduce((sum, log) => sum + log.timeSpentSeconds, 0)
             const date = new Date(dateString)
-            const isToday = dateString === new Date().toISOString().split('T')[0]
+            const year = new Date().getFullYear()
+            const month = String(new Date().getMonth() + 1).padStart(2, '0')
+            const dayNum = String(new Date().getDate()).padStart(2, '0')
+            const todayStr = `${year}-${month}-${dayNum}`
+            const isToday = dateString === todayStr
 
             return (
               <div 
