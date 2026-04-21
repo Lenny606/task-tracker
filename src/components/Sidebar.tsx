@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database, Calendar } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
 import React, { useState } from 'react'
@@ -48,6 +48,15 @@ export function Sidebar() {
         >
           <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">Today's Summary</span>
+        </Link>
+
+        <Link
+          to="/calendar"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Calendar</span>
         </Link>
 
         <div className="py-2 px-2">
