@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as TempoCalendarRouteImport } from './routes/tempo-calendar'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -20,6 +21,11 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiExtensionRouteImport } from './routes/api.extension'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TempoCalendarRoute = TempoCalendarRouteImport.update({
   id: '/tempo-calendar',
   path: '/tempo-calendar',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
+  '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
+  '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
+  '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
+    | '/test'
     | '/api/extension'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
+    | '/test'
     | '/api/extension'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
+    | '/test'
     | '/api/extension'
   fileRoutesById: FileRoutesById
 }
@@ -157,11 +169,19 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
   TempoCalendarRoute: typeof TempoCalendarRoute
+  TestRoute: typeof TestRoute
   ApiExtensionRoute: typeof ApiExtensionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tempo-calendar': {
       id: '/tempo-calendar'
       path: '/tempo-calendar'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
   TempoCalendarRoute: TempoCalendarRoute,
+  TestRoute: TestRoute,
   ApiExtensionRoute: ApiExtensionRoute,
 }
 export const routeTree = rootRouteImport
