@@ -18,10 +18,13 @@ function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const isMounted = useIsMounted()
   const displayDate = date || (isMounted ? new Date().toISOString().split('T')[0] : '')
-  const { tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, saveAiSummary, toggleMarked, updateTask, addTask, deleteTask } = useTasks(displayDate)
+  const { 
+    tasks, getDisplayTime, globalTimer, getDisplayGlobalTime, aiSummary, 
+    saveAiSummary, toggleMarked, updateTask, addTask, deleteTask,
+    newTaskName, setNewTaskName, pendingJiraTicket, setPendingJiraTicket 
+  } = useTasks(displayDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [newTaskName, setNewTaskName] = useState('')
   const navigate = useNavigate()
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
@@ -71,8 +74,13 @@ function SummaryPage() {
   const handleAddTask = (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!newTaskName.trim()) return
-    addTask.mutate({ name: newTaskName.trim() })
+    addTask.mutate({ 
+      name: newTaskName.trim(),
+      jiraKey: pendingJiraTicket?.key,
+      jiraSummary: pendingJiraTicket?.summary
+    })
     setNewTaskName('')
+    setPendingJiraTicket(null)
   }
 
   const WORK_GOAL_SECONDS = 8 * 3600 // 8 hours
@@ -303,10 +311,13 @@ function SummaryPage() {
                         credentials={credentials}
                         compact={true}
                         onSelect={(issue) => {
-                          const newName = `[${issue.key}] ${issue.fields.summary}`
-                          updateTask.mutate({ taskId: task.id, name: newName })
+                          updateTask.mutate({ 
+                            taskId: task.id, 
+                            jiraKey: issue.key, 
+                            jiraSummary: issue.fields.summary 
+                          })
                         }}
-                        currentSelection={task.name.match(/^\[(.*?)\]/)?.[1] || null}
+                        currentSelection={task.jiraKey || null}
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -396,9 +407,12 @@ function SummaryPage() {
                     credentials={credentials}
                     compact={true}
                     onSelect={(issue) => {
-                      setNewTaskName(`[${issue.key}] ${issue.fields.summary}`)
+                      if (!newTaskName.trim()) {
+                        setNewTaskName(issue.fields.summary)
+                      }
+                      setPendingJiraTicket({ key: issue.key, summary: issue.fields.summary })
                     }}
-                    currentSelection={null}
+                    currentSelection={pendingJiraTicket?.key || null}
                   />
                 </td>
                 <td className="px-6 py-4" colSpan={3}></td>

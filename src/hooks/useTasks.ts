@@ -11,6 +11,8 @@ import {
 export interface Task {
   id: string
   name: string
+  jiraKey?: string | null
+  jiraSummary?: string | null
   totalSeconds: number
   isRunning: boolean
   isMarked?: boolean
@@ -38,6 +40,8 @@ const getTodayDate = () => new Date().toISOString().split('T')[0]
 export function useTasks(date: string = getTodayDate()) {
   const [now, setNow] = useState(Date.now())
   const [isSyncingExtension, setIsSyncingExtension] = useState(false)
+  const [newTaskName, setNewTaskName] = useState('')
+  const [pendingJiraTicket, setPendingJiraTicket] = useState<{ key: string, summary: string } | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -61,11 +65,23 @@ export function useTasks(date: string = getTodayDate()) {
   const addTask = useMutation({
     mutationFn: async ({ name, totalSeconds = 0 }: { name: string; totalSeconds?: number }) => {
       const id = crypto.randomUUID()
-      const task = { id, name, totalSeconds, isRunning: false, isMarked: false }
+      const task = { 
+        id, 
+        name, 
+        totalSeconds, 
+        isRunning: false, 
+        isMarked: false,
+        jiraKey: pendingJiraTicket?.key,
+        jiraSummary: pendingJiraTicket?.summary
+      }
       await updateTaskFn({ data: { date, task } })
       return task
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['history'] })
+      setNewTaskName('')
+      setPendingJiraTicket(null)
+    },
   })
 
   const toggleTask = useMutation({
@@ -108,11 +124,17 @@ export function useTasks(date: string = getTodayDate()) {
   })
 
   const updateTask = useMutation({
-    mutationFn: async ({ taskId, name, totalSeconds }: { taskId: string; name?: string; totalSeconds?: number }) => {
+    mutationFn: async ({ taskId, name, totalSeconds, jiraKey, jiraSummary }: { taskId: string; name?: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null }) => {
       const t = tasks.find(task => task.id === taskId)
       if (!t) return
 
-      const updatedTask = { ...t, name: name ?? t.name, totalSeconds: totalSeconds ?? t.totalSeconds }
+      const updatedTask = { 
+        ...t, 
+        name: name ?? t.name, 
+        totalSeconds: totalSeconds ?? t.totalSeconds,
+        jiraKey: jiraKey !== undefined ? jiraKey : t.jiraKey,
+        jiraSummary: jiraSummary !== undefined ? jiraSummary : t.jiraSummary
+      }
       await updateTaskFn({ data: { date, task: updatedTask } })
       return updatedTask
     },
@@ -133,7 +155,6 @@ export function useTasks(date: string = getTodayDate()) {
 
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
-      // Still sync with extension API for external control
       const response = await fetch('/api/extension', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,12 +245,10 @@ export function useTasks(date: string = getTodayDate()) {
         url: item.url
       }))
 
-      // Sync updated tasks one by one (could be optimized with batch)
       for (const task of newTasksFromExtension) {
         await updateTaskFn({ data: { date, task } })
       }
 
-      // Sync Global Timer
       const updatedGlobalTimer = {
         isRunning: timerState.isRunning,
         startTime: timerState.startTime,
@@ -260,6 +279,10 @@ export function useTasks(date: string = getTodayDate()) {
     deleteHistoryDay,
     syncExtensionData,
     isSyncingExtension,
+    newTaskName,
+    setNewTaskName,
+    pendingJiraTicket,
+    setPendingJiraTicket,
     syncExtension: async () => {
       setIsSyncingExtension(true)
       try {

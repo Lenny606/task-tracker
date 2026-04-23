@@ -35,6 +35,8 @@ export const historyTasks = sqliteTable('history_tasks', {
   dayMetricId: integer('day_metric_id').references(() => dayMetrics.id, { onDelete: 'cascade' }),
   date: text('date').notNull(), // YYYY-MM-DD
   name: text('name').notNull(),
+  jiraKey: text('jira_key'),
+  jiraSummary: text('jira_summary'),
   totalSeconds: integer('total_seconds').notNull().default(0),
   isRunning: integer('is_running', { mode: 'boolean' }).notNull().default(false),
   isMarked: integer('is_marked', { mode: 'boolean' }).notNull().default(false),

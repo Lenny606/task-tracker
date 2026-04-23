@@ -17,6 +17,8 @@ export const getHistoryDataFn = createServerFn({
     history[task.date].tasks.push({
       id: task.id,
       name: task.name,
+      jiraKey: task.jiraKey,
+      jiraSummary: task.jiraSummary,
       totalSeconds: task.totalSeconds,
       isRunning: task.isRunning,
       isMarked: task.isMarked,
@@ -48,6 +50,8 @@ export const updateTaskFn = createServerFn({
     id: task.id || randomUUID(),
     date: date,
     name: task.name,
+    jiraKey: task.jiraKey || null,
+    jiraSummary: task.jiraSummary || null,
     totalSeconds: task.totalSeconds || 0,
     isRunning: task.isRunning || false,
     isMarked: task.isMarked || false,

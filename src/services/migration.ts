@@ -63,6 +63,8 @@ export const migrateLocalStorageFn = createServerFn({
             dayMetricId: dayMetricId,
             date: date,
             name: task.name,
+            jiraKey: task.jiraKey || null,
+            jiraSummary: task.jiraSummary || null,
             totalSeconds: task.totalSeconds || 0,
             isRunning: task.isRunning || false,
             isMarked: task.isMarked || false,
