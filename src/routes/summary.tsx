@@ -8,6 +8,7 @@ import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { JiraIssueSelector } from '../components/JiraIssueSelector'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from '../utils/duration'
+import { escapeHtml } from '../utils/sanitize'
 import { useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/summary')({
@@ -35,10 +36,10 @@ function SummaryPage() {
       to: '/jira',
       search: {
         view: 'create',
-        description: task.name,
+        description: escapeHtml(task.name),
         duration: durationStr,
         issueKey: task.jiraKey || undefined,
-        issueSummary: task.jiraSummary || undefined
+        issueSummary: task.jiraSummary ? escapeHtml(task.jiraSummary) : undefined
       }
     })
   }

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
+import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
 import type { JiraIssue } from '../models/jira'
 
@@ -75,7 +76,7 @@ function WorklogForm() {
   const [duration, setDuration] = useState(search.duration || '')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
-  const [description, setDescription] = useState(search.description || '')
+  const [description, setDescription] = useState(search.description ? unescapeHtml(search.description) : '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
@@ -91,11 +92,11 @@ function WorklogForm() {
   // Sync state if search params change
   useEffect(() => {
     if (search.duration) setDuration(search.duration)
-    if (search.description) setDescription(search.description)
+    if (search.description) setDescription(unescapeHtml(search.description))
     if (search.issueKey && !selectedIssue) {
       setSelectedIssue({
         key: search.issueKey,
-        fields: { summary: search.issueSummary || '' }
+        fields: { summary: search.issueSummary ? unescapeHtml(search.issueSummary) : '' }
       })
     }
   }, [search.duration, search.description, search.issueKey, search.issueSummary])
