@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database, GitBranch } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
@@ -165,15 +165,24 @@ function SummaryPage() {
             <Sparkles className="w-6 h-6 text-indigo-500" />
             AI Commits Summary
           </h2>
-          {!aiSummary && !isGenerating && (
+          <div className="flex items-center gap-3">
             <button
-              onClick={handleGenerateSummary}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+              onClick={() => navigate({ to: '/commits', search: { date: displayDate } })}
+              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm"
             >
-              <Sparkles size={18} />
-              Generate JIRA Summary
+              <GitBranch size={18} />
+              View Commits
             </button>
-          )}
+            {!aiSummary && !isGenerating && (
+              <button
+                onClick={handleGenerateSummary}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+              >
+                <Sparkles size={18} />
+                Generate JIRA Summary
+              </button>
+            )}
+          </div>
         </div>
 
         {isGenerating ? (
