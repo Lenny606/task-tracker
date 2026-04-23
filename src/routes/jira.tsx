@@ -12,6 +12,8 @@ const jiraSearchSchema = z.object({
   view: z.enum(['list', 'create']).optional().catch('list'),
   description: z.string().optional(),
   duration: z.string().optional(),
+  issueKey: z.string().optional(),
+  issueSummary: z.string().optional(),
   period: z.enum(['month', 'all']).optional().catch('month'),
 })
 
@@ -90,7 +92,13 @@ function WorklogForm() {
   useEffect(() => {
     if (search.duration) setDuration(search.duration)
     if (search.description) setDescription(search.description)
-  }, [search.duration, search.description])
+    if (search.issueKey && !selectedIssue) {
+      setSelectedIssue({
+        key: search.issueKey,
+        fields: { summary: search.issueSummary || '' }
+      })
+    }
+  }, [search.duration, search.description, search.issueKey, search.issueSummary])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

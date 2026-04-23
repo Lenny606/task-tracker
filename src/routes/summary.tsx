@@ -36,7 +36,9 @@ function SummaryPage() {
       search: {
         view: 'create',
         description: task.name,
-        duration: durationStr
+        duration: durationStr,
+        issueKey: task.jiraKey || undefined,
+        issueSummary: task.jiraSummary || undefined
       }
     })
   }
