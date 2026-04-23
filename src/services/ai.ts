@@ -39,9 +39,6 @@ export const AI_MODEL_LABELS: Record<AiModel, { label: string; description: stri
 }
 
 const getGeminiApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || ''
-const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/'
-
-// Cache adapters per model id
 const adapterCache = new Map<string, ReturnType<typeof createGeminiChat>>()
 
 export const isConfigured = () => !!getGeminiApiKey()
@@ -71,7 +68,6 @@ export const getAiAdapter = (model?: AiModel) => {
     resolvedModel,
     apiKey,
     {
-      baseURL: GEMINI_BASE_URL,
       dangerouslyAllowBrowser: true,
     }
   )
