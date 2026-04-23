@@ -372,7 +372,13 @@ function SummaryPage() {
                   <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
                   <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
                   <td className="px-6 py-6" colSpan={2}>
-                    <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
+                      <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                        <span className="text-xs uppercase tracking-widest opacity-60">Remaining to 8h:</span>
+                        <span className="text-sm font-bold">{isGoalReached ? 'Goal Reached!' : formatTime(remainingSeconds)}</span>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}
