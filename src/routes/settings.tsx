@@ -30,7 +30,7 @@ function SettingsPage() {
 
       <div className="space-y-6">
         {/* AI Configuration Card */}
-        <section className="glass-panel rounded-3xl">
+        <section className="glass-panel rounded-3xl relative z-20">
           <div className="px-8 py-7 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
             <div className="w-9 h-9 bg-violet-50 dark:bg-violet-900/30 rounded-xl flex items-center justify-center">
               <Bot className="w-5 h-5 text-violet-600 dark:text-violet-400" />
@@ -55,7 +55,7 @@ function SettingsPage() {
         </section>
 
         {/* Jira Configuration Card */}
-        <section className="glass-panel rounded-3xl">
+        <section className="glass-panel rounded-3xl relative z-10">
           <div className="px-8 py-7 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
               <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -124,6 +124,7 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+
       </div>
     </div>
   )
