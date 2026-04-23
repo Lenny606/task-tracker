@@ -20,97 +20,7 @@ export const Route = createFileRoute('/jira')({
   component: JiraPage,
 })
 
-function IssueSelector({ onSelect, credentials, currentSelection }: {
-  onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void,
-  credentials: any,
-  currentSelection: string | null
-}) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<JiraIssue[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Sync internal query with external selection
-  useEffect(() => {
-    if (currentSelection) {
-      setQuery(currentSelection)
-    }
-  }, [currentSelection])
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  useEffect(() => {
-    if (query.length < 2 || query === currentSelection) {
-      setResults([])
-      return
-    }
-
-    const timer = setTimeout(async () => {
-      setIsLoading(true)
-      try {
-        // Search by summary or key across all projects
-        const jql = `summary ~ "${query}*" OR key ~ "${query}*"`
-        // @ts-ignore - Ignoring type issue with server function input
-        const issues = await searchJiraIssuesFn({ data: { credentials, jql, maxResults: 10 } })
-        setResults(issues)
-        setIsOpen(true)
-      } catch (error) {
-        console.error('Search failed:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [query, credentials, currentSelection])
-
-  return (
-    <div className="relative w-full" ref={dropdownRef}>
-      <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-        </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query.length >= 2 && setIsOpen(true)}
-          placeholder="Hledat ticket (klíč nebo název)..."
-          className="w-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-lg font-medium shadow-sm"
-        />
-      </div>
-
-      {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-72 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-opacity-95">
-          {results.map((issue) => (
-            <button
-              key={issue.id}
-              type="button"
-              onClick={() => {
-                onSelect(issue)
-                setQuery(issue.key)
-                setIsOpen(false)
-              }}
-              className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col gap-1 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
-            >
-              <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">{issue.key}</span>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 line-clamp-1">{issue.fields.summary}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+import { JiraIssueSelector } from '../components/JiraIssueSelector'
 
 function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; summary: string }) => void }) {
   const [recent, setRecent] = useState<{ key: string; summary: string }[]>([])
@@ -250,7 +160,7 @@ function WorklogForm() {
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
             <Search className="w-4 h-4" /> Hledat Ticket
           </label>
-          <IssueSelector
+          <JiraIssueSelector
             credentials={credentials}
             onSelect={setSelectedIssue}
             currentSelection={selectedIssue?.key || null}

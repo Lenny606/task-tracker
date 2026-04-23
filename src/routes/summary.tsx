@@ -4,6 +4,8 @@ import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileT
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
+import { useSettings, getJiraCredentials } from '../store/settingsStore'
+import { JiraIssueSelector } from '../components/JiraIssueSelector'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from '../utils/duration'
 import { useNavigate } from '@tanstack/react-router'
@@ -21,6 +23,8 @@ function SummaryPage() {
   const [error, setError] = useState<string | null>(null)
   const [newTaskName, setNewTaskName] = useState('')
   const navigate = useNavigate()
+  const { settings } = useSettings()
+  const credentials = getJiraCredentials(settings)
 
   const handleLogToJira = (task: any) => {
     const durationStr = formatSecondsToDuration(task.displaySeconds)
@@ -240,6 +244,7 @@ function SummaryPage() {
               <tr className="bg-slate-50 dark:bg-slate-800/50">
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-12"></th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
+                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-40">Jira Ticket</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Actions</th>
@@ -248,7 +253,7 @@ function SummaryPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {liveTasks.length === 0 && !newTaskName && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     No data available for {displayDate}. Use the input below to add tasks retrospectively.
                   </td>
                 </tr>
@@ -291,6 +296,17 @@ function SummaryPage() {
                           }
                         }}
                         className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <JiraIssueSelector
+                        credentials={credentials}
+                        compact={true}
+                        onSelect={(issue) => {
+                          const newName = `[${issue.key}] ${issue.fields.summary}`
+                          updateTask.mutate({ taskId: task.id, name: newName })
+                        }}
+                        currentSelection={task.name.match(/^\[(.*?)\]/)?.[1] || null}
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -356,7 +372,7 @@ function SummaryPage() {
                     <Plus size={18} />
                   </div>
                 </td>
-                <td className="px-6 py-4" colSpan={4}>
+                <td className="px-6 py-4">
                   <form onSubmit={handleAddTask} className="flex items-center gap-4">
                     <input
                       type="text"
@@ -375,12 +391,23 @@ function SummaryPage() {
                     )}
                   </form>
                 </td>
+                <td className="px-6 py-4">
+                  <JiraIssueSelector
+                    credentials={credentials}
+                    compact={true}
+                    onSelect={(issue) => {
+                      setNewTaskName(`[${issue.key}] ${issue.fields.summary}`)
+                    }}
+                    currentSelection={null}
+                  />
+                </td>
+                <td className="px-6 py-4" colSpan={3}></td>
               </tr>
               {globalSeconds > 0 && (
                 <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
                   <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
                   <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
-                  <td className="px-6 py-6" colSpan={2}>
+                  <td className="px-6 py-6" colSpan={4}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
                       <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
