@@ -13,8 +13,6 @@ import { getSettings } from '../store/settingsStore'
 export const AI_MODELS = {
   GEMINI_2_5_FLASH: 'gemini-2.5-flash',
   GEMINI_2_0_FLASH: 'gemini-2.0-flash',
-  GEMINI_1_5_PRO: 'gemini-1.5-pro',
-  GEMINI_1_5_FLASH: 'gemini-1.5-flash',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
@@ -27,14 +25,6 @@ export const AI_MODEL_LABELS: Record<AiModel, { label: string; description: stri
   'gemini-2.0-flash': {
     label: 'Gemini 2.0 Flash',
     description: 'Previous generation Flash — reliable & quick',
-  },
-  'gemini-1.5-pro': {
-    label: 'Gemini 1.5 Pro',
-    description: 'Pro-tier reasoning — slower but more thorough',
-  },
-  'gemini-1.5-flash': {
-    label: 'Gemini 1.5 Flash',
-    description: 'Lightweight & low-latency',
   },
 }
 
