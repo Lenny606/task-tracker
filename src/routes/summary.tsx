@@ -5,7 +5,7 @@ import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
-import { parseDurationToSeconds, formatSecondsToDuration } from '../utils/duration'
+import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from '../utils/duration'
 import { useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/summary')({
@@ -48,12 +48,6 @@ function SummaryPage() {
     return `${h}h ${m}m`
   }
 
-  const formatFullTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
 
   const handleGenerateSummary = async () => {
     setIsGenerating(true)
@@ -291,22 +285,27 @@ function SummaryPage() {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <input
-                        type="text"
-                        defaultValue={formatFullTime(task.displaySeconds)}
-                        onBlur={(e) => {
-                          const seconds = parseDurationToSeconds(e.target.value)
-                          if (seconds !== task.displaySeconds) {
-                            updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            ;(e.target as HTMLInputElement).blur()
-                          }
-                        }}
-                        className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24"
-                      />
+                      <div className="relative group/duration">
+                        <input
+                          type="text"
+                          defaultValue={formatFullTime(task.displaySeconds)}
+                          onBlur={(e) => {
+                            const seconds = parseDurationToSeconds(e.target.value)
+                            if (seconds !== task.displaySeconds) {
+                              updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
+                            }
+                            // Reset to formatted value if needed
+                            e.target.value = formatFullTime(seconds)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              ;(e.target as HTMLInputElement).blur()
+                            }
+                          }}
+                          title="Manual duration edit (e.g. 1h 30m, 01:30:00, or 90)"
+                          className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-edit"
+                        />
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
