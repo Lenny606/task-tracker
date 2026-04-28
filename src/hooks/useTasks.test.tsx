@@ -42,6 +42,31 @@ describe('useTasks', () => {
 
     expect(result.current.tasks.length).toBe(1)
     expect(result.current.tasks[0].name).toBe('Test Task')
+    expect(result.current.tasks[0].isRunning).toBe(true)
+    expect(result.current.tasks[0].startTime).toBeDefined()
+  })
+
+  it('stops other running tasks when a new one is added', async () => {
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
+    })
+    
+    await act(async () => {
+      await result.current.addTask.mutateAsync('First Task')
+    })
+    
+    expect(result.current.tasks[0].isRunning).toBe(true)
+    
+    await act(async () => {
+      await result.current.addTask.mutateAsync('Second Task')
+    })
+
+    // First task should now be stopped
+    const firstTask = result.current.tasks.find(t => t.name === 'First Task')
+    const secondTask = result.current.tasks.find(t => t.name === 'Second Task')
+    
+    expect(firstTask?.isRunning).toBe(false)
+    expect(secondTask?.isRunning).toBe(true)
   })
 
   it('can toggle a task', async () => {

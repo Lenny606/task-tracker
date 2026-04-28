@@ -64,15 +64,31 @@ export function useTasks(date: string = getTodayDate()) {
 
   const addTask = useMutation({
     mutationFn: async ({ name, totalSeconds = 0 }: { name: string; totalSeconds?: number }) => {
+      const now = Date.now()
+      // Stop other running tasks first
+      for (const task of tasks) {
+        if (task.isRunning) {
+          const elapsed = Math.floor((now - (task.startTime || now)) / 1000)
+          const stoppedTask = { 
+            ...task, 
+            isRunning: false, 
+            totalSeconds: task.totalSeconds + elapsed, 
+            startTime: undefined 
+          }
+          await updateTaskFn({ data: { date, task: stoppedTask } })
+        }
+      }
+
       const id = crypto.randomUUID()
       const task = { 
         id, 
         name, 
         totalSeconds, 
-        isRunning: false, 
+        isRunning: true, 
         isMarked: false,
         jiraKey: pendingJiraTicket?.key,
-        jiraSummary: pendingJiraTicket?.summary
+        jiraSummary: pendingJiraTicket?.summary,
+        startTime: now
       }
       await updateTaskFn({ data: { date, task } })
       return task
