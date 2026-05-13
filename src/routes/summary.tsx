@@ -39,7 +39,8 @@ function SummaryPage() {
         description: escapeHtml(task.name),
         duration: durationStr,
         issueKey: task.jiraKey || undefined,
-        issueSummary: task.jiraSummary ? escapeHtml(task.jiraSummary) : undefined
+        issueSummary: task.jiraSummary ? escapeHtml(task.jiraSummary) : undefined,
+        date: displayDate
       }
     })
   }

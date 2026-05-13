@@ -25,7 +25,8 @@ function Dashboard() {
       search: {
         view: 'create',
         description: task.name,
-        duration: formatSecondsToDuration(time)
+        duration: formatSecondsToDuration(time),
+        date: new Date().toISOString().split('T')[0]
       }
     })
   }

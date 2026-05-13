@@ -1,6 +1,6 @@
 {
-  "isRunning": true,
-  "startTime": 1777362226185,
-  "accumulatedSeconds": 0,
+  "isRunning": false,
+  "startTime": null,
+  "accumulatedSeconds": 22295,
   "taskName": "Global Task"
 }

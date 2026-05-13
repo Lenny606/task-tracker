@@ -15,6 +15,7 @@ const jiraSearchSchema = z.object({
   duration: z.string().optional(),
   issueKey: z.string().optional(),
   issueSummary: z.string().optional(),
+  date: z.string().optional(),
   period: z.enum(['month', 'all']).optional().catch('month'),
 })
 
@@ -74,7 +75,7 @@ function WorklogForm() {
   
   const [selectedIssue, setSelectedIssue] = useState<any>(null)
   const [duration, setDuration] = useState(search.duration || '')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(search.date || new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
   const [description, setDescription] = useState(search.description ? unescapeHtml(search.description) : '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -93,13 +94,14 @@ function WorklogForm() {
   useEffect(() => {
     if (search.duration) setDuration(search.duration)
     if (search.description) setDescription(unescapeHtml(search.description))
+    if (search.date) setDate(search.date)
     if (search.issueKey && !selectedIssue) {
       setSelectedIssue({
         key: search.issueKey,
         fields: { summary: search.issueSummary ? unescapeHtml(search.issueSummary) : '' }
       })
     }
-  }, [search.duration, search.description, search.issueKey, search.issueSummary])
+  }, [search.duration, search.description, search.date, search.issueKey, search.issueSummary])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
