@@ -10,6 +10,7 @@ import { useIsMounted } from '../hooks/useIsMounted'
 import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from '../utils/duration'
 import { escapeHtml } from '../utils/sanitize'
 import { useNavigate } from '@tanstack/react-router'
+import { ProjectSelector } from '../components/ProjectSelector'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -257,6 +258,7 @@ function SummaryPage() {
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-12"></th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-40">Jira Ticket</th>
+                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Project</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
                 <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Actions</th>
@@ -322,6 +324,13 @@ function SummaryPage() {
                           })
                         }}
                         currentSelection={task.jiraKey || null}
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <ProjectSelector 
+                        compact 
+                        selectedProjectId={task.trackerProjectId} 
+                        onSelect={(projectId) => updateTask.mutate({ taskId: task.id, trackerProjectId: projectId })}
                       />
                     </td>
                     <td className="px-6 py-4">

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw } from 'lucide-react'
+import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw, Briefcase } from 'lucide-react'
 import { z } from 'zod'
 import { useState, useEffect, useRef } from 'react'
 import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/jira')({
 })
 
 import { JiraIssueSelector } from '../components/JiraIssueSelector'
+import { ProjectSelector } from '../components/ProjectSelector'
 
 function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; summary: string }) => void }) {
   const [recent, setRecent] = useState<{ key: string; summary: string }[]>([])
@@ -78,6 +79,7 @@ function WorklogForm() {
   const [date, setDate] = useState(search.date || new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
   const [description, setDescription] = useState(search.description ? unescapeHtml(search.description) : '')
+  const [trackerProjectId, setTrackerProjectId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
@@ -129,6 +131,7 @@ function WorklogForm() {
             startDate: date,
             startTime: time,
             description,
+            trackerProjectId,
           },
         },
       })
@@ -179,6 +182,16 @@ function WorklogForm() {
         </div>
 
         <RecentIssuesSelector onSelect={handleRecentSelect} />
+      </div>
+
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
+          <Briefcase className="w-4 h-4" /> Tracker Project (Internal)
+        </label>
+        <ProjectSelector 
+          selectedProjectId={trackerProjectId} 
+          onSelect={setTrackerProjectId} 
+        />
       </div>
 
       {selectedIssue && (

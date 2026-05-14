@@ -13,6 +13,7 @@ import { Route as TestRouteImport } from './routes/test'
 import { Route as TempoCalendarRouteImport } from './routes/tempo-calendar'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as JiraRouteImport } from './routes/jira'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as CommitsRouteImport } from './routes/commits'
@@ -39,6 +40,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JiraRoute = JiraRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/jira': typeof JiraRoute
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/jira': typeof JiraRoute
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/commits': typeof CommitsRoute
   '/history': typeof HistoryRoute
   '/jira': typeof JiraRoute
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
   '/tempo-calendar': typeof TempoCalendarRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/commits'
     | '/history'
     | '/jira'
+    | '/projects'
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/commits'
     | '/history'
     | '/jira'
+    | '/projects'
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/commits'
     | '/history'
     | '/jira'
+    | '/projects'
     | '/settings'
     | '/summary'
     | '/tempo-calendar'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   CommitsRoute: typeof CommitsRoute
   HistoryRoute: typeof HistoryRoute
   JiraRoute: typeof JiraRoute
+  ProjectsRoute: typeof ProjectsRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
   TempoCalendarRoute: typeof TempoCalendarRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jira': {
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommitsRoute: CommitsRoute,
   HistoryRoute: HistoryRoute,
   JiraRoute: JiraRoute,
+  ProjectsRoute: ProjectsRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
   TempoCalendarRoute: TempoCalendarRoute,

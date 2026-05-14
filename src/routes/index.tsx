@@ -5,6 +5,7 @@ import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { formatSecondsToDuration } from '../utils/duration'
+import { ProjectSelector } from '../components/ProjectSelector'
 
 
 export const Route = createFileRoute('/')({
@@ -114,6 +115,19 @@ function Dashboard() {
                   Currently Tracking...
                 </span>
               )}
+              
+              <div className="mt-2 flex items-center gap-3">
+                <ProjectSelector 
+                  compact 
+                  selectedProjectId={task.trackerProjectId} 
+                  onSelect={(projectId) => updateTask.mutate({ taskId: task.id, trackerProjectId: projectId })}
+                />
+                {task.jiraKey && (
+                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/10">
+                    {task.jiraKey}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-6">

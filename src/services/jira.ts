@@ -1,6 +1,8 @@
-import type { JiraIssue, Worklog as TempoWorklogData } from '../models/jira'
-
-export type { JiraIssue, TempoWorklogData }
+import type { JiraIssue, Worklog } from '../models/jira'
+export type { JiraIssue }
+export type TempoWorklogData = Worklog & {
+  trackerProjectId?: string | null
+}
 
 export interface JiraCredentials {
   url: string

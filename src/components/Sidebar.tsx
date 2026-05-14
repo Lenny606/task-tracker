@@ -59,6 +59,15 @@ export function Sidebar() {
           <span className="font-semibold tracking-wide">Calendar</span>
         </Link>
 
+        <Link
+          to="/projects"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Projects</span>
+        </Link>
+
         <div className="py-2 px-2">
           <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
             <div className="flex items-center justify-between mb-3">

@@ -9,24 +9,29 @@ import type { JiraCredentials, CreateIssueData, TempoWorklogData } from './jira'
 export const getRecentTicketsFn = createServerFn({
   method: 'GET',
 }).handler(async () => {
-  const recentWorklogs = await worklogRepository.getRecent(50)
-  
-  // Extract unique keys and summaries, preserving order (most recent first)
-  const uniqueTickets: { key: string; summary: string }[] = []
-  const keys = new Set<string>()
+  try {
+    const recentWorklogs = await worklogRepository.getRecent(50)
+    
+    // Extract unique keys and summaries, preserving order (most recent first)
+    const uniqueTickets: { key: string; summary: string }[] = []
+    const keys = new Set<string>()
 
-  for (const log of recentWorklogs) {
-    if (!keys.has(log.jiraIssueKey)) {
-      keys.add(log.jiraIssueKey)
-      uniqueTickets.push({
-        key: log.jiraIssueKey,
-        summary: log.summary,
-      })
+    for (const log of recentWorklogs) {
+      if (!keys.has(log.jiraIssueKey)) {
+        keys.add(log.jiraIssueKey)
+        uniqueTickets.push({
+          key: log.jiraIssueKey,
+          summary: log.summary,
+        })
+      }
+      if (uniqueTickets.length >= 5) break
     }
-    if (uniqueTickets.length >= 5) break
-  }
 
-  return uniqueTickets
+    return uniqueTickets
+  } catch (error) {
+    console.error('[Server Function Error] getRecentTicketsFn:', error);
+    throw error;
+  }
 })
 
 /**
@@ -60,22 +65,42 @@ export const createJiraIssueFn = createServerFn({
 export const logTempoWorkloadFn = createServerFn({
   method: 'POST',
 }).handler(async ({ data }: { data?: { credentials: JiraCredentials; worklogData: TempoWorklogData } }) => {
-  if (!data) throw new Error('Missing input data')
+  try {
+    if (!data) throw new Error('Missing input data')
 
-  // To ensure correct attribution in Tempo v4, we fetch the user's accountId
-  const myself = await jiraService.getMyself(data.credentials)
-  const authorAccountId = myself.accountId
+    // To ensure correct attribution in Tempo v4, we fetch the user's accountId
+    const myself = await jiraService.getMyself(data.credentials)
+    const authorAccountId = myself.accountId
 
-  if (!authorAccountId) {
-    throw new Error('Could not retrieve Jira account ID')
+    if (!authorAccountId) {
+      throw new Error('Could not retrieve Jira account ID')
+    }
+
+    const enhancedWorklogData = {
+      ...data.worklogData,
+      authorAccountId,
+    }
+
+    const result = await jiraService.logWork(data.credentials, enhancedWorklogData)
+
+    // Save to local database for internal tracking
+    if (result && result.id) {
+      await worklogRepository.create({
+        jiraWorklogId: String(result.id),
+        jiraIssueKey: data.worklogData.issueKey || '',
+        summary: data.worklogData.description || '',
+        timeSpentSeconds: data.worklogData.timeSpentSeconds,
+        startedAt: new Date(data.worklogData.startDate),
+        syncedToJira: true,
+        trackerProjectId: data.worklogData.trackerProjectId,
+      })
+    }
+
+    return result
+  } catch (error) {
+    console.error('[Server Function Error] logTempoWorkloadFn:', error);
+    throw error;
   }
-
-  const enhancedWorklogData = {
-    ...data.worklogData,
-    authorAccountId,
-  }
-
-  return await jiraService.logWork(data.credentials, enhancedWorklogData)
 })
 
 /**

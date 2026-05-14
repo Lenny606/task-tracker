@@ -13,6 +13,7 @@ export interface Task {
   name: string
   jiraKey?: string | null
   jiraSummary?: string | null
+  trackerProjectId?: string | null
   totalSeconds: number
   isRunning: boolean
   isMarked?: boolean
@@ -88,6 +89,7 @@ export function useTasks(date: string = getTodayDate()) {
         isMarked: false,
         jiraKey: pendingJiraTicket?.key,
         jiraSummary: pendingJiraTicket?.summary,
+        trackerProjectId: null, // New tasks start with no project by default
         startTime: now
       }
       await updateTaskFn({ data: { date, task } })
@@ -140,7 +142,7 @@ export function useTasks(date: string = getTodayDate()) {
   })
 
   const updateTask = useMutation({
-    mutationFn: async ({ taskId, name, totalSeconds, jiraKey, jiraSummary }: { taskId: string; name?: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null }) => {
+    mutationFn: async ({ taskId, name, totalSeconds, jiraKey, jiraSummary, trackerProjectId }: { taskId: string; name?: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null; trackerProjectId?: string | null }) => {
       const t = tasks.find(task => task.id === taskId)
       if (!t) return
 
@@ -149,7 +151,8 @@ export function useTasks(date: string = getTodayDate()) {
         name: name ?? t.name, 
         totalSeconds: totalSeconds ?? t.totalSeconds,
         jiraKey: jiraKey !== undefined ? jiraKey : t.jiraKey,
-        jiraSummary: jiraSummary !== undefined ? jiraSummary : t.jiraSummary
+        jiraSummary: jiraSummary !== undefined ? jiraSummary : t.jiraSummary,
+        trackerProjectId: trackerProjectId !== undefined ? trackerProjectId : t.trackerProjectId
       }
       await updateTaskFn({ data: { date, task: updatedTask } })
       return updatedTask

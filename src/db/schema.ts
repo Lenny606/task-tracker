@@ -1,5 +1,15 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
+export const trackerProjects = sqliteTable('tracker_projects', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  timeBudgetSeconds: integer('time_budget_seconds').notNull().default(0),
+  color: text('color'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date()),
+});
+
 export const settings = sqliteTable('settings', {
   id: text('id').primaryKey(), // Using text IDs (e.g., 'app-settings')
   aiModel: text('ai_model').notNull().default('gemini-2.5-flash'),
@@ -12,6 +22,7 @@ export const settings = sqliteTable('settings', {
 
 export const worklogs = sqliteTable('worklogs', {
   id: text('id').primaryKey(),
+  trackerProjectId: text('tracker_project_id').references(() => trackerProjects.id),
   jiraIssueKey: text('jira_issue_key').notNull(),
   summary: text('summary').notNull(),
   timeSpentSeconds: integer('time_spent_seconds').notNull(),
@@ -33,6 +44,7 @@ export const projects = sqliteTable('projects', {
 export const historyTasks = sqliteTable('history_tasks', {
   id: text('id').primaryKey(),
   dayMetricId: integer('day_metric_id').references(() => dayMetrics.id, { onDelete: 'cascade' }),
+  trackerProjectId: text('tracker_project_id').references(() => trackerProjects.id),
   date: text('date').notNull(), // YYYY-MM-DD
   name: text('name').notNull(),
   jiraKey: text('jira_key'),
