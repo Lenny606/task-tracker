@@ -134,12 +134,27 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <header style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h2>TimeTrack</h2>
       </div>
-      <h2>TimeTrack</h2>
+      <button id="settingsToggleBtn" style="width: auto; padding: 0.5rem; background: transparent; color: #94a3b8; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </header>
+
+    <div id="settingsPanel" style="display: none; flex-direction: column; gap: 0.75rem; padding: 0.75rem; background: #1e293b; border-radius: 12px; border: 1px solid #334155; margin-top: -0.25rem;">
+      <div style="font-size: 0.75rem; font-weight: bold; color: #94a3b8; letter-spacing: 0.05em;">EXTENSION SECURITY</div>
+      <div class="input-group">
+        <label for="tokenInput" style="font-size: 0.7rem; color: #94a3b8;">Auth Token (From Web settings page)</label>
+        <input type="password" id="tokenInput" placeholder="Enter X-Extension-Auth Token" style="font-size: 0.8rem; padding: 0.5rem 0.75rem; margin-top: 0.25rem; border-radius: 8px;">
+      </div>
+      <button id="saveSettingsBtn" style="padding: 0.6rem; font-size: 0.85rem; background: #6366f1; color: white; border-radius: 8px; font-weight: 600;">Save Settings</button>
+    </div>
+
 
     <div class="timer-display" id="timer">00:00:00</div>
     <div id="active-task-display" class="running-task-name"></div>

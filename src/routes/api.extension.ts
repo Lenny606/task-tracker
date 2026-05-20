@@ -2,11 +2,47 @@ import { createFileRoute } from '@tanstack/react-router'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { verifyExtensionToken } from '../services/extensionAuth'
+
+function getCorsHeaders(request: Request) {
+  const origin = request.headers.get('origin') || ''
+  const isAllowedOrigin = 
+    origin.startsWith('chrome-extension://') || 
+    origin.startsWith('http://localhost:') || 
+    origin.startsWith('http://127.0.0.1:')
+  
+  const allowOrigin = isAllowedOrigin ? origin : 'http://localhost:3000'
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Extension-Auth',
+    'Access-Control-Max-Age': '86400',
+  }
+}
+
+async function handleUnauthorized(corsHeaders: Record<string, string>) {
+  return new Response(JSON.stringify({ error: 'Unauthorized: Invalid extension authentication token.' }), {
+    status: 401,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    }
+  })
+}
 
 export const Route = createFileRoute('/api/extension')({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const corsHeaders = getCorsHeaders(request)
+
+        // Verify the X-Extension-Auth token (rule check: no exposed secret values in code)
+        const incomingToken = request.headers.get('X-Extension-Auth')
+        if (!(await verifyExtensionToken(incomingToken))) {
+          return handleUnauthorized(corsHeaders)
+        }
+
         const date = new Date().toISOString().split('T')[0]
         const exportsDir = path.join(process.cwd(), 'exports')
         const clipsPath = path.join(exportsDir, `extension-${date}.json`)
@@ -26,14 +62,20 @@ export const Route = createFileRoute('/api/extension')({
 
         return new Response(JSON.stringify({ clips, timerState }), {
           headers: { 
+            ...corsHeaders,
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
           }
         })
       },
       POST: async ({ request }) => {
+        const corsHeaders = getCorsHeaders(request)
+
+        // Verify the X-Extension-Auth token (rule check: no exposed secret values in code)
+        const incomingToken = request.headers.get('X-Extension-Auth')
+        if (!(await verifyExtensionToken(incomingToken))) {
+          return handleUnauthorized(corsHeaders)
+        }
+
         const body = await request.json()
         const date = new Date().toISOString().split('T')[0]
         const exportsDir = path.join(process.cwd(), 'exports')
@@ -131,21 +173,16 @@ export const Route = createFileRoute('/api/extension')({
 
         return new Response(JSON.stringify(responseData), {
           headers: { 
+            ...corsHeaders,
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
           }
         })
       },
-      OPTIONS: async () => {
+      OPTIONS: async ({ request }) => {
+        const corsHeaders = getCorsHeaders(request)
         return new Response(null, {
           status: 204,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }
+          headers: corsHeaders
         })
       }
     }

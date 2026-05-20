@@ -1,8 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+vi.mock('../services/settingsServer', () => ({
+  getExtensionTokenFn: vi.fn().mockResolvedValue('test-token')
+}))
+
 import { renderHook, act } from '@testing-library/react'
 import { useTasks } from './useTasks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
+
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

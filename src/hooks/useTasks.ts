@@ -7,6 +7,8 @@ import {
   updateDayMetricsFn, 
   deleteHistoryDayFn 
 } from '../services/tasksServer'
+import { getExtensionTokenFn } from '../services/settingsServer'
+
 
 export interface Task {
   id: string
@@ -174,9 +176,13 @@ export function useTasks(date: string = getTodayDate()) {
 
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
+      const token = await getExtensionTokenFn()
       const response = await fetch('/api/extension', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Extension-Auth': token
+        },
         body: JSON.stringify({ type: 'TOGGLE_TIMER', taskName: 'Global Task' }),
       })
       
@@ -197,9 +203,13 @@ export function useTasks(date: string = getTodayDate()) {
 
   const resetGlobalTimer = useMutation({
     mutationFn: async () => {
+      const token = await getExtensionTokenFn()
       const response = await fetch('/api/extension', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Extension-Auth': token
+        },
         body: JSON.stringify({ type: 'CLEAR_TIMER' }),
       })
       
@@ -248,7 +258,12 @@ export function useTasks(date: string = getTodayDate()) {
 
   const syncExtensionData = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/extension')
+      const token = await getExtensionTokenFn()
+      const response = await fetch('/api/extension', {
+        headers: {
+          'X-Extension-Auth': token
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch extension data')
       const { clips, timerState } = await response.json()
       

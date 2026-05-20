@@ -4,6 +4,7 @@ import { useSettings } from '../store/settingsStore'
 import { AI_MODELS, AI_MODEL_LABELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
 import { useState, useRef, useEffect } from 'react'
+import { getExtensionTokenFn } from '../services/settingsServer'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -11,6 +12,18 @@ export const Route = createFileRoute('/settings')({
 
 function SettingsPage() {
   const { settings, saveSettings } = useSettings()
+  const [extensionToken, setExtensionToken] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    getExtensionTokenFn().then(setExtensionToken)
+  }, [])
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(extensionToken)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
@@ -120,6 +133,51 @@ function SettingsPage() {
                   value={settings.jiraTempoApiKey}
                   onChange={(e) => saveSettings({ jiraTempoApiKey: e.target.value })}
                 />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Browser Extension Security Card */}
+        <section className="glass-panel rounded-3xl relative z-0">
+          <div className="px-8 py-7 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
+              <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Browser Extension Security</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Authenticate requests coming from the Chrome Clipper extension.
+              </p>
+            </div>
+          </div>
+
+          <div className="px-8 py-6 space-y-4">
+            <div className="bg-slate-50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                To prevent malicious websites from reading or writing your tasks, the local extension endpoint requires authentication. Copy this pre-shared key and paste it inside the extension settings (click the gear icon in the Clipper popup).
+              </p>
+              
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  readOnly
+                  value={extensionToken}
+                  className="flex-1 px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-mono text-sm"
+                />
+                <button
+                  onClick={handleCopy}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-indigo-600/20"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    'Copy Key'
+                  )}
+                </button>
               </div>
             </div>
           </div>

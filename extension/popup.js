@@ -97,6 +97,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     await refreshUI();
   });
 
+  // Settings Panel Toggle
+  const settingsToggleBtn = document.getElementById('settingsToggleBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const tokenInput = document.getElementById('tokenInput');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+  settingsToggleBtn.addEventListener('click', async () => {
+    if (settingsPanel.style.display === 'none') {
+      settingsPanel.style.display = 'flex';
+      const { authToken } = await chrome.storage.local.get(['authToken']);
+      tokenInput.value = authToken || '';
+    } else {
+      settingsPanel.style.display = 'none';
+    }
+  });
+
+  saveSettingsBtn.addEventListener('click', async () => {
+    const token = tokenInput.value.trim();
+    await chrome.storage.local.set({ authToken: token });
+    settingsPanel.style.display = 'none';
+    const status = document.getElementById('status');
+    status.textContent = 'Auth token saved!';
+    setTimeout(() => {
+      status.textContent = '';
+    }, 2000);
+  });
+
   document.getElementById('saveBtn').addEventListener('click', async () => {
     const status = document.getElementById('status');
     const state = await getLocalState();
@@ -114,9 +141,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
+      const { authToken } = await chrome.storage.local.get(['authToken']);
       const response = await fetch('http://localhost:3000/api/extension', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Extension-Auth': authToken || ''
+        },
         body: JSON.stringify({ 
           title: state.taskName || 'Extension Task',
           totalSeconds: totalSeconds,
@@ -129,6 +160,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         await setLocalState({ isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' });
         setTimeout(() => status.textContent = '', 3000);
         await refreshUI();
+      } else if (response.status === 401) {
+        status.textContent = 'Unauthorized: Check token in settings!';
       } else {
         status.textContent = 'Error saving to server';
       }
@@ -143,3 +176,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     await refreshUI();
   });
 });
+

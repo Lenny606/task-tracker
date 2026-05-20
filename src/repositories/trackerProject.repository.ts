@@ -14,24 +14,49 @@ export class TrackerProjectRepository extends BaseRepository<typeof trackerProje
     const projects = await this.findAll();
     
     const stats = await Promise.all(projects.map(async (project) => {
-      const taskSeconds = await this.db
-        .select({ total: sql<number>`sum(${historyTasks.totalSeconds})` })
+      const dbTasks = await this.db
+        .select({ 
+          name: historyTasks.name,
+          date: historyTasks.date,
+          seconds: historyTasks.totalSeconds,
+        })
         .from(historyTasks)
         .where(eq(historyTasks.trackerProjectId, project.id))
-        .get();
+        .all();
 
-      const worklogSeconds = await this.db
-        .select({ total: sql<number>`sum(${worklogs.timeSpentSeconds})` })
+      const dbWorklogs = await this.db
+        .select({ 
+          name: worklogs.summary,
+          date: sql<string>`strftime('%Y-%m-%d', datetime(${worklogs.startedAt}/1000, 'unixepoch'))`,
+          seconds: worklogs.timeSpentSeconds,
+        })
         .from(worklogs)
         .where(eq(worklogs.trackerProjectId, project.id))
-        .get();
+        .all();
 
-      const totalSpent = (taskSeconds?.total || 0) + (worklogSeconds?.total || 0);
+      // Combine and aggregate by name + date
+      const taskMap = new Map<string, { name: string, date: string, seconds: number }>();
+      
+      [...dbTasks, ...dbWorklogs].forEach(t => {
+        const key = `${t.date}-${t.name}`;
+        const existing = taskMap.get(key);
+        if (existing) {
+          existing.seconds += t.seconds;
+        } else {
+          taskMap.set(key, { name: t.name, date: t.date, seconds: t.seconds });
+        }
+      });
+
+      const relatedTasks = Array.from(taskMap.values())
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      const totalSpent = relatedTasks.reduce((sum, t) => sum + t.seconds, 0);
       
       return {
         ...project,
         totalSpentSeconds: totalSpent,
         isOverBudget: project.timeBudgetSeconds > 0 && totalSpent > project.timeBudgetSeconds,
+        relatedTasks,
       };
     }));
 

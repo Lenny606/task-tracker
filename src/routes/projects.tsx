@@ -117,6 +117,7 @@ function ProjectsPage() {
 }
 
 function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () => void; onDelete: () => void }) {
+  const [showTasks, setShowTasks] = useState(false)
   const progress = project.timeBudgetSeconds > 0 
     ? Math.min((project.totalSpentSeconds / project.timeBudgetSeconds) * 100, 100)
     : 0
@@ -124,7 +125,7 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
   const isOverBudget = project.timeBudgetSeconds > 0 && project.totalSpentSeconds > project.timeBudgetSeconds
 
   return (
-    <div className={`glass-panel rounded-[32px] p-6 transition-all hover:scale-[1.02] hover:shadow-2xl group relative overflow-hidden ${
+    <div className={`glass-panel rounded-[32px] p-6 transition-all hover:shadow-2xl group relative overflow-hidden flex flex-col ${
       isOverBudget ? 'ring-2 ring-red-500/50' : ''
     }`}>
       {/* Background Accent */}
@@ -159,7 +160,7 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1">
         <div className="flex justify-between items-end">
           <div className="space-y-1">
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</span>
@@ -207,6 +208,47 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
           </div>
         </div>
       </div>
+
+      {/* Related Tasks Toggle */}
+      {project.relatedTasks?.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <button 
+            onClick={() => setShowTasks(!showTasks)}
+            className="flex items-center justify-between w-full text-slate-500 hover:text-indigo-500 transition-colors"
+          >
+            <span className="text-xs font-black uppercase tracking-widest">
+              Related Tasks ({project.relatedTasks.length})
+            </span>
+            <ChevronRight 
+              size={16} 
+              className={`transition-transform duration-300 ${showTasks ? 'rotate-90 text-indigo-500' : ''}`} 
+            />
+          </button>
+          
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            showTasks ? 'max-h-60 mt-4 opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <ul className="space-y-3 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
+              {project.relatedTasks.map((task: any, i: number) => (
+                <li key={i} className="flex flex-col gap-1 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group/item">
+                  <div className="flex justify-between items-start gap-3">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
+                      {task.name}
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md shrink-0">
+                      {formatSecondsToDuration(task.seconds)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <Clock size={10} />
+                    <span>{task.date}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
