@@ -74,7 +74,7 @@ export function JiraIssueSelector({ onSelect, credentials, currentSelection, com
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length >= 2 && setIsOpen(true)}
-          placeholder={compact ? "Ticket..." : "Hledat ticket (klíč nebo název)..."}
+          placeholder={compact ? "Ticket..." : "Search ticket (key or summary)..."}
           className={`w-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl outline-none transition-all font-medium shadow-sm ${
             compact ? 'py-1.5 pl-8 pr-2 text-xs' : 'py-4 pl-12 pr-4 text-lg'
           }`}

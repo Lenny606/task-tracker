@@ -50,7 +50,7 @@ function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; 
   return (
     <div className="space-y-3">
       <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-        <Hash className="w-4 h-4" /> Poslední tickety
+        <Hash className="w-4 h-4" /> Recent Issues
       </label>
       <div className="flex flex-wrap gap-2">
         {recent.map((ticket) => (
@@ -108,13 +108,13 @@ function WorklogForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedIssue) {
-      toast.error('Vyberte prosím ticket')
+      toast.error('Please select an issue')
       return
     }
 
     const seconds = parseDurationToSeconds(duration)
     if (seconds <= 0) {
-      toast.error('Neplatný formát času (např. 1h 30m)')
+      toast.error('Invalid time format (e.g., 1h 30m)')
       return
     }
 
@@ -135,14 +135,14 @@ function WorklogForm() {
           },
         },
       })
-      toast.success('Práce byla úspěšně zapsána do Jira/Tempo')
+      toast.success('Work logged successfully in Jira/Tempo')
       // Reset form
       setSelectedIssue(null)
       setDuration('')
       setDescription('')
     } catch (error) {
       console.error('Submission failed:', error)
-      toast.error('Nepodařilo se zapsat práci. Zkontrolujte nastavení API klíčů.')
+      toast.error('Failed to log work. Check your API key settings.')
     } finally {
       setIsSubmitting(false)
     }
@@ -162,17 +162,17 @@ function WorklogForm() {
           type="button"
           onClick={handleReset}
           className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all active:scale-95 ring-1 ring-transparent hover:ring-red-500/20"
-          title="Resetovat formulář"
+          title="Reset Form"
         >
           <RotateCcw className="w-4 h-4" />
-          Resetovat
+          Reset
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Search className="w-4 h-4" /> Hledat Ticket
+            <Search className="w-4 h-4" /> Search Issue
           </label>
           <JiraIssueSelector
             credentials={credentials}
@@ -198,7 +198,7 @@ function WorklogForm() {
         <div className="flex items-center justify-between px-5 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-2xl text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ring-1 ring-blue-500/20 shadow-sm">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5" />
-            Vybráno: <span className="font-black">{selectedIssue.key}</span> - <span className="opacity-80 font-medium">{selectedIssue.fields.summary}</span>
+            Selected: <span className="font-black">{selectedIssue.key}</span> - <span className="opacity-80 font-medium">{selectedIssue.fields.summary}</span>
           </div>
           {settings.jiraUrl && (
             <a 
@@ -208,7 +208,7 @@ function WorklogForm() {
               className="flex items-center gap-1.5 px-3 py-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-blue-200 dark:border-blue-800 hover:bg-blue-600 hover:text-white transition-all text-xs font-bold active:scale-95"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              Otevřít v Jira
+              Open in Jira
             </a>
           )}
         </div>
@@ -217,7 +217,7 @@ function WorklogForm() {
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="space-y-3 w-full md:w-48">
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Čas (např. 1h 30m)
+            <Clock className="w-4 h-4" /> Time (e.g., 1h 30m)
           </label>
           <input
             type="text"
@@ -230,7 +230,7 @@ function WorklogForm() {
 
         <div className="space-y-3 flex-1 md:max-w-md">
           <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Calendar className="w-4 h-4" /> Datum a Čas
+            <Calendar className="w-4 h-4" /> Date and Time
           </label>
           <div className="flex gap-2">
             <input
@@ -252,12 +252,12 @@ function WorklogForm() {
 
       <div className="space-y-3">
         <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-          <Type className="w-4 h-4" /> Popis práce
+          <Type className="w-4 h-4" /> Description
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Co jste dělali?"
+          placeholder="What were you working on?"
           rows={4}
           className="w-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-2xl py-4 px-4 outline-none transition-all font-medium resize-none"
         />
@@ -273,7 +273,7 @@ function WorklogForm() {
           }`}
       >
         {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <PlusCircle className="w-6 h-6" />}
-        {isSubmitting ? 'Zapisuji...' : 'Zapsat práci'}
+        {isSubmitting ? 'Logging...' : 'Log Work'}
       </button>
     </form>
   )
@@ -312,16 +312,16 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
   }, [credentials, filter])
 
   const handleDelete = async (worklogId: number) => {
-    if (!window.confirm('Opravdu chcete smazat tento výkaz?')) return
+    if (!window.confirm('Are you sure you want to delete this worklog?')) return
     
     try {
       // @ts-ignore
       await deleteTempoWorklogFn({ data: { credentials, worklogId } })
       setWorklogs(prev => prev.filter(log => (log.tempoWorklogId || log.tempoId) !== worklogId))
-      toast.success('Výkaz byl smazán')
+      toast.success('Worklog deleted successfully')
     } catch (error) {
       console.error('Delete failed:', error)
-      toast.error('Nepodařilo se smazat výkaz')
+      toast.error('Failed to delete worklog')
     }
   }
 
@@ -329,7 +329,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-        <p className="text-slate-500 font-medium">Načítám výkazy z Tempo...</p>
+        <p className="text-slate-500 font-medium">Loading worklogs from Tempo...</p>
       </div>
     )
   }
@@ -351,9 +351,9 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-2xl flex items-center justify-center mb-6 border border-slate-200 dark:border-slate-800">
           <Clock className="w-8 h-8 text-slate-400 opacity-40" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Žádné výkazy</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No worklogs</h2>
         <p className="text-slate-500 dark:text-slate-400 max-w-sm">
-          V tomto období nebyly nalezeny žádné záznamy v Tempo.
+          No worklog records found in Tempo for this period.
         </p>
       </div>
     )
@@ -378,7 +378,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
 
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr)
-    return new Intl.DateTimeFormat('cs-CZ', { weekday: 'long' }).format(date)
+    return date.toLocaleDateString(undefined, { weekday: 'long' })
   }
 
   return (
@@ -392,7 +392,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Hledat ve výkazech (klíč, název nebo popis)..."
+          placeholder="Search in worklogs (key, title or description)..."
           className="w-full bg-slate-50 dark:bg-slate-900/50 ring-1 ring-slate-200 dark:ring-slate-800 focus:ring-2 focus:ring-blue-500 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-lg font-medium shadow-sm"
         />
       </div>
@@ -403,7 +403,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
             <div className="text-slate-300 dark:text-slate-700 mb-4 flex justify-center">
               <Search className="w-16 h-16 opacity-20" />
             </div>
-            <p className="text-slate-500 font-bold text-lg">Žádné výsledky pro "{searchQuery}"</p>
+            <p className="text-slate-500 font-bold text-lg">No results for "{searchQuery}"</p>
           </div>
         )}
         
@@ -412,12 +412,12 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
             <div className="flex items-center justify-between px-2">
               <div className="flex items-baseline gap-3">
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white capitalize">
-                  {date === new Date().toISOString().split('T')[0] ? 'Dnes' : getDayName(date)}
+                  {date === new Date().toISOString().split('T')[0] ? 'Today' : getDayName(date)}
                 </h3>
                 <span className="text-sm font-bold text-slate-400 font-mono">{date}</span>
               </div>
               <div className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-sm font-black text-slate-600 dark:text-slate-400 shadow-sm border border-slate-200 dark:border-slate-700">
-                Celkem: {formatDailyTotal(groupedWorklogs[date])}
+                Total: {formatDailyTotal(groupedWorklogs[date])}
               </div>
             </div>
 
@@ -430,7 +430,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
                     </div>
                     <div>
                       <div className="font-bold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {log.description || <span className="italic opacity-50">Bez popisu</span>}
+                        {log.description || <span className="italic opacity-50">No description</span>}
                       </div>
                       <div className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
                         <Clock className="w-3 h-3" />
@@ -442,7 +442,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
                     <button
                       onClick={() => handleDelete(log.tempoWorklogId || log.tempoId)}
                       className="opacity-0 group-hover:opacity-100 p-2.5 text-slate-400 hover:text-red-500 transition-all rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 ring-1 ring-transparent hover:ring-red-500/20"
-                      title="Smazat výkaz"
+                      title="Delete worklog"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -527,7 +527,7 @@ function JiraPage() {
             }`}
         >
           <PlusCircle className="w-4 h-4" />
-          <span className="font-bold text-sm tracking-wide">Vytvořit</span>
+          <span className="font-bold text-sm tracking-wide">Create</span>
         </button>
       </div>
 
@@ -537,7 +537,7 @@ function JiraPage() {
           <div className="p-8 h-full">
             {/* Filters */}
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mr-2 px-1">Období:</span>
+              <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mr-2 px-1">Period:</span>
               <button
                 onClick={() => setPeriod('month')}
                 className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${activePeriod === 'month'
@@ -545,7 +545,7 @@ function JiraPage() {
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
-                Tento měsíc
+                This Month
               </button>
               <button
                 onClick={() => setPeriod('all')}
@@ -554,7 +554,7 @@ function JiraPage() {
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
-                Předchozích 30 dní
+                Last 30 Days
               </button>
             </div>
 

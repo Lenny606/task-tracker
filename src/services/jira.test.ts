@@ -18,6 +18,7 @@ describe('jiraService', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ issues: [{ id: '1', key: 'TEST-1' }] }),
+      text: async () => JSON.stringify({ issues: [{ id: '1', key: 'TEST-1' }] }),
     } as Response)
 
     const result = await jiraService.searchIssues(mockCreds, 'project = TEST')
@@ -40,6 +41,7 @@ describe('jiraService', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true }),
+      text: async () => JSON.stringify({ success: true }),
     } as Response)
 
     const worklogData = {
@@ -69,6 +71,7 @@ describe('jiraService', () => {
     vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ id: '123', key: 'TEST-2' }),
+      text: async () => JSON.stringify({ id: '123', key: 'TEST-2' }),
     } as Response)
 
     const issueData = {
@@ -100,6 +103,15 @@ describe('jiraService', () => {
           startTime: '10:00:00'
         }] 
       }),
+      text: async () => JSON.stringify({ 
+        results: [{ 
+          tempoWorklogId: '123',
+          issue: { id: 10001 },
+          timeSpentSeconds: 3600,
+          startDate: '2023-10-01',
+          startTime: '10:00:00'
+        }] 
+      }),
     } as Response)
 
     // 2. Mock Jira lookup response
@@ -112,12 +124,19 @@ describe('jiraService', () => {
           fields: { summary: 'Test Issue' }
         }] 
       }),
+      text: async () => JSON.stringify({ 
+        issues: [{ 
+          id: '10001', 
+          key: 'TEST-1',
+          fields: { summary: 'Test Issue' }
+        }] 
+      }),
     } as Response)
 
     const result = await jiraService.getWorklogs(mockCreds, '2023-10-01', '2023-10-31', 'acc-123')
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/4/worklogs?from=2023-10-01&to=2023-10-31&authorAccountIds=acc-123'),
+      expect.stringContaining('/4/worklogs/user/acc-123?from=2023-10-01&to=2023-10-31'),
       expect.objectContaining({ method: 'GET' })
     )
     

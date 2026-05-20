@@ -66,7 +66,7 @@ function TempoCalendarPage() {
         setWorklogsByDate(grouped)
       } catch (error) {
         console.error('Failed to fetch Tempo worklogs:', error)
-        toast.error('Nepodařilo se načíst výkazy z Tempo')
+        toast.error('Failed to fetch Tempo worklogs')
       } finally {
         setIsLoading(false)
       }

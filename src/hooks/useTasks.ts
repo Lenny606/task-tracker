@@ -177,7 +177,10 @@ export function useTasks(date: string = getTodayDate()) {
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
       const token = await getExtensionTokenFn()
-      const response = await fetch('/api/extension', {
+      const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
+        ? window.location.origin
+        : 'http://localhost:3000'
+      const response = await fetch(`${base}/api/extension`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

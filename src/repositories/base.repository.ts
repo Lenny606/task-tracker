@@ -12,11 +12,22 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     this.table = table;
   }
 
+  protected get tableName(): string {
+    try {
+      return (this.table as any)[Symbol.for('drizzle:Name')] || 
+             (this.table as any)?._?.name?.name || 
+             (this.table as any)?._?.name || 
+             'table';
+    } catch {
+      return 'table';
+    }
+  }
+
   async findAll() {
     try {
       return await this.db.select().from(this.table).all();
     } catch (error) {
-      console.error(`[DB Error] Failed to fetch all from ${this.table._.name.name}:`, error);
+      console.error(`[DB Error] Failed to fetch all from ${this.tableName}:`, error);
       throw new Error(`Database error: Could not retrieve data. There might be a schema mismatch.`);
     }
   }
@@ -26,7 +37,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
       // @ts-ignore - Assuming all table have an 'id' column
       return await this.db.select().from(this.table).where(eq(this.table.id, id)).get();
     } catch (error) {
-      console.error(`[DB Error] Failed to find ${this.table._.name.name} by ID ${id}:`, error);
+      console.error(`[DB Error] Failed to find ${this.tableName} by ID ${id}:`, error);
       throw error;
     }
   }
@@ -35,7 +46,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     try {
       return await this.db.insert(this.table).values(data).returning().get();
     } catch (error) {
-      console.error(`[DB Error] Failed to create ${this.table._.name.name}:`, error);
+      console.error(`[DB Error] Failed to create ${this.tableName}:`, error);
       throw error;
     }
   }
@@ -45,7 +56,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
       // @ts-ignore
       return await this.db.update(this.table).set(data).where(eq(this.table.id, id)).returning().get();
     } catch (error) {
-      console.error(`[DB Error] Failed to update ${this.table._.name.name} ID ${id}:`, error);
+      console.error(`[DB Error] Failed to update ${this.tableName} ID ${id}:`, error);
       throw error;
     }
   }
@@ -55,7 +66,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
       // @ts-ignore
       return await this.db.delete(this.table).where(eq(this.table.id, id)).returning().get();
     } catch (error) {
-      console.error(`[DB Error] Failed to delete ${this.table._.name.name} ID ${id}:`, error);
+      console.error(`[DB Error] Failed to delete ${this.tableName} ID ${id}:`, error);
       throw error;
     }
   }

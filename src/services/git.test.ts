@@ -1,15 +1,40 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getServerCommits } from '../git'
-import { exec } from 'child_process'
+
+vi.mock('@tanstack/react-start', () => {
+  return {
+    __esModule: true,
+    createServerFn: () => ({
+      handler: (fn: any) => fn,
+    }),
+  }
+})
+
+import { getServerCommits } from './git'
+import * as cp from 'child_process'
 
 // Mock child_process and util to avoid running real command
-vi.mock('child_process', () => ({
-  exec: vi.fn(),
-}))
+vi.mock('child_process', () => {
+  const mockExec = vi.fn()
+  return {
+    __esModule: true,
+    exec: mockExec,
+    default: {
+      exec: mockExec
+    }
+  }
+})
 
-vi.mock('util', () => ({
-  promisify: vi.fn((fn) => fn),
-}))
+vi.mock('util', () => {
+  const mockPromisify = vi.fn((fn) => fn)
+  return {
+    __esModule: true,
+    promisify: mockPromisify,
+    default: {
+      promisify: mockPromisify
+    }
+  }
+})
 
 // Mock path module exactly as it behaves in node
 vi.mock('path', async () => {
@@ -30,7 +55,7 @@ describe('git service', () => {
     const mockFindStdout = `/home/tomas/projectA/.git\n/home/tomas/projectB/.git`
     
     // Setup execAsync mock to return different things based on the command
-    vi.mocked(exec).mockImplementation((cmd, callback: any) => {
+    vi.mocked(cp.exec).mockImplementation((cmd, callback: any) => {
       if (typeof cmd === 'string' && cmd.includes('find /home/tomas')) {
         return Promise.resolve({ stdout: mockFindStdout, stderr: '' }) as any
       } else if (typeof cmd === 'string' && cmd.includes('projectA')) {
@@ -49,7 +74,7 @@ describe('git service', () => {
 
     const result = await getServerCommits({ data: { targetDate: '2023-10-27' } })
 
-    expect(exec).toHaveBeenCalled()
+    expect(cp.exec).toHaveBeenCalled()
     expect(result).toHaveLength(2)
     
     // Should be sorted descending by default
@@ -73,11 +98,11 @@ describe('git service', () => {
   })
 
   it('should return empty array if no git projects found', async () => {
-    vi.mocked(exec).mockResolvedValue({ stdout: '', stderr: '' } as any)
+    vi.mocked(cp.exec).mockResolvedValue({ stdout: '', stderr: '' } as any)
 
     const result = await getServerCommits({ data: {} })
 
-    expect(exec).toHaveBeenCalled()
+    expect(cp.exec).toHaveBeenCalled()
     expect(result).toHaveLength(0)
   })
 })

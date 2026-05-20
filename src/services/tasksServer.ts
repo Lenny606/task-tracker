@@ -10,6 +10,63 @@ export const getHistoryDataFn = createServerFn({
     const allTasks = await historyTasksRepository.findAll();
     const allMetrics = await dayMetricsRepository.findAll();
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const tenHoursMs = 10 * 60 * 60 * 1000;
+    const nowMs = Date.now();
+
+    // 1. Reconcile running tasks
+    for (const task of allTasks) {
+      if (task.isRunning && task.startTime) {
+        const startTimeMs = task.startTime.getTime();
+        const elapsedMs = nowMs - startTimeMs;
+        const isOlderThanToday = task.date < todayStr;
+        const exceededTenHours = elapsedMs > tenHoursMs;
+
+        if (isOlderThanToday || exceededTenHours) {
+          const sensibleElapsedMs = Math.min(elapsedMs, tenHoursMs);
+          const elapsedSeconds = Math.floor(sensibleElapsedMs / 1000);
+          const newTotalSeconds = task.totalSeconds + elapsedSeconds;
+
+          await historyTasksRepository.update(task.id, {
+            isRunning: false,
+            startTime: null,
+            totalSeconds: newTotalSeconds,
+          });
+
+          task.isRunning = false;
+          task.startTime = null;
+          task.totalSeconds = newTotalSeconds;
+        }
+      }
+    }
+
+    // 2. Reconcile running day metric timers
+    for (const metric of allMetrics) {
+      if (metric.timerIsRunning && metric.timerStartTime) {
+        const startTimeMs = metric.timerStartTime.getTime();
+        const elapsedMs = nowMs - startTimeMs;
+        const isOlderThanToday = metric.date < todayStr;
+        const exceededTenHours = elapsedMs > tenHoursMs;
+
+        if (isOlderThanToday || exceededTenHours) {
+          const sensibleElapsedMs = Math.min(elapsedMs, tenHoursMs);
+          const elapsedSeconds = Math.floor(sensibleElapsedMs / 1000);
+          const newTotalSeconds = metric.timerTotalSeconds + elapsedSeconds;
+
+          await dayMetricsRepository.saveMetrics(metric.date, {
+            timerIsRunning: false,
+            timerStartTime: null,
+            timerTotalSeconds: newTotalSeconds,
+            aiSummary: metric.aiSummary,
+          });
+
+          metric.timerIsRunning = false;
+          metric.timerStartTime = null;
+          metric.timerTotalSeconds = newTotalSeconds;
+        }
+      }
+    }
+
     const history: any = {};
 
     // Group tasks by date

@@ -14,9 +14,9 @@ const config = defineConfig({
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
-    tanstackStart(),
+    !process.env.VITEST && tanstackStart(),
     viteReact(),
-  ],
+  ].filter(Boolean),
   test: {
     environment: 'jsdom',
     globals: true,
