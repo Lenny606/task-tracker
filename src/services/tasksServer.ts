@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { historyTasksRepository } from '../repositories/historyTasks.repository';
 import { dayMetricsRepository } from '../repositories/dayMetrics.repository';
 import { randomUUID } from 'node:crypto';
+import { z } from 'zod';
 
 export const getHistoryDataFn = createServerFn({
   method: 'GET',
@@ -105,72 +106,108 @@ export const getHistoryDataFn = createServerFn({
 
 export const updateTaskFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data: { date: string; task: any } }) => {
-  try {
-    const { date, task } = data;
-    const existing = await historyTasksRepository.findByDateAndId(date, task.id);
+})
+  .inputValidator((data: unknown) => z.object({
+    date: z.string(),
+    task: z.object({
+      id: z.string().optional(),
+      name: z.string(),
+      jiraKey: z.string().nullable().optional(),
+      jiraSummary: z.string().nullable().optional(),
+      trackerProjectId: z.string().nullable().optional(),
+      totalSeconds: z.number().optional(),
+      isRunning: z.boolean().optional(),
+      isMarked: z.boolean().optional(),
+      startTime: z.number().nullable().optional(),
+    })
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      const { date, task } = data;
+      const taskId = task.id || randomUUID();
+      const existing = task.id ? await historyTasksRepository.findByDateAndId(date, task.id) : null;
 
-    const taskData = {
-      id: task.id || randomUUID(),
-      date: date,
-      name: task.name,
-      jiraKey: task.jiraKey || null,
-      jiraSummary: task.jiraSummary || null,
-      trackerProjectId: task.trackerProjectId || null,
-      totalSeconds: task.totalSeconds || 0,
-      isRunning: task.isRunning || false,
-      isMarked: task.isMarked || false,
-      startTime: task.startTime ? new Date(task.startTime) : null,
-    };
+      const taskData = {
+        id: taskId,
+        date: date,
+        name: task.name,
+        jiraKey: task.jiraKey || null,
+        jiraSummary: task.jiraSummary || null,
+        trackerProjectId: task.trackerProjectId || null,
+        totalSeconds: task.totalSeconds || 0,
+        isRunning: task.isRunning || false,
+        isMarked: task.isMarked || false,
+        startTime: task.startTime ? new Date(task.startTime) : null,
+      };
 
-    if (existing) {
-      return await historyTasksRepository.update(task.id, taskData);
-    } else {
-      return await historyTasksRepository.create(taskData);
+      if (existing && task.id) {
+        return await historyTasksRepository.update(task.id, taskData);
+      } else {
+        return await historyTasksRepository.create(taskData);
+      }
+    } catch (error) {
+      console.error('[Server Function Error] updateTaskFn:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error('[Server Function Error] updateTaskFn:', error);
-    throw error;
-  }
-});
+  });
 
 export const deleteTaskFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data: { taskId: string } }) => {
-  try {
-    return await historyTasksRepository.delete(data.taskId);
-  } catch (error) {
-    console.error('[Server Function Error] deleteTaskFn:', error);
-    throw error;
-  }
-});
+})
+  .inputValidator((data: unknown) => z.object({
+    taskId: z.string()
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      return await historyTasksRepository.delete(data.taskId);
+    } catch (error) {
+      console.error('[Server Function Error] deleteTaskFn:', error);
+      throw error;
+    }
+  });
 
 export const updateDayMetricsFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data: { date: string; metrics: any } }) => {
-  try {
-    const { date, metrics } = data;
-    return await dayMetricsRepository.saveMetrics(date, {
-      aiSummary: metrics.aiSummary,
-      timerTotalSeconds: metrics.globalTimer?.totalSeconds,
-      timerIsRunning: metrics.globalTimer?.isRunning,
-      timerStartTime: metrics.globalTimer?.startTime ? new Date(metrics.globalTimer.startTime) : null,
-    });
-  } catch (error) {
-    console.error('[Server Function Error] updateDayMetricsFn:', error);
-    throw error;
-  }
-});
+})
+  .inputValidator((data: unknown) => z.object({
+    date: z.string(),
+    metrics: z.object({
+      aiSummary: z.string().nullable().optional(),
+      globalTimer: z.object({
+        totalSeconds: z.number().optional(),
+        isRunning: z.boolean().optional(),
+        startTime: z.number().nullable().optional(),
+      }).optional()
+    })
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      const { date, metrics } = data;
+      return await dayMetricsRepository.saveMetrics(date, {
+        aiSummary: metrics.aiSummary,
+        timerTotalSeconds: metrics.globalTimer?.totalSeconds,
+        timerIsRunning: metrics.globalTimer?.isRunning,
+        timerStartTime: metrics.globalTimer?.startTime ? new Date(metrics.globalTimer.startTime) : null,
+      });
+    } catch (error) {
+      console.error('[Server Function Error] updateDayMetricsFn:', error);
+      throw error;
+    }
+  });
 
 export const deleteHistoryDayFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data: { date: string } }) => {
-  try {
-    await historyTasksRepository.deleteByDate(data.date);
-    await dayMetricsRepository.delete(data.date);
-    return { success: true };
-  } catch (error) {
-    console.error('[Server Function Error] deleteHistoryDayFn:', error);
-    throw error;
-  }
-});
+})
+  .inputValidator((data: unknown) => z.object({
+    date: z.string()
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      await historyTasksRepository.deleteByDate(data.date);
+      await dayMetricsRepository.delete(data.date);
+      return { success: true };
+    } catch (error) {
+      console.error('[Server Function Error] deleteHistoryDayFn:', error);
+      throw error;
+    }
+  });

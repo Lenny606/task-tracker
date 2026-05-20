@@ -1,7 +1,14 @@
 import { createServerFn } from '@tanstack/react-start'
 import { jiraService } from './jira'
 import { worklogRepository } from '../repositories/worklog.repository'
-import type { JiraCredentials, CreateIssueData, TempoWorklogData } from './jira'
+import { z } from 'zod'
+
+const jiraCredentialsSchema = z.object({
+  url: z.string(),
+  email: z.string(),
+  apiKey: z.string(),
+  tempoApiKey: z.string().optional(),
+})
 
 /**
  * Server function to get recent unique tickets from database
@@ -39,36 +46,141 @@ export const getRecentTicketsFn = createServerFn({
  */
 export const searchJiraIssuesFn = createServerFn({
   method: 'POST',
-  // @ts-ignore - Serialization issues with unknown fields
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials; jql: string; maxResults?: number } }) => {
-  if (!data) throw new Error('Missing input data')
-  
-  // Refined search: Only issues of type "Task" across all users and statuses
-  const filteredJql = `(${data.jql}) AND issuetype = Task`
-  return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
 })
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+    jql: z.string(),
+    maxResults: z.number().optional(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    // Refined search: Only issues of type "Task" across all users and statuses
+    const filteredJql = `(${data.jql}) AND issuetype = Task`
+    return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
+  })
 
 /**
  * Server function to create a Jira issue
  */
 export const createJiraIssueFn = createServerFn({
   method: 'POST',
-  // @ts-ignore - Serialization issues with unknown fields
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials; issueData: CreateIssueData } }) => {
-  if (!data) throw new Error('Missing input data')
-  return await jiraService.createIssue(data.credentials, data.issueData)
 })
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+    issueData: z.object({
+      projectKey: z.string(),
+      summary: z.string(),
+      description: z.string(),
+      issueTypeName: z.string(),
+    }),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    return await jiraService.createIssue(data.credentials, data.issueData)
+  })
 
 /**
  * Server function to log work via Tempo
  */
 export const logTempoWorkloadFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials; worklogData: TempoWorklogData } }) => {
-  try {
-    if (!data) throw new Error('Missing input data')
+})
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+    worklogData: z.object({
+      id: z.number().optional(),
+      tempoWorklogId: z.string().optional(),
+      issueKey: z.string().optional(),
+      description: z.string().optional(),
+      timeSpentSeconds: z.number(),
+      startDate: z.string(),
+      syncedToJira: z.boolean().optional(),
+      trackerProjectId: z.string().nullable().optional(),
+    }),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      // To ensure correct attribution in Tempo v4, we fetch the user's accountId
+      const myself = await jiraService.getMyself(data.credentials)
+      const authorAccountId = myself.accountId
 
-    // To ensure correct attribution in Tempo v4, we fetch the user's accountId
+      if (!authorAccountId) {
+        throw new Error('Could not retrieve Jira account ID')
+      }
+
+      const enhancedWorklogData = {
+        ...data.worklogData,
+        authorAccountId,
+      }
+
+      const result = await jiraService.logWork(data.credentials, enhancedWorklogData)
+
+      // Save to local database for internal tracking
+      if (result && result.id) {
+        await worklogRepository.create({
+          jiraWorklogId: String(result.id),
+          jiraIssueKey: data.worklogData.issueKey || '',
+          summary: data.worklogData.description || '',
+          timeSpentSeconds: data.worklogData.timeSpentSeconds,
+          startedAt: new Date(data.worklogData.startDate),
+          syncedToJira: true,
+          trackerProjectId: data.worklogData.trackerProjectId,
+        })
+      }
+
+      return result
+    } catch (error) {
+      console.error('[Server Function Error] logTempoWorkloadFn:', error);
+      throw error;
+    }
+  })
+
+/**
+ * Server function to get projects
+ */
+export const getJiraProjectsFn = createServerFn({
+  method: 'GET',
+})
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+  }).parse(data))
+  .handler(async ({ data }) => {
+    return await jiraService.getProjects(data.credentials)
+  })
+
+/**
+ * Server function to get current user
+ */
+export const getJiraMyselfFn = createServerFn({
+  method: 'GET',
+})
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+  }).parse(data))
+  .handler(async ({ data }) => {
+    return await jiraService.getMyself(data.credentials)
+  })
+
+/**
+ * Server function to get Tempo worklogs
+ */
+export const getTempoWorklogsFn = createServerFn({
+  method: 'POST',
+})
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+    from: z.string(),
+    to: z.string(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    // Debug log (lengths only for security)
+    console.log('[getTempoWorklogsFn] Received credentials:', {
+      hasUrl: !!data.credentials.url,
+      url: data.credentials.url,
+      emailLength: data.credentials.email?.length,
+      apiKeyLength: data.credentials.apiKey?.length,
+      tempoApiKeyLength: data.credentials.tempoApiKey?.length,
+    })
+
+    // First get the account ID of the user
     const myself = await jiraService.getMyself(data.credentials)
     const authorAccountId = myself.accountId
 
@@ -76,88 +188,20 @@ export const logTempoWorkloadFn = createServerFn({
       throw new Error('Could not retrieve Jira account ID')
     }
 
-    const enhancedWorklogData = {
-      ...data.worklogData,
-      authorAccountId,
-    }
-
-    const result = await jiraService.logWork(data.credentials, enhancedWorklogData)
-
-    // Save to local database for internal tracking
-    if (result && result.id) {
-      await worklogRepository.create({
-        jiraWorklogId: String(result.id),
-        jiraIssueKey: data.worklogData.issueKey || '',
-        summary: data.worklogData.description || '',
-        timeSpentSeconds: data.worklogData.timeSpentSeconds,
-        startedAt: new Date(data.worklogData.startDate),
-        syncedToJira: true,
-        trackerProjectId: data.worklogData.trackerProjectId,
-      })
-    }
-
-    return result
-  } catch (error) {
-    console.error('[Server Function Error] logTempoWorkloadFn:', error);
-    throw error;
-  }
-})
-
-/**
- * Server function to get projects
- */
-export const getJiraProjectsFn = createServerFn({
-  method: 'GET',
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials } }) => {
-  if (!data) throw new Error('Missing credentials')
-  return await jiraService.getProjects(data.credentials)
-})
-
-/**
- * Server function to get current user
- */
-export const getJiraMyselfFn = createServerFn({
-  method: 'GET',
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials } }) => {
-  if (!data) throw new Error('Missing credentials')
-  return await jiraService.getMyself(data.credentials)
-})
-
-/**
- * Server function to get Tempo worklogs
- */
-export const getTempoWorklogsFn = createServerFn({
-  method: 'POST',
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials; from: string; to: string } }) => {
-  if (!data) throw new Error('Missing input data')
-  
-  // Debug log (lengths only for security)
-  console.log('[getTempoWorklogsFn] Received credentials:', {
-    hasUrl: !!data.credentials.url,
-    url: data.credentials.url,
-    emailLength: data.credentials.email?.length,
-    apiKeyLength: data.credentials.apiKey?.length,
-    tempoApiKeyLength: data.credentials.tempoApiKey?.length,
+    // Then fetch worklogs for that user
+    return await jiraService.getWorklogs(data.credentials, data.from, data.to, authorAccountId)
   })
-
-  // First get the account ID of the user
-  const myself = await jiraService.getMyself(data.credentials)
-  const authorAccountId = myself.accountId
-
-  if (!authorAccountId) {
-    throw new Error('Could not retrieve Jira account ID')
-  }
-
-  // Then fetch worklogs for that user
-  return await jiraService.getWorklogs(data.credentials, data.from, data.to, authorAccountId)
-})
 
 /**
  * Server function to delete a Tempo worklog
  */
 export const deleteTempoWorklogFn = createServerFn({
   method: 'POST',
-}).handler(async ({ data }: { data?: { credentials: JiraCredentials; worklogId: number } }) => {
-  if (!data) throw new Error('Missing input data')
-  return await jiraService.deleteWorklog(data.credentials, data.worklogId)
 })
+  .inputValidator((data: unknown) => z.object({
+    credentials: jiraCredentialsSchema,
+    worklogId: z.number(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    return await jiraService.deleteWorklog(data.credentials, data.worklogId)
+  })

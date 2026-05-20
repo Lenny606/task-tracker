@@ -2,11 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@tanstack/react-start', () => {
+  const fn: any = {
+    validator: () => fn,
+    handler: (handlerFn: any) => handlerFn,
+  }
   return {
     __esModule: true,
-    createServerFn: () => ({
-      handler: (fn: any) => fn,
-    }),
+    createServerFn: () => fn,
   }
 })
 

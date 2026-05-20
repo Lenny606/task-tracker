@@ -1,4 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('../store/settingsStore', () => ({
+  getSettings: () => ({ aiModel: 'gemini-2.5-flash' }),
+  loadSettings: async () => ({ aiModel: 'gemini-2.5-flash' }),
+  saveSettings: vi.fn(),
+}))
+
 import { getAiAdapter, aiService, AI_MODELS } from './ai'
 
 describe('AI Service', () => {

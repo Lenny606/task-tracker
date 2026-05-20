@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+vi.mock('../store/settingsStore', () => ({
+  getSettings: () => ({ aiModel: 'gemini-2.5-flash' }),
+  loadSettings: async () => ({ aiModel: 'gemini-2.5-flash' }),
+  saveSettings: vi.fn(),
+}))
+
 import { aiService } from './ai'
 import { GitCommit } from './git'
 import { chat } from '@tanstack/ai'
