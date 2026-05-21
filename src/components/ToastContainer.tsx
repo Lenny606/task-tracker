@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast, type Toast as ToastType } from '../store/toastStore'
 import { Toast } from './Toast'
 

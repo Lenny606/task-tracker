@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { X, CheckCircle2, AlertCircle, Info, AlertTriangle, Loader2, Sparkles, Trash2, Clock, Star } from 'lucide-react'
 import { toast, type Toast as ToastType } from '../store/toastStore'
 
@@ -26,26 +26,57 @@ const toastStyles = {
   star: 'border-yellow-500/20 bg-yellow-50/50 dark:bg-yellow-950/20',
 }
 
-export function Toast({ id, message, type }: ToastType) {
+export function Toast({ id, message, type, duration = 4000 }: ToastType) {
   const [isVisible, setIsVisible] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  const handleDismiss = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => {
+      toast.dismiss(id)
+    }, 300) // Match transition-all duration-300
+  }, [id])
+
+  const startTimer = useCallback(() => {
+    if (duration > 0) {
+      timerRef.current = setTimeout(() => {
+        handleDismiss()
+      }, duration)
+    }
+  }, [duration, handleDismiss])
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     // Small delay for entry animation
     const raf = requestAnimationFrame(() => setIsVisible(true))
-    return () => cancelAnimationFrame(raf)
-  }, [])
+    startTimer()
+    
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimer()
+    }
+  }, [startTimer, clearTimer])
 
   return (
     <div
+      onMouseEnter={clearTimer}
+      onMouseLeave={startTimer}
       className={`flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-md shadow-xl transition-all duration-300 transform ${
-        isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'
+        isVisible && !isExiting ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'
       } ${toastStyles[type]}`}
     >
       <div className="shrink-0">{toastIcons[type]}</div>
       <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{message}</p>
       <button
-        onClick={() => toast.dismiss(id)}
-        className="ml-auto p-1.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 transition-colors"
+        onClick={handleDismiss}
+        className="ml-auto p-1.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 transition-colors pointer-events-auto"
       >
         <X className="w-5 h-5" />
       </button>
