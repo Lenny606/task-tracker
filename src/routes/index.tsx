@@ -71,7 +71,7 @@ function Dashboard() {
         ) : tasks.map((task) => (
           <div
             key={task.id}
-            className={`group flex items-center justify-between p-5 transition-all duration-300 rounded-2xl glass-panel ${
+            className={`group flex items-center justify-between p-5 transition-all duration-300 rounded-2xl glass-panel relative hover:z-50 focus-within:z-50 ${
               task.isMarked 
                 ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-500/20 shadow-sm shadow-emerald-500/5' 
                 : ''
