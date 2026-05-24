@@ -6,6 +6,7 @@ import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { formatSecondsToDuration } from '../utils/duration'
 import { ProjectSelector } from '../components/ProjectSelector'
+import { Button } from '../components/Button'
 
 
 export const Route = createFileRoute('/')({
@@ -136,43 +137,42 @@ function Dashboard() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   onClick={() => toggleTask.mutate(task.id)}
-                  className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all active:scale-90 ${
+                  title={task.isRunning ? 'Pause' : 'Start'}
+                  icon={task.isRunning ? Pause : Play}
+                  className={`w-12 h-12 border-none ${
                     task.isRunning
                       ? 'bg-amber-100 text-amber-600 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
                       : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
                   }`}
-                  title={task.isRunning ? 'Pause' : 'Start'}
-                >
-                  {task.isRunning ? <Pause className="fill-current" size={20} /> : <Play className="fill-current ml-1" size={20} />}
-                </button>
+                />
 
-                <button
+                <Button
+                  variant="icon"
                   onClick={() => resetTask.mutate(task.id)}
-                  className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-all active:scale-90"
                   title="Reset"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
+                  icon={RotateCcw}
+                  className="w-12 h-12"
+                />
 
-                <button
+                <Button
+                  variant="icon"
                   onClick={() => deleteTask.mutate(task.id)}
-                  className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all active:scale-90"
                   title="Delete"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                  icon={Trash2}
+                  className="w-12 h-12 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                />
 
                 <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1" />
 
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => handleLogToJira(task)}
-                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-all active:scale-90"
                   title="Log to Jira"
-                >
-                  <Database className="w-5 h-5" />
-                </button>
+                  icon={Database}
+                  className="w-12 h-12 border-none bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                />
               </div>
             </div>
           </div>
@@ -197,12 +197,13 @@ function Dashboard() {
           </div>
           
           {newTaskName.trim() && (
-            <button
+            <Button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+              variant="primary"
+              size="sm"
             >
               Add Task
-            </button>
+            </Button>
           )}
         </form>
       </div>

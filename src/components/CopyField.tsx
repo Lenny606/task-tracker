@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Check } from 'lucide-react'
+import { Button } from './Button'
 
 interface CopyFieldProps {
   value: string
@@ -34,20 +35,13 @@ export function CopyField({
         placeholder={placeholder}
         className={`flex-1 px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white font-mono text-sm ${inputClassName}`}
       />
-      <button
-        type="button"
+      <Button
         onClick={handleCopy}
-        className={`px-6 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-indigo-600/20 shrink-0 ${buttonClassName}`}
+        className={`shrink-0 ${buttonClassName}`}
+        icon={copied ? Check : undefined}
       >
-        {copied ? (
-          <>
-            <Check className="w-4 h-4" />
-            <span>Copied!</span>
-          </>
-        ) : (
-          <span>Copy Key</span>
-        )}
-      </button>
+        {copied ? 'Copied!' : 'Copy Key'}
+      </Button>
     </div>
   )
 }

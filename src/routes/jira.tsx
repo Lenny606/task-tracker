@@ -9,6 +9,7 @@ import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
 import type { JiraIssue } from '../models/jira'
 import { PageHeader } from '../components/PageHeader'
+import { Button } from '../components/Button'
 
 const jiraSearchSchema = z.object({
   view: z.enum(['list', 'create']).optional().catch('list'),
@@ -159,15 +160,15 @@ function WorklogForm() {
   return (
     <form onSubmit={handleSubmit} className="relative p-8 space-y-8 max-w-4xl mx-auto">
       <div className="absolute top-8 right-8">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={handleReset}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all active:scale-95 ring-1 ring-transparent hover:ring-red-500/20"
+          icon={RotateCcw}
+          className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl ring-1 ring-transparent hover:ring-red-500/20 border-none bg-transparent"
           title="Reset Form"
         >
-          <RotateCcw className="w-4 h-4" />
           Reset
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -264,18 +265,16 @@ function WorklogForm() {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
-        disabled={isSubmitting || !selectedIssue || !duration}
-        className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl flex items-center justify-center gap-3
-          ${isSubmitting || !selectedIssue || !duration
-            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/25 active:scale-[0.98]'
-          }`}
+        isLoading={isSubmitting}
+        disabled={!selectedIssue || !duration}
+        variant="primary"
+        className="w-full py-4 rounded-2xl font-bold text-lg bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-500/25 border-none"
+        icon={PlusCircle}
       >
-        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <PlusCircle className="w-6 h-6" />}
-        {isSubmitting ? 'Logging...' : 'Log Work'}
-      </button>
+        Log Work
+      </Button>
     </form>
   )
 }
@@ -440,13 +439,13 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
                     </div>
                   </div>
                   <div className="flex items-center gap-4 pl-4">
-                    <button
+                    <Button
+                      variant="icon"
                       onClick={() => handleDelete(log.tempoWorklogId || log.tempoId)}
-                      className="opacity-0 group-hover:opacity-100 p-2.5 text-slate-400 hover:text-red-500 transition-all rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 ring-1 ring-transparent hover:ring-red-500/20"
+                      className="opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ring-1 ring-transparent hover:ring-red-500/20"
                       title="Delete worklog"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                      icon={Trash2}
+                    />
                     <div className="text-right">
                       <div className="text-lg font-black text-slate-900 dark:text-white font-mono">
                         {Math.floor(log.timeSpentSeconds / 3600)}h {Math.floor((log.timeSpentSeconds % 3600) / 60)}m
@@ -503,28 +502,29 @@ function JiraPage() {
         gradientTo="to-indigo-500/20"
       />
 
-      {/* Tabs */}
       <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-2xl w-fit mb-8 ring-1 ring-slate-200 dark:ring-slate-800">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('list')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all ${activeTab === 'list'
+          icon={List}
+          className={`px-6 py-2.5 rounded-xl border-none ${activeTab === 'list'
             ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700'
-            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 bg-transparent'
             }`}
         >
-          <List className="w-4 h-4" />
           <span className="font-bold text-sm tracking-wide">List</span>
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('create')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all ${activeTab === 'create'
+          icon={PlusCircle}
+          className={`px-6 py-2.5 rounded-xl border-none ${activeTab === 'create'
             ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700'
-            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 bg-transparent'
             }`}
         >
-          <PlusCircle className="w-4 h-4" />
           <span className="font-bold text-sm tracking-wide">Create</span>
-        </button>
+        </Button>
       </div>
 
       {/* Content */}
@@ -534,24 +534,26 @@ function JiraPage() {
             {/* Filters */}
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
               <span className="text-sm font-bold text-slate-400 uppercase tracking-widest mr-2 px-1">Period:</span>
-              <button
+              <Button
+                variant={activePeriod === 'month' ? 'primary' : 'ghost'}
                 onClick={() => setPeriod('month')}
-                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${activePeriod === 'month'
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black border-none ${activePeriod === 'month'
                   ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
                 This Month
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={activePeriod === 'all' ? 'primary' : 'ghost'}
                 onClick={() => setPeriod('all')}
-                className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 ${activePeriod === 'all'
+                className={`px-5 py-2.5 rounded-2xl text-sm font-black border-none ${activePeriod === 'all'
                   ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/25 ring-2 ring-blue-500/20'
                   : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'
                   }`}
               >
                 Last 30 Days
-              </button>
+              </Button>
             </div>
 
             <WorklogList credentials={credentials} filter={activePeriod} />

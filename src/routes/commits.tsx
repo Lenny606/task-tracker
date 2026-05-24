@@ -3,6 +3,7 @@ import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkl
 import { getServerCommits } from '../services/git'
 import { aiService } from '../services/ai'
 import { useState } from 'react'
+import { Button } from '../components/Button'
 
 type CommitsSearch = {
   date?: string
@@ -138,23 +139,16 @@ function CommitsComponent() {
             </span>
           </div>
 
-          <button
+          <Button
             onClick={handleAnalyze}
-            disabled={isAnalyzing || commits.length === 0}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all duration-300 shadow-sm
-              ${isAnalyzing || commits.length === 0
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
-              }
-            `}
+            disabled={commits.length === 0}
+            isLoading={isAnalyzing}
+            variant="primary"
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20 shadow-sm border-none px-6 py-2.5 rounded-xl font-bold"
+            icon={Sparkles}
           >
-            {isAnalyzing ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            )}
             Analyze with AI
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -168,13 +162,15 @@ function CommitsComponent() {
                 </div>
                 JIRA Task Description
               </h2>
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-sm font-semibold text-slate-700 dark:text-slate-200"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-sm font-semibold text-slate-700 dark:text-slate-200 border-none"
+                icon={copied ? Check : Copy}
+                iconClassName={copied ? 'text-green-500' : ''}
               >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copied!' : 'Copy to Clipboard'}
-              </button>
+              </Button>
             </div>
             <div className="prose-slate dark:prose-invert max-w-none">
               <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed text-slate-700 dark:text-slate-300 bg-transparent p-0 border-none m-0 overflow-visible">

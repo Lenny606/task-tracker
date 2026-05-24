@@ -13,6 +13,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { ProjectSelector } from '../components/ProjectSelector'
 import { PageHeader } from '../components/PageHeader'
 import { StatCard } from '../components/StatCard'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -172,21 +173,23 @@ function SummaryPage() {
             AI Commits Summary
           </h2>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => navigate({ to: '/commits', search: { date: displayDate } })}
-              className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm"
+              icon={GitBranch}
+              className="px-6 py-2 rounded-xl"
             >
-              <GitBranch size={18} />
               View Commits
-            </button>
+            </Button>
             {!aiSummary && !isGenerating && (
-              <button
+              <Button
+                variant="primary"
                 onClick={handleGenerateSummary}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl font-semibold transition-all active:scale-95 shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                icon={Sparkles}
+                className="px-6 py-2 rounded-xl"
               >
-                <Sparkles size={18} />
                 Generate JIRA Summary
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -210,23 +213,25 @@ function SummaryPage() {
                 </div>
               </div>
             </div>
-            <button
+            <Button
+              variant="icon"
               onClick={handleGenerateSummary}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100"
+              className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 hover:text-indigo-500"
               title="Regenerate Summary"
-            >
-              <RotateCcw size={18} />
-            </button>
+              icon={RotateCcw}
+            />
           </div>
         ) : error ? (
           <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl text-red-600 dark:text-red-400 flex items-center justify-between">
             <p className="font-medium">{error}</p>
-            <button
+            <Button
+              variant="danger"
               onClick={handleGenerateSummary}
-              className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-500 transition-all"
+              className="px-4 py-2 bg-red-600 text-white hover:bg-red-500"
+              size="sm"
             >
               Try Again
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="glass-panel p-10 rounded-3xl text-center border-dashed border-slate-200 dark:border-slate-800">
@@ -358,20 +363,20 @@ function SummaryPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
+                        <Button
+                          variant="icon"
                           onClick={() => handleLogToJira(task)}
-                          className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                          className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
                           title="Log to Jira"
-                        >
-                          <Database size={18} />
-                        </button>
-                        <button
+                          icon={Database}
+                        />
+                        <Button
+                          variant="icon"
                           onClick={() => deleteTask.mutate(task.id)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                          className="p-2 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                           title="Delete task"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                          icon={Trash2}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -395,12 +400,13 @@ function SummaryPage() {
                       className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium py-1"
                     />
                     {newTaskName.trim() && (
-                      <button
+                      <Button
                         type="submit"
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-md shadow-indigo-500/10"
+                        variant="primary"
+                        size="sm"
                       >
                         Add Task
-                      </button>
+                      </Button>
                     )}
                   </form>
                 </td>

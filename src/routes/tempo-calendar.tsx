@@ -5,6 +5,7 @@ import { useIsMounted } from '../hooks/useIsMounted'
 import { getTempoWorklogsFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { toast } from '../store/toastStore'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/tempo-calendar')({
   component: TempoCalendarPage,
@@ -141,13 +142,12 @@ function TempoCalendarPage() {
         </div>
 
         <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 self-start lg:self-auto">
-          <button
+          <Button
+            variant="icon"
             onClick={() => navigateWeek(-1)}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all text-slate-600 dark:text-slate-400"
+            icon={ChevronLeft}
             title="Previous Week"
-          >
-            <ChevronLeft size={24} />
-          </button>
+          />
           
           <div className="px-4 py-1 text-center min-w-[200px]">
             <span className="font-bold text-slate-700 dark:text-slate-200 block">
@@ -155,22 +155,22 @@ function TempoCalendarPage() {
             </span>
           </div>
 
-          <button
+          <Button
+            variant="icon"
             onClick={() => navigateWeek(1)}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all text-slate-600 dark:text-slate-400"
+            icon={ChevronRight}
             title="Next Week"
-          >
-            <ChevronRight size={24} />
-          </button>
+          />
 
           <div className="h-6 w-px bg-slate-200 dark:border-slate-800 mx-1" />
 
-          <button
+          <Button
+            variant="ghost"
             onClick={resetToToday}
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm"
+            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm border-none"
           >
             Today
-          </button>
+          </Button>
         </div>
       </header>
 

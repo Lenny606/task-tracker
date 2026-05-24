@@ -1,11 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LayoutGrid, Plus, Trash2, Edit2, Clock, AlertTriangle, CheckCircle2, ChevronRight, Briefcase } from 'lucide-react'
+import { LayoutGrid, Plus, Trash2, Edit2, Clock, AlertTriangle, CheckCircle2, ChevronRight, Briefcase, X } from 'lucide-react'
 import { getProjectsFn, saveProjectFn, deleteProjectFn } from '../services/projectsServer'
 import { formatSecondsToDuration } from '../utils/duration'
 import { toast } from '../store/toastStore'
 import { PageHeader } from '../components/PageHeader'
+import { Button } from '../components/Button'
 
 export const Route = createFileRoute('/projects')({
   component: ProjectsPage,
@@ -57,16 +58,15 @@ function ProjectsPage() {
         description="Manage project budgets and track time consumption."
         icon={LayoutGrid}
         rightContent={
-          <button
+          <Button
             onClick={() => {
               setEditingProject(null)
               setIsModalOpen(true)
             }}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-xl shadow-indigo-500/20 cursor-pointer"
+            icon={Plus}
           >
-            <Plus size={20} />
             New Project
-          </button>
+          </Button>
         }
       />
 
@@ -143,12 +143,8 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
         </div>
         
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onEdit} className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all">
-            <Edit2 size={18} />
-          </button>
-          <button onClick={onDelete} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
-            <Trash2 size={18} />
-          </button>
+          <Button onClick={onEdit} variant="icon" icon={Edit2} />
+          <Button onClick={onDelete} variant="icon" icon={Trash2} />
         </div>
       </div>
 
@@ -281,9 +277,7 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
           <h2 className="text-3xl font-black text-slate-800 dark:text-white">
             {project ? 'Edit Project' : 'New Project'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
-            ✕
-          </button>
+          <Button variant="icon" onClick={onClose} icon={X} />
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
@@ -347,20 +341,21 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
           </div>
 
           <div className="pt-4 flex gap-4">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={onClose}
-              className="flex-1 py-4 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              className="flex-1 py-4 rounded-2xl font-bold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={isSubmitting || !name}
-              className="flex-[2] bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
+              isLoading={isSubmitting}
+              disabled={!name}
+              className="flex-[2] py-4 rounded-2xl font-bold text-lg"
             >
-              {isSubmitting ? 'Saving...' : 'Save Project'}
-            </button>
+              Save Project
+            </Button>
           </div>
         </form>
       </div>
