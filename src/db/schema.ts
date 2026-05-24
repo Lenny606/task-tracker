@@ -12,13 +12,17 @@ export const trackerProjects = sqliteTable('tracker_projects', {
 
 export const settings = sqliteTable('settings', {
   id: text('id').primaryKey(), // Using text IDs (e.g., 'app-settings')
+  aiProvider: text('ai_provider').notNull().default('gemini'),
   aiModel: text('ai_model').notNull().default('gemini-2.5-flash'),
+  geminiApiKey: text('gemini_api_key').notNull().default(''),
+  openaiApiKey: text('openai_api_key').notNull().default(''),
   jiraApiKey: text('jira_api_key').notNull().default(''),
   jiraEmail: text('jira_email').notNull().default(''),
   jiraTempoApiKey: text('jira_tempo_api_key').notNull().default(''),
   jiraUrl: text('jira_url').notNull().default(''),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date(0)),
 });
+
 
 export const worklogs = sqliteTable('worklogs', {
   id: text('id').primaryKey(),

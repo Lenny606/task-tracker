@@ -5,7 +5,10 @@ import { getAppSettingsFn, saveAppSettingsFn } from '../services/settingsServer'
 const SETTINGS_KEY = 'task-tracker-settings'
 
 export interface AppSettings {
+  aiProvider: 'gemini' | 'openai'
   aiModel: AiModel
+  geminiApiKey: string
+  openaiApiKey: string
   jiraApiKey: string
   jiraEmail: string
   jiraTempoApiKey: string
@@ -13,7 +16,10 @@ export interface AppSettings {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  aiModel: 'gemini-2.5-flash',
+  aiProvider: 'gemini',
+  aiModel: 'gemini-2.5-flash' as AiModel,
+  geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+  openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
   jiraApiKey: import.meta.env.VITE_JIRA_API_KEY || '',
   jiraEmail: import.meta.env.VITE_JIRA_EMAIL || '',
   jiraTempoApiKey: import.meta.env.VITE_JIRA_TEMPO_API_KEY || '',

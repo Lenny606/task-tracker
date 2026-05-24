@@ -13,7 +13,10 @@ export const saveAppSettingsFn = createServerFn({
   method: 'POST',
 })
   .inputValidator((data: unknown) => z.object({
+    aiProvider: z.string().optional(),
     aiModel: z.string().optional(),
+    geminiApiKey: z.string().optional(),
+    openaiApiKey: z.string().optional(),
     jiraApiKey: z.string().optional(),
     jiraEmail: z.string().optional(),
     jiraTempoApiKey: z.string().optional(),

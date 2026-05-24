@@ -1,18 +1,19 @@
 import { chat } from '@tanstack/ai'
 import { createGeminiChat } from '@tanstack/ai-gemini'
+import { createOpenaiChat } from '@tanstack/ai-openai'
 import type { GitCommit } from './git'
 import { getSettings } from '../store/settingsStore'
 
 /**
- * AI Service configuration for Gemini's OpenAI-compatible endpoint.
- * 
- * To use this service, ensure VITE_GEMINI_API_KEY is set in your .env file.
- * Get your key from: https://aistudio.google.com/app/apikey
+ * AI Service configuration.
+ * Supports both Gemini and OpenAI providers dynamically based on user settings.
  */
 
 export const AI_MODELS = {
   GEMINI_2_5_FLASH: 'gemini-2.5-flash',
   GEMINI_2_0_FLASH: 'gemini-2.0-flash',
+  GPT_4O: 'gpt-4o',
+  GPT_4O_MINI: 'gpt-4o-mini',
 } as const
 
 export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
@@ -20,52 +21,84 @@ export type AiModel = typeof AI_MODELS[keyof typeof AI_MODELS]
 export const AI_MODEL_LABELS: Record<AiModel, { label: string; description: string }> = {
   'gemini-2.5-flash': {
     label: 'Gemini 2.5 Flash',
-    description: 'Latest & fastest — best for everyday use',
+    description: 'Latest & fastest Gemini — best for everyday use',
   },
   'gemini-2.0-flash': {
     label: 'Gemini 2.0 Flash',
     description: 'Previous generation Flash — reliable & quick',
   },
+  'gpt-4o': {
+    label: 'GPT-4o',
+    description: 'OpenAI flagship model — high reasoning & quality',
+  },
+  'gpt-4o-mini': {
+    label: 'GPT-4o mini',
+    description: 'OpenAI fast model — highly cost-effective & speedy',
+  },
 }
 
-const getGeminiApiKey = () => import.meta.env.VITE_GEMINI_API_KEY || ''
-const adapterCache = new Map<string, ReturnType<typeof createGeminiChat>>()
+export const PROVIDER_MODELS = {
+  gemini: ['gemini-2.5-flash', 'gemini-2.0-flash'] as AiModel[],
+  openai: ['gpt-4o', 'gpt-4o-mini'] as AiModel[],
+}
 
-export const isConfigured = () => !!getGeminiApiKey()
+const adapterCache = new Map<string, any>()
+
+export const isConfigured = () => {
+  const settings = getSettings()
+  if (settings.aiProvider === 'openai') {
+    return !!(settings.openaiApiKey || import.meta.env.VITE_OPENAI_API_KEY)
+  }
+  return !!(settings.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY)
+}
 
 if (!isConfigured()) {
   console.warn(
-    'VITE_GEMINI_API_KEY is not defined. AI features will not work until an API key is provided.'
+    'AI Provider is not fully configured. AI features will not work until an API key is provided.'
   )
 }
 
 /**
- * Returns a configured Gemini adapter for the given model.
- * Falls back to the stored settings model if none is provided.
+ * Returns a configured adapter for the active AI Provider and given model.
  */
 export const getAiAdapter = (model?: AiModel) => {
-  const resolvedModel = model ?? getSettings().aiModel
+  const settings = getSettings()
+  const resolvedModel = (model ?? settings.aiModel) as AiModel
+  const provider = settings.aiProvider || 'gemini'
 
-  if (adapterCache.has(resolvedModel)) return adapterCache.get(resolvedModel)!
+  const cacheKey = `${provider}:${resolvedModel}`
+  if (adapterCache.has(cacheKey)) return adapterCache.get(cacheKey)!
 
-  const apiKey = getGeminiApiKey()
-
-  if (!apiKey) {
-    throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
-  }
-
-  const adapter = createGeminiChat(
-    resolvedModel,
-    apiKey,
-    {
-      dangerouslyAllowBrowser: true,
+  if (provider === 'openai') {
+    const apiKey = settings.openaiApiKey || import.meta.env.VITE_OPENAI_API_KEY || ''
+    if (!apiKey) {
+      throw new Error('AI Service not configured: OpenAI API Key is missing')
     }
-  )
-
-  adapterCache.set(resolvedModel, adapter)
-  return adapter
+    const adapter = createOpenaiChat(
+      resolvedModel as any,
+      apiKey,
+      {
+        dangerouslyAllowBrowser: true,
+      }
+    )
+    adapterCache.set(cacheKey, adapter)
+    return adapter
+  } else {
+    const apiKey = settings.geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY || ''
+    if (!apiKey) {
+      throw new Error('AI Service not configured: Gemini API Key is missing')
+    }
+    const adapter = createGeminiChat(
+      resolvedModel as any,
+      apiKey,
+      {
+        dangerouslyAllowBrowser: true,
+      }
+    )
+    adapterCache.set(cacheKey, adapter)
+    return adapter
+  }
 }
-
 
 /**
  * Service to interact with the AI agent
@@ -83,7 +116,7 @@ export const aiService = {
    */
   generateText: async (prompt: string, model?: AiModel) => {
     if (!isConfigured()) {
-      throw new Error('AI Service not configured: VITE_GEMINI_API_KEY is missing')
+      throw new Error('AI Service not configured: API key is missing')
     }
 
     const resolvedModel = model ?? getSettings().aiModel

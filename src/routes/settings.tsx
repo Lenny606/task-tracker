@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Settings, Bot, Check, ChevronDown } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
-import { AI_MODELS, AI_MODEL_LABELS } from '../services/ai'
+import { AI_MODELS, AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
 import { useState, useRef, useEffect } from 'react'
 import { getExtensionTokenFn } from '../services/settingsServer'
@@ -34,19 +34,83 @@ function SettingsPage() {
         {/* AI Configuration Card */}
         <SectionCard
           title="AI Configuration"
-          description="Choose the Gemini model used for commit analysis and JIRA summaries"
+          description="Choose the active AI provider and model used for commit analysis and JIRA summaries"
           icon={Bot}
-          iconBgColor="bg-violet-50 dark:bg-violet-900/30"
-          iconColor="text-violet-600 dark:text-violet-400"
+          iconBgColor="bg-indigo-50 dark:bg-indigo-900/30"
+          iconColor="text-indigo-600 dark:text-indigo-400"
           className="z-20"
         >
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 uppercase tracking-widest">
-            Model
-          </label>
-          <ModelSelector
-            value={settings.aiModel}
-            onChange={(model) => saveSettings({ aiModel: model })}
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                AI Provider
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const firstModel = PROVIDER_MODELS.gemini[0]
+                    saveSettings({ aiProvider: 'gemini', aiModel: firstModel })
+                  }}
+                  className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center ${
+                    (settings.aiProvider || 'gemini') === 'gemini'
+                      ? 'border-indigo-500 bg-indigo-50/55 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                      : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <span className="font-bold text-base">Google Gemini</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">High-speed reasoning models</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const firstModel = PROVIDER_MODELS.openai[0]
+                    saveSettings({ aiProvider: 'openai', aiModel: firstModel })
+                  }}
+                  className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center ${
+                    settings.aiProvider === 'openai'
+                      ? 'border-emerald-500 bg-emerald-50/55 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                      : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <span className="font-bold text-base">OpenAI GPT</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Industry standard models</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                Model
+              </label>
+              <ModelSelector
+                value={settings.aiModel}
+                provider={settings.aiProvider || 'gemini'}
+                onChange={(model) => saveSettings({ aiModel: model })}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <Input
+                type="password"
+                label="Gemini API Key"
+                placeholder="Google Studio API Key"
+                className="py-3"
+                value={settings.geminiApiKey || ''}
+                onChange={(e) => saveSettings({ geminiApiKey: e.target.value })}
+              />
+
+              <Input
+                type="password"
+                label="OpenAI API Key"
+                placeholder="OpenAI Platform API Key"
+                className="py-3"
+                value={settings.openaiApiKey || ''}
+                onChange={(e) => saveSettings({ openaiApiKey: e.target.value })}
+              />
+            </div>
+          </div>
         </SectionCard>
 
         {/* Jira Configuration Card */}
@@ -124,9 +188,11 @@ function SettingsPage() {
 
 function ModelSelector({
   value,
+  provider,
   onChange,
 }: {
   value: AiModel
+  provider: 'gemini' | 'openai'
   onChange: (model: AiModel) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -142,8 +208,9 @@ function ModelSelector({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
 
-  const models = Object.values(AI_MODELS) as AiModel[]
-  const selected = AI_MODEL_LABELS[value]
+  const models = PROVIDER_MODELS[provider] || PROVIDER_MODELS.gemini
+  const activeValue = models.includes(value) ? value : models[0]
+  const selected = AI_MODEL_LABELS[activeValue]
 
   return (
     <div ref={ref} className="relative">
