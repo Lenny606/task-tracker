@@ -97,7 +97,7 @@ function SummaryPage() {
   const totalProgress = Math.min(100, (totalSeconds / WORK_GOAL_SECONDS) * 100)
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
         title={!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
         description={!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}

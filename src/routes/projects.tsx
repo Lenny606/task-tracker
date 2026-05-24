@@ -53,7 +53,7 @@ function ProjectsPage() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
         title="Projects"
         description="Manage project budgets and track time consumption."

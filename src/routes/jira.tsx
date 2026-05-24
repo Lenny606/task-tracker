@@ -425,11 +425,11 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
             <div className="grid grid-cols-1 gap-4">
               {groupedWorklogs[date].map((log) => (
                 <div key={log.tempoId || log.tempoWorklogId} className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-3xl shadow-sm hover:ring-2 hover:ring-blue-500/50 transition-all group">
-                  <div className="flex gap-5 items-center">
-                    <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter">
+                  <div className="flex gap-5 items-center min-w-0">
+                    <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter shrink-0">
                       {log.issue.key}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="font-bold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {log.description || <span className="italic opacity-50">No description</span>}
                       </div>
@@ -493,7 +493,7 @@ function JiraPage() {
   const credentials = getJiraCredentials(settings)
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
         title="Jira"
         description="Manage your Jira tasks and time logging."

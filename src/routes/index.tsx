@@ -50,7 +50,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <header className="mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
           Daily Tasks
@@ -91,7 +91,7 @@ function Dashboard() {
             >
               {task.isMarked ? <CheckCircle2 size={24} /> : <Circle size={24} />}
             </button>
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 min-w-0">
               <Input
                 type="text"
                 variant="ghost"

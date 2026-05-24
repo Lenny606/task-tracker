@@ -30,7 +30,7 @@ function HistoryPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <header className="mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
           History

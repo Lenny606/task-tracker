@@ -23,7 +23,7 @@ function SettingsPage() {
   }, [])
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
         title="Settings"
         description="Configure your workspace preferences."

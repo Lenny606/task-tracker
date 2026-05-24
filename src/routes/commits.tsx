@@ -106,7 +106,7 @@ function CommitsComponent() {
   const currentDateValue = date || new Date().toISOString().split('T')[0]
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full min-h-screen">
+    <div className="p-8 max-w-[1400px] mx-auto w-full min-h-screen">
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white flex items-center gap-4">
