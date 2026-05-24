@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Play, Pause, Plus, RotateCcw, Trash2, Clock, CheckCircle2, Circle, Database } from 'lucide-react'
+import { Play, Pause, Plus, RotateCcw, Trash2, CheckCircle2, Circle, Database } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { formatSecondsToDuration } from '../utils/duration'
 import { ProjectSelector } from '../components/ProjectSelector'
 import { Button } from '../components/Button'
+import { Input } from '../components/Input'
 
 
 export const Route = createFileRoute('/')({
@@ -91,8 +92,9 @@ function Dashboard() {
               {task.isMarked ? <CheckCircle2 size={24} /> : <Circle size={24} />}
             </button>
             <div className="flex flex-col flex-1">
-              <input
+              <Input
                 type="text"
+                variant="ghost"
                 defaultValue={task.name}
                 onBlur={(e) => {
                   if (e.target.value.trim() && e.target.value !== task.name) {
@@ -106,7 +108,7 @@ function Dashboard() {
                     ;(e.target as HTMLInputElement).blur()
                   }
                 }}
-                className={`font-semibold text-xl bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all ${
+                className={`font-semibold text-xl px-2 -ml-2 transition-all w-full outline-none border-none shadow-none ring-0 focus:ring-2 focus:ring-indigo-500/30 rounded-lg ${
                   task.isRunning ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
                 }`}
               />
@@ -187,12 +189,13 @@ function Dashboard() {
             <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
               <Plus size={24} />
             </div>
-            <input
+            <Input
               type="text"
+              variant="ghost"
               value={newTaskName}
               onChange={(e) => setNewTaskName(e.target.value)}
               placeholder="What are you working on next?"
-              className="flex-1 bg-transparent border-none outline-none text-xl font-semibold text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
+              className="flex-1 text-xl font-semibold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 border-none bg-transparent shadow-none ring-0 focus:ring-0"
             />
           </div>
           

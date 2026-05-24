@@ -1,15 +1,15 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { Database, List, PlusCircle, Search, Clock, Calendar, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw, Briefcase } from 'lucide-react'
+import { Database, List, PlusCircle, Search, Clock, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw, Briefcase } from 'lucide-react'
 import { z } from 'zod'
-import { useState, useEffect, useRef } from 'react'
-import { searchJiraIssuesFn, logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
+import { useState, useEffect } from 'react'
+import { logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
 import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
-import type { JiraIssue } from '../models/jira'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/Button'
+import { Input } from '../components/Input'
 
 const jiraSearchSchema = z.object({
   view: z.enum(['list', 'create']).optional().catch('list'),
@@ -217,36 +217,37 @@ function WorklogForm() {
       )}
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
-        <div className="space-y-3 w-full md:w-48">
-          <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Time (e.g., 1h 30m)
-          </label>
-          <input
+        <div className="w-full md:w-48">
+          <Input
             type="text"
+            label="Time (e.g., 1h 30m)"
+            icon={Clock}
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             placeholder="1h 20m"
-            className="w-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl py-3 px-4 outline-none transition-all font-medium"
+            variant="filled"
           />
         </div>
 
-        <div className="space-y-3 flex-1 md:max-w-md">
-          <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-            <Calendar className="w-4 h-4" /> Date and Time
+        <div className="flex-1 md:max-w-md space-y-1.5 text-left">
+          <label className="block text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">
+            Date and Time
           </label>
           <div className="flex gap-2">
-            <input
+            <Input
               type="date"
+              variant="filled"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="flex-1 min-w-0 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl py-3 px-4 outline-none transition-all font-medium"
+              className="flex-1 min-w-0"
             />
-            <input
+            <Input
               type="time"
               value={time}
               step="1"
               onChange={(e) => setTime(e.target.value)}
-              className="w-44 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl py-3 px-4 outline-none transition-all font-medium"
+              className="w-44"
+              variant="filled"
             />
           </div>
         </div>
@@ -384,16 +385,16 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
   return (
     <div className="space-y-12">
       {/* List Search Input */}
-      <div className="relative px-6 pt-2">
-        <div className="absolute left-10 top-1/2 -translate-y-1/2 text-slate-400">
-          <Search className="w-5 h-5" />
-        </div>
-        <input
+      <div className="px-6 pt-2">
+        <Input
           type="text"
+          icon={Search}
+          size="lg"
+          variant="filled"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search in worklogs (key, title or description)..."
-          className="w-full bg-slate-50 dark:bg-slate-900/50 ring-1 ring-slate-200 dark:ring-slate-800 focus:ring-2 focus:ring-blue-500 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-lg font-medium shadow-sm"
+          className="text-lg font-medium shadow-sm"
         />
       </div>
 

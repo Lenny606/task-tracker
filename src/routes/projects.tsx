@@ -7,6 +7,7 @@ import { formatSecondsToDuration } from '../utils/duration'
 import { toast } from '../store/toastStore'
 import { PageHeader } from '../components/PageHeader'
 import { Button } from '../components/Button'
+import { Input } from '../components/Input'
 
 export const Route = createFileRoute('/projects')({
   component: ProjectsPage,
@@ -281,16 +282,16 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Project Name</label>
-            <input
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-2xl px-5 py-4 outline-none transition-all text-lg font-semibold"
-              placeholder="e.g. Website Redesign"
-            />
-          </div>
+          <Input
+            required
+            variant="filled"
+            size="lg"
+            label="Project Name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="px-5 py-4 text-lg font-semibold"
+            placeholder="e.g. Website Redesign"
+          />
 
           <div className="space-y-2">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Description</label>
@@ -307,12 +308,13 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Budget Value</label>
               <div className="flex gap-2">
-                <input
+                <Input
                   type="number"
                   step="0.1"
+                  variant="filled"
                   value={budgetValue}
                   onChange={e => setBudgetValue(e.target.value)}
-                  className="flex-1 bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-2xl px-5 py-4 outline-none transition-all font-mono font-bold"
+                  className="px-5 py-4 font-mono font-bold flex-1"
                   placeholder="0.0"
                 />
                 <select 
@@ -329,11 +331,12 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Theme Color</label>
               <div className="flex items-center gap-4 h-[60px] px-4 bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 rounded-2xl">
-                <input
+                <Input
                   type="color"
+                  variant="ghost"
                   value={color}
                   onChange={e => setColor(e.target.value)}
-                  className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-none"
+                  className="w-10 h-10 rounded-lg cursor-pointer p-0 border-none"
                 />
                 <span className="text-sm font-mono font-bold text-slate-500 uppercase">{color}</span>
               </div>

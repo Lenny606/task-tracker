@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkles, Loader2, Copy, Check } from 'lucide-react'
+import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkles, Copy, Check } from 'lucide-react'
 import { getServerCommits } from '../services/git'
 import { aiService } from '../services/ai'
 import { useState } from 'react'
 import { Button } from '../components/Button'
+import { Input } from '../components/Input'
 
 type CommitsSearch = {
   date?: string
@@ -120,17 +121,14 @@ function CommitsComponent() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm p-1 transition-all focus-within:ring-violet-500">
-            <div className="pl-3 pr-2 text-slate-400">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <input
-              type="date"
-              value={currentDateValue}
-              onChange={handleDateChange}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-200 font-medium py-2 pr-4 focus:ring-0 outline-none"
-            />
-          </div>
+          <Input
+            type="date"
+            icon={Calendar}
+            variant="filled"
+            value={currentDateValue}
+            onChange={handleDateChange}
+            className="w-full text-slate-700 dark:text-slate-200 font-medium"
+          />
 
           <div className="hidden lg:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700">
             <Hash className="w-5 h-5 text-slate-400" />

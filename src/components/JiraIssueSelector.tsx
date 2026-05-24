@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { Loader2, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { searchJiraIssuesFn } from '../services/jiraServer'
 import type { JiraIssue } from '../models/jira'
+import { Input } from './Input'
 
 export function JiraIssueSelector({ onSelect, credentials, currentSelection, compact = false }: {
   onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void,
@@ -61,25 +62,18 @@ export function JiraIssueSelector({ onSelect, credentials, currentSelection, com
 
   return (
     <div className={`relative ${compact ? 'w-36' : 'w-full'}`} ref={dropdownRef}>
-      <div className="relative">
-        <div className={`absolute ${compact ? 'left-3' : 'left-4'} top-1/2 -translate-y-1/2 text-slate-400`}>
-          {isLoading ? (
-            <Loader2 className={`${compact ? 'w-3 h-3' : 'w-5 h-5'} animate-spin`} />
-          ) : (
-            <Search className={`${compact ? 'w-3 h-3' : 'w-5 h-5'}`} />
-          )}
-        </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => query.length >= 2 && setIsOpen(true)}
-          placeholder={compact ? "Ticket..." : "Search ticket (key or summary)..."}
-          className={`w-full bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl outline-none transition-all font-medium shadow-sm ${
-            compact ? 'py-1.5 pl-8 pr-2 text-xs' : 'py-4 pl-12 pr-4 text-lg'
-          }`}
-        />
-      </div>
+      <Input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => query.length >= 2 && setIsOpen(true)}
+        placeholder={compact ? "Ticket..." : "Search ticket (key or summary)..."}
+        icon={Search}
+        isLoading={isLoading}
+        size={compact ? 'sm' : 'lg'}
+        variant="filled"
+        className={compact ? 'text-xs' : 'text-lg font-medium shadow-sm'}
+      />
 
       {isOpen && results.length > 0 && (
         <div className={`absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-72 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-opacity-95 ${compact ? 'w-64' : ''}`}>

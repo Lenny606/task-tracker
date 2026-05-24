@@ -8,6 +8,7 @@ import { getExtensionTokenFn } from '../services/settingsServer'
 import { PageHeader } from '../components/PageHeader'
 import { SectionCard } from '../components/SectionCard'
 import { CopyField } from '../components/CopyField'
+import { Input } from '../components/Input'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -58,57 +59,41 @@ function SettingsPage() {
           className="z-10"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
-                Jira URL
-              </label>
-              <input
-                type="text"
-                placeholder="https://your-domain.atlassian.net"
-                className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
-                value={settings.jiraUrl}
-                onChange={(e) => saveSettings({ jiraUrl: e.target.value })}
-              />
-            </div>
+            <Input
+              type="text"
+              label="Jira URL"
+              placeholder="https://your-domain.atlassian.net"
+              className="py-3"
+              value={settings.jiraUrl}
+              onChange={(e) => saveSettings({ jiraUrl: e.target.value })}
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
-                Email
-              </label>
-              <input
-                type="email"
-                placeholder="your-email@example.com"
-                className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
-                value={settings.jiraEmail}
-                onChange={(e) => saveSettings({ jiraEmail: e.target.value })}
-              />
-            </div>
+            <Input
+              type="email"
+              label="Email"
+              placeholder="your-email@example.com"
+              className="py-3"
+              value={settings.jiraEmail}
+              onChange={(e) => saveSettings({ jiraEmail: e.target.value })}
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
-                Jira API Key
-              </label>
-              <input
-                type="password"
-                placeholder="Paste your Jira API Token"
-                className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
-                value={settings.jiraApiKey}
-                onChange={(e) => saveSettings({ jiraApiKey: e.target.value })}
-              />
-            </div>
+            <Input
+              type="password"
+              label="Jira API Key"
+              placeholder="Paste your Jira API Token"
+              className="py-3"
+              value={settings.jiraApiKey}
+              onChange={(e) => saveSettings({ jiraApiKey: e.target.value })}
+            />
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
-                Tempo API Key
-              </label>
-              <input
-                type="password"
-                placeholder="Paste your Tempo API Token"
-                className="w-full px-4 py-3 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
-                value={settings.jiraTempoApiKey}
-                onChange={(e) => saveSettings({ jiraTempoApiKey: e.target.value })}
-              />
-            </div>
+            <Input
+              type="password"
+              label="Tempo API Key"
+              placeholder="Paste your Tempo API Token"
+              className="py-3"
+              value={settings.jiraTempoApiKey}
+              onChange={(e) => saveSettings({ jiraTempoApiKey: e.target.value })}
+            />
           </div>
         </SectionCard>
 
