@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database, GitBranch } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database, GitBranch, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
@@ -33,6 +33,45 @@ function SummaryPage() {
   const navigate = useNavigate()
   const { settings } = useSettings()
   const credentials = getJiraCredentials(settings)
+
+  const navigateDay = (offset: number) => {
+    if (!displayDate) return
+    const parts = displayDate.split('-')
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1
+      const day = parseInt(parts[2], 10)
+      
+      const currentDate = new Date(year, month, day)
+      currentDate.setDate(currentDate.getDate() + offset)
+      
+      const nextDateStr = currentDate.getFullYear() + '-' +
+        (currentDate.getMonth() + 1).toString().padStart(2, '0') + '-' +
+        currentDate.getDate().toString().padStart(2, '0')
+        
+      navigate({
+        search: (prev) => ({ ...prev, date: nextDateStr }),
+      })
+    }
+  }
+
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    const parts = dateStr.split('-')
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1
+      const day = parseInt(parts[2], 10)
+      const dateObj = new Date(year, month, day)
+      return dateObj.toLocaleDateString('cs-CZ', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+    }
+    return dateStr
+  }
 
   const handleLogToJira = (task: any) => {
     const durationStr = formatSecondsToDuration(task.displaySeconds)
@@ -114,6 +153,63 @@ function SummaryPage() {
           </div>
         }
       />
+
+      {/* Date Navigation Bar */}
+      <div className="glass-panel p-4 rounded-3xl mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigateDay(-1)}
+            className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
+            title="Previous Day"
+          >
+            <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={() => navigateDay(1)}
+            className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
+            title="Next Day"
+          >
+            <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
+          </Button>
+
+          {isMounted && displayDate !== new Date().toISOString().split('T')[0] && (
+            <Button
+              variant="ghost"
+              onClick={() => navigate({ search: (prev) => ({ ...prev, date: undefined }) })}
+              className="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400"
+            >
+              Dnes
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 px-4 py-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 relative group hover:border-indigo-500/30 transition-colors">
+          <Calendar size={18} className="text-indigo-500" />
+          {isMounted ? (
+            <>
+              <span className="font-semibold text-slate-700 dark:text-slate-200 pr-1 capitalize">
+                {getFormattedDate(displayDate)}
+              </span>
+              <input
+                type="date"
+                value={displayDate}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    navigate({ search: (prev) => ({ ...prev, date: e.target.value }) })
+                  }
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                title="Select Date"
+              />
+            </>
+          ) : (
+            <span className="text-slate-400">Načítání data...</span>
+          )}
+        </div>
+      </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
