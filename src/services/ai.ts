@@ -129,7 +129,11 @@ export const aiService = {
       stream: false,
     })
 
-    return response.text || "AI failed to generate a response. Please check your API key and try again."
+    const text = typeof response === 'string'
+      ? response
+      : (response && typeof response === 'object' && 'text' in response ? (response as any).text : null)
+
+    return text || "AI failed to generate a response. Please check your API key and try again."
   },
 
   /**
