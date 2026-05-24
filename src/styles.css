@@ -272,3 +272,20 @@ a {
   animation: pulse-soft 2s infinite ease-in-out;
 }
 
+/* Premium Sidebar Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2); /* Soft semi-transparent indigo thumb */
+  border-radius: 99px;
+  transition: background-color 0.2s ease;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5); /* Stronger indigo glow on hover */
+}
+
+

@@ -31,7 +31,7 @@ export function Sidebar() {
         </h1>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         <Link
           to="/"
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
