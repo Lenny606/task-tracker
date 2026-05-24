@@ -5,6 +5,7 @@ import { LayoutGrid, Plus, Trash2, Edit2, Clock, AlertTriangle, CheckCircle2, Ch
 import { getProjectsFn, saveProjectFn, deleteProjectFn } from '../services/projectsServer'
 import { formatSecondsToDuration } from '../utils/duration'
 import { toast } from '../store/toastStore'
+import { PageHeader } from '../components/PageHeader'
 
 export const Route = createFileRoute('/projects')({
   component: ProjectsPage,
@@ -51,32 +52,23 @@ function ProjectsPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto min-h-screen">
-      <header className="mb-12 flex justify-between items-end">
-        <div>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center ring-1 ring-indigo-500/20">
-              <LayoutGrid className="w-7 h-7 text-indigo-500" />
-            </div>
-            <h1 className="text-5xl font-extrabold tracking-tight text-gradient">
-              Projects
-            </h1>
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Manage project budgets and track time consumption.
-          </p>
-        </div>
-        
-        <button
-          onClick={() => {
-            setEditingProject(null)
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-xl shadow-indigo-500/20"
-        >
-          <Plus size={20} />
-          New Project
-        </button>
-      </header>
+      <PageHeader
+        title="Projects"
+        description="Manage project budgets and track time consumption."
+        icon={LayoutGrid}
+        rightContent={
+          <button
+            onClick={() => {
+              setEditingProject(null)
+              setIsModalOpen(true)
+            }}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 shadow-xl shadow-indigo-500/20 cursor-pointer"
+          >
+            <Plus size={20} />
+            New Project
+          </button>
+        }
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-50">

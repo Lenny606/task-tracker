@@ -11,6 +11,8 @@ import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from 
 import { escapeHtml } from '../utils/sanitize'
 import { useNavigate } from '@tanstack/react-router'
 import { ProjectSelector } from '../components/ProjectSelector'
+import { PageHeader } from '../components/PageHeader'
+import { StatCard } from '../components/StatCard'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -95,82 +97,69 @@ function SummaryPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
-      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-            {!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
-            {!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
-          </p>
-        </div>
-
-
-        <div className="flex flex-col items-end gap-2">
-          <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
-          <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-            <div
-              className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
-              style={{ width: `${totalProgress}%` }}
-            />
+      <PageHeader
+        title={!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
+        description={!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
+        rightContent={
+          <div className="flex flex-col items-end gap-2">
+            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
+            <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
+              <div
+                className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
+                style={{ width: `${totalProgress}%` }}
+              />
+            </div>
+            <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)}% of 8h goal</div>
           </div>
-          <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)}% of 8h goal</div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
         {!isMounted ? (
-           Array.from({length: 4}).map((_, i) => (
+           Array.from({length: 5}).map((_, i) => (
              <div key={i} className="glass-panel p-6 rounded-3xl h-32 animate-pulse bg-slate-100/50 dark:bg-slate-800/50" />
            ))
         ) : (
           <>
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ring-2 ring-indigo-500/10">
-              <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Global Tracked Time</div>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white font-mono tabular-nums">{formatFullTime(globalSeconds)}</div>
-            </div>
+            <StatCard
+              title="Global Tracked Time"
+              value={formatFullTime(globalSeconds)}
+              icon={Clock}
+              variant="indigo"
+              hasRing={true}
+              valueClassName="font-mono tabular-nums"
+            />
 
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-              <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 rounded-2xl flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
-                <Timer className="w-6 h-6" />
-              </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Time Sum</div>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{formatTime(totalSeconds)}</div>
-            </div>
+            <StatCard
+              title="Tasks Time Sum"
+              value={formatTime(totalSeconds)}
+              icon={Timer}
+              variant="slate"
+            />
 
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-              <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tasks Worked On</div>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{tasks.length}</div>
-            </div>
+            <StatCard
+              title="Tasks Worked On"
+              value={tasks.length}
+              icon={CheckCircle2}
+              variant="emerald"
+            />
 
-            <div className="glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform">
-              <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6" />
-              </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Average per Task</div>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">
-                {tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
-              </div>
-            </div>
+            <StatCard
+              title="Average per Task"
+              value={tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
+              icon={BarChart3}
+              variant="amber"
+            />
 
-            <div className={`glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ${isGoalReached ? 'ring-2 ring-emerald-500/20' : ''}`}>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${isGoalReached ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-500'}`}>
-                <Clock className="w-6 h-6" />
-              </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                {isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
-              </div>
-              <div className={`text-3xl font-bold ${isGoalReached ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
-                {isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
-              </div>
-            </div>
+            <StatCard
+              title={isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
+              value={isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
+              icon={Clock}
+              variant={isGoalReached ? 'emerald' : 'slate'}
+              hasRing={isGoalReached}
+              valueClassName={isGoalReached ? 'text-emerald-600' : ''}
+            />
           </>
         )}
       </div>

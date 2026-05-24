@@ -8,6 +8,7 @@ import { parseDurationToSeconds } from '../utils/duration'
 import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
 import type { JiraIssue } from '../models/jira'
+import { PageHeader } from '../components/PageHeader'
 
 const jiraSearchSchema = z.object({
   view: z.enum(['list', 'create']).optional().catch('list'),
@@ -493,19 +494,14 @@ function JiraPage() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto min-h-screen">
-      <header className="mb-12">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center ring-1 ring-blue-500/20">
-            <Database className="w-7 h-7 text-blue-500" />
-          </div>
-          <div>
-            <h1 className="text-5xl font-extrabold tracking-tight text-gradient">Jira</h1>
-          </div>
-        </div>
-        <p className="text-slate-500 dark:text-slate-400 text-lg">
-          Manage your Jira tasks and time logging.
-        </p>
-      </header>
+      <PageHeader
+        title="Jira"
+        description="Manage your Jira tasks and time logging."
+        icon={Database}
+        iconColor="text-blue-500"
+        gradientFrom="from-blue-500/20"
+        gradientTo="to-indigo-500/20"
+      />
 
       {/* Tabs */}
       <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900/50 rounded-2xl w-fit mb-8 ring-1 ring-slate-200 dark:ring-slate-800">
