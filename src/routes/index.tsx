@@ -139,16 +139,22 @@ function Dashboard() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button
+                <button
                   onClick={() => toggleTask.mutate(task.id)}
                   title={task.isRunning ? 'Pause' : 'Start'}
-                  icon={task.isRunning ? Pause : Play}
-                  className={`w-12 h-12 border-none ${
+                  className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 cursor-pointer select-none ${
                     task.isRunning
-                      ? 'bg-amber-100 text-amber-600 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
-                      : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
+                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-400'
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400'
                   }`}
-                />
+                >
+                  {task.isRunning ? (
+                    <Pause className="w-5 h-5" fill="currentColor" />
+                  ) : (
+                    <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                  )}
+                </button>
+
 
                 <Button
                   variant="icon"
@@ -168,13 +174,14 @@ function Dashboard() {
 
                 <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 mx-1" />
 
-                <Button
-                  variant="ghost"
+                <button
                   onClick={() => handleLogToJira(task)}
                   title="Log to Jira"
-                  icon={Database}
-                  className="w-12 h-12 border-none bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
-                />
+                  className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 cursor-pointer select-none bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400"
+                >
+                  <Database className="w-5 h-5" />
+                </button>
+
               </div>
             </div>
           </div>
