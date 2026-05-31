@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
-import { Database, List, PlusCircle, Search, Clock, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw, Briefcase } from 'lucide-react'
+import { Database, List, PlusCircle, Search, Clock, Type, Loader2, CheckCircle2, Hash, Trash2, ExternalLink, RotateCcw, Briefcase, ArrowLeft } from 'lucide-react'
 import { z } from 'zod'
 import { useState, useEffect } from 'react'
 import { logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
@@ -159,7 +159,16 @@ function WorklogForm() {
 
   return (
     <form onSubmit={handleSubmit} className="relative p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="absolute top-8 right-8">
+      <div className="absolute top-8 right-8 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          onClick={() => navigate({ to: '/summary', search: { date } })}
+          icon={ArrowLeft}
+          className="px-4 py-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl ring-1 ring-transparent hover:ring-blue-500/20 border-none bg-transparent"
+          title="Back to Daily Summary"
+        >
+          Back to Summary
+        </Button>
         <Button
           variant="ghost"
           onClick={handleReset}
