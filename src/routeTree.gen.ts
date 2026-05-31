@@ -21,6 +21,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiExtensionRouteImport } from './routes/api.extension'
+import { Route as ApiAgentChatRouteImport } from './routes/api.agent.chat'
 
 const TestRoute = TestRouteImport.update({
   id: '/test',
@@ -82,6 +83,11 @@ const ApiExtensionRoute = ApiExtensionRouteImport.update({
   path: '/api/extension',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentChatRoute = ApiAgentChatRouteImport.update({
+  id: '/api/agent/chat',
+  path: '/api/agent/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/test': typeof TestRoute
   '/api/extension': typeof ApiExtensionRoute
+  '/api/agent/chat': typeof ApiAgentChatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/test'
     | '/api/extension'
+    | '/api/agent/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/test'
     | '/api/extension'
+    | '/api/agent/chat'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/test'
     | '/api/extension'
+    | '/api/agent/chat'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   TempoCalendarRoute: typeof TempoCalendarRoute
   TestRoute: typeof TestRoute
   ApiExtensionRoute: typeof ApiExtensionRoute
+  ApiAgentChatRoute: typeof ApiAgentChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiExtensionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/agent/chat': {
+      id: '/api/agent/chat'
+      path: '/api/agent/chat'
+      fullPath: '/api/agent/chat'
+      preLoaderRoute: typeof ApiAgentChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   TempoCalendarRoute: TempoCalendarRoute,
   TestRoute: TestRoute,
   ApiExtensionRoute: ApiExtensionRoute,
+  ApiAgentChatRoute: ApiAgentChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

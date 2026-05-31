@@ -4,6 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Sidebar } from '../components/Sidebar'
 import { ToastContainer } from '../components/ToastContainer'
+import { AgentCopilot } from '../components/AgentCopilot'
 
 
 import appCss from '../styles.css?url'
@@ -86,6 +87,7 @@ function RootComponent() {
         </main>
       </div>
       <ToastContainer />
+      <AgentCopilot />
       <TanStackDevtools
         config={{
           position: 'bottom-right',

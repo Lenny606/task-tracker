@@ -1,6 +1,6 @@
 import { historyTasks } from '../db/schema';
 import { BaseRepository } from './base.repository';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 export class HistoryTasksRepository extends BaseRepository<typeof historyTasks> {
   constructor() {
@@ -12,6 +12,19 @@ export class HistoryTasksRepository extends BaseRepository<typeof historyTasks> 
       return await this.db.select().from(this.table).where(eq(this.table.date, date)).all();
     } catch (error) {
       console.error(`[DB Error] Failed to find tasks for date ${date}:`, error);
+      throw error;
+    }
+  }
+
+  async findByDateRange(startDate: string, endDate: string) {
+    try {
+      return await this.db
+        .select()
+        .from(this.table)
+        .where(and(gte(this.table.date, startDate), lte(this.table.date, endDate)))
+        .all();
+    } catch (error) {
+      console.error(`[DB Error] Failed to find tasks in range ${startDate} to ${endDate}:`, error);
       throw error;
     }
   }
