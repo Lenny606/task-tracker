@@ -20,7 +20,7 @@ export const Route = createFileRoute('/summary')({
   component: SummaryPage,
 })
 
-function SummaryPage() {
+export function SummaryPage() {
   const { date } = Route.useSearch<{ date?: string }>()
   const isMounted = useIsMounted()
   const displayDate = date || (isMounted ? new Date().toISOString().split('T')[0] : '')

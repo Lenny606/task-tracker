@@ -54,7 +54,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         </label>
       )}
       <div className="relative flex items-center w-full">
-        {(Icon || (isLoading && iconPosition === 'left')) && (
+        {((Icon || isLoading) && iconPosition === 'left') && (
           <div className={`absolute ${size === 'sm' ? 'left-2.5' : size === 'lg' ? 'left-4' : 'left-3'} top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10`}>
             {isLoading && iconPosition === 'left' ? (
               <Loader2 className={`${size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} animate-spin`} />

@@ -539,17 +539,288 @@ export function mapMessagesToOpenAI(messages: ChatMessage[]): any[] {
 
 // 4. Backend Multi-Turn Loop Runner
 
+async function loadAgentSettings() {
+  const settings = await settingsRepository.getSettings();
+  if (!settings) {
+    throw new Error('Application settings not found in database.');
+  }
+  return settings;
+}
+
+async function streamGeminiResponse(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  activeMessages: ChatMessage[],
+  onEvent: (event: any) => void
+): Promise<{ content: string; toolCalls: any[] }> {
+  const geminiTools = tools.map(t => ({
+    name: t.name,
+    description: t.description,
+    parameters: convertSchemaToGemini(t.parameters)
+  }));
+
+  const contents = mapMessagesToGemini(activeMessages);
+
+  // Call Gemini API with streaming SSE
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents,
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        tools: [{ functionDeclarations: geminiTools }]
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini API Error (${response.status}): ${errText}`);
+  }
+
+  const reader = response.body;
+  if (!reader) throw new Error('ReadableStream not supported on response.');
+
+  // Decode the stream and split by line (SSE)
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let gatheredContent = '';
+  const toolCalls: any[] = [];
+
+  const streamReader = reader.getReader();
+  while (true) {
+    const { done, value } = await streamReader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const jsonStr = trimmed.substring(5).trim();
+      if (!jsonStr) continue;
+
+      try {
+        const data = JSON.parse(jsonStr);
+        const part = data.candidates?.[0]?.content?.parts?.[0];
+
+        if (part?.text) {
+          gatheredContent += part.text;
+          onEvent({ type: 'text', delta: part.text });
+        }
+
+        if (part?.functionCalls && part.functionCalls.length > 0) {
+          for (const fc of part.functionCalls) {
+            toolCalls.push({
+              id: `call_${randomUUID().replace(/-/g, '')}`,
+              name: fc.name,
+              arguments: fc.args
+            });
+          }
+        }
+      } catch (err) {
+        // Ignore partial parsing failures
+      }
+    }
+  }
+
+  // Handle any left-overs in buffer
+  if (buffer.trim().startsWith('data:')) {
+    try {
+      const jsonStr = buffer.trim().substring(5).trim();
+      const data = JSON.parse(jsonStr);
+      const part = data.candidates?.[0]?.content?.parts?.[0];
+      if (part?.text) {
+        gatheredContent += part.text;
+        onEvent({ type: 'text', delta: part.text });
+      }
+      if (part?.functionCalls) {
+        for (const fc of part.functionCalls) {
+          toolCalls.push({
+            id: `call_${randomUUID().replace(/-/g, '')}`,
+            name: fc.name,
+            arguments: fc.args
+          });
+        }
+      }
+    } catch (e) {}
+  }
+
+  return { content: gatheredContent, toolCalls };
+}
+
+async function streamOpenAIResponse(
+  apiKey: string,
+  model: string,
+  activeMessages: ChatMessage[],
+  onEvent: (event: any) => void
+): Promise<{ content: string; toolCalls: any[] }> {
+  const openAiTools = tools.map(t => ({
+    type: 'function',
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.parameters
+    }
+  }));
+
+  const openaiMessages = mapMessagesToOpenAI(activeMessages);
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: openaiMessages,
+      stream: true,
+      tools: openAiTools
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenAI API Error (${response.status}): ${errText}`);
+  }
+
+  const reader = response.body;
+  if (!reader) throw new Error('ReadableStream not supported on response.');
+
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let gatheredContent = '';
+  const toolCalls: any[] = [];
+  
+  // Collect partial tool call inputs streamed by OpenAI
+  const openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }> = {};
+
+  const streamReader = reader.getReader();
+  while (true) {
+    const { done, value } = await streamReader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const dataStr = trimmed.substring(5).trim();
+      if (dataStr === '[DONE]') continue;
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        const delta = parsed.choices?.[0]?.delta;
+
+        if (delta?.content) {
+          gatheredContent += delta.content;
+          onEvent({ type: 'text', delta: delta.content });
+        }
+
+        if (delta?.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            const idx = tc.index;
+            if (!openAiToolCallsBuffer[idx]) {
+              openAiToolCallsBuffer[idx] = { arguments: '' };
+            }
+            if (tc.id) openAiToolCallsBuffer[idx].id = tc.id;
+            if (tc.function?.name) openAiToolCallsBuffer[idx].name = tc.function.name;
+            if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
+          }
+        }
+      } catch (err) {}
+    }
+  }
+
+  // Reconstruct tools from buffer
+  for (const [_, tc] of Object.entries(openAiToolCallsBuffer)) {
+    if (tc.name) {
+      let parsedArgs = {};
+      try {
+        parsedArgs = JSON.parse(tc.arguments);
+      } catch (e) {
+        parsedArgs = tc.arguments;
+      }
+      toolCalls.push({
+        id: tc.id || `call_${randomUUID().replace(/-/g, '')}`,
+        name: tc.name,
+        arguments: parsedArgs
+      });
+    }
+  }
+
+  return { content: gatheredContent, toolCalls };
+}
+
+async function executeToolCalls(
+  pendingToolCalls: any[],
+  settings: any,
+  activeMessages: ChatMessage[],
+  onEvent: (event: any) => void
+): Promise<void> {
+  for (const tc of pendingToolCalls) {
+    onEvent({
+      type: 'tool_call',
+      name: tc.name,
+      arguments: tc.arguments
+    });
+
+    agentLogger.logToolCall(tc.name, tc.arguments);
+
+    let result: any;
+    try {
+      const handler = toolRegistry[tc.name];
+      if (!handler) {
+        throw new Error(`Tool ${tc.name} is not implemented.`);
+      }
+
+      // Get current JIRA/Tempo credentials dynamically
+      const jiraCreds = {
+        url: settings.jiraUrl,
+        email: settings.jiraEmail,
+        apiKey: settings.jiraApiKey,
+        tempoApiKey: settings.jiraTempoApiKey,
+      };
+
+      result = await handler(tc.arguments, jiraCreds);
+    } catch (err: any) {
+      console.error(`[Agent Tool Error] Failed executing ${tc.name}:`, err);
+      result = { error: err.message || String(err) };
+    }
+
+    onEvent({
+      type: 'tool_result',
+      name: tc.name,
+      result
+    });
+
+    agentLogger.logToolResult(tc.name, result);
+
+    // Add tool response to convo history
+    activeMessages.push({
+      role: 'tool',
+      name: tc.name,
+      tool_call_id: tc.id,
+      content: JSON.stringify(result)
+    });
+  }
+}
+
 export async function runAgentLoop(
   inputMessages: ChatMessage[],
   onEvent: (event: { type: 'text' | 'tool_call' | 'tool_result' | 'error' | 'done'; delta?: string; name?: string; arguments?: any; result?: any; error?: string }) => void
 ) {
   try {
     // A. Load Settings and API keys from SQLite
-    const settings = await settingsRepository.getSettings();
-    if (!settings) {
-      onEvent({ type: 'error', error: 'Application settings not found in database.' });
-      return;
-    }
+    const settings = await loadAgentSettings();
 
     const provider = settings.aiProvider || 'gemini';
     const model = settings.aiModel || 'gemini-2.5-flash';
@@ -579,8 +850,7 @@ Guidelines:
 
     while (loopCounter < maxLoops) {
       loopCounter++;
-      let toolCallsExecutedThisTurn = false;
-      const pendingToolCalls: any[] = [];
+      let textAndTools: { content: string; toolCalls: any[] };
 
       if (provider === 'gemini') {
         const apiKey = settings.geminiApiKey || process.env.VITE_GEMINI_API_KEY || '';
@@ -588,279 +858,28 @@ Guidelines:
           onEvent({ type: 'error', error: 'Gemini API Key is missing.' });
           return;
         }
-
-        const geminiTools = tools.map(t => ({
-          name: t.name,
-          description: t.description,
-          parameters: convertSchemaToGemini(t.parameters)
-        }));
-
-        const contents = mapMessagesToGemini(activeMessages);
-
-        // Call Gemini API with streaming SSE
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents,
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              tools: [{ functionDeclarations: geminiTools }]
-            })
-          }
-        );
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Gemini API Error (${response.status}): ${errText}`);
-        }
-
-        const reader = response.body;
-        if (!reader) throw new Error('ReadableStream not supported on response.');
-
-        // Decode the stream and split by line (SSE)
-        const decoder = new TextDecoder('utf-8');
-        let buffer = '';
-        
-        // We'll gather full text chunk response for this model turn
-        let gatheredContent = '';
-        
-        // standard stream reading
-        const streamReader = reader.getReader();
-        while (true) {
-          const { done, value } = await streamReader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('data:')) continue;
-            const jsonStr = trimmed.substring(5).trim();
-            if (!jsonStr) continue;
-
-            try {
-              const data = JSON.parse(jsonStr);
-              const part = data.candidates?.[0]?.content?.parts?.[0];
-
-              if (part?.text) {
-                gatheredContent += part.text;
-                onEvent({ type: 'text', delta: part.text });
-              }
-
-              if (part?.functionCalls && part.functionCalls.length > 0) {
-                for (const fc of part.functionCalls) {
-                  pendingToolCalls.push({
-                    id: `call_${randomUUID().replace(/-/g, '')}`,
-                    name: fc.name,
-                    arguments: fc.args
-                  });
-                }
-              }
-            } catch (err) {
-              // Ignore partial parsing failures
-            }
-          }
-        }
-
-        // Handle any left-overs in buffer
-        if (buffer.trim().startsWith('data:')) {
-          try {
-            const jsonStr = buffer.trim().substring(5).trim();
-            const data = JSON.parse(jsonStr);
-            const part = data.candidates?.[0]?.content?.parts?.[0];
-            if (part?.text) {
-              gatheredContent += part.text;
-              onEvent({ type: 'text', delta: part.text });
-            }
-            if (part?.functionCalls) {
-              for (const fc of part.functionCalls) {
-                pendingToolCalls.push({
-                  id: `call_${randomUUID().replace(/-/g, '')}`,
-                  name: fc.name,
-                  arguments: fc.args
-                });
-              }
-            }
-          } catch (e) {}
-        }
-
-        // Add model's turn to conversation history
-        activeMessages.push({
-          role: 'assistant',
-          content: gatheredContent,
-          tool_calls: pendingToolCalls.length > 0 ? pendingToolCalls : undefined
-        });
-
+        textAndTools = await streamGeminiResponse(apiKey, model, systemPrompt, activeMessages, onEvent);
       } else {
-        // OpenAI flow
         const apiKey = settings.openaiApiKey || process.env.VITE_OPENAI_API_KEY || '';
         if (!apiKey) {
           onEvent({ type: 'error', error: 'OpenAI API Key is missing.' });
           return;
         }
-
-        const openAiTools = tools.map(t => ({
-          type: 'function',
-          function: {
-            name: t.name,
-            description: t.description,
-            parameters: t.parameters
-          }
-        }));
-
-        const openaiMessages = mapMessagesToOpenAI(activeMessages);
-
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model,
-            messages: openaiMessages,
-            stream: true,
-            tools: openAiTools
-          })
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`OpenAI API Error (${response.status}): ${errText}`);
-        }
-
-        const reader = response.body;
-        if (!reader) throw new Error('ReadableStream not supported on response.');
-
-        const decoder = new TextDecoder('utf-8');
-        let buffer = '';
-        let gatheredContent = '';
-        
-        // Collect partial tool call inputs streamed by OpenAI
-        const openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }> = {};
-
-        const streamReader = reader.getReader();
-        while (true) {
-          const { done, value } = await streamReader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('data:')) continue;
-            const dataStr = trimmed.substring(5).trim();
-            if (dataStr === '[DONE]') continue;
-
-            try {
-              const parsed = JSON.parse(dataStr);
-              const delta = parsed.choices?.[0]?.delta;
-
-              if (delta?.content) {
-                gatheredContent += delta.content;
-                onEvent({ type: 'text', delta: delta.content });
-              }
-
-              if (delta?.tool_calls) {
-                for (const tc of delta.tool_calls) {
-                  const idx = tc.index;
-                  if (!openAiToolCallsBuffer[idx]) {
-                    openAiToolCallsBuffer[idx] = { arguments: '' };
-                  }
-                  if (tc.id) openAiToolCallsBuffer[idx].id = tc.id;
-                  if (tc.function?.name) openAiToolCallsBuffer[idx].name = tc.function.name;
-                  if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
-                }
-              }
-            } catch (err) {}
-          }
-        }
-
-        // Reconstruct tools from buffer
-        for (const [_, tc] of Object.entries(openAiToolCallsBuffer)) {
-          if (tc.name) {
-            let parsedArgs = {};
-            try {
-              parsedArgs = JSON.parse(tc.arguments);
-            } catch (e) {
-              parsedArgs = tc.arguments;
-            }
-            pendingToolCalls.push({
-              id: tc.id || `call_${randomUUID().replace(/-/g, '')}`,
-              name: tc.name,
-              arguments: parsedArgs
-            });
-          }
-        }
-
-        // Add assistant's response to history
-        activeMessages.push({
-          role: 'assistant',
-          content: gatheredContent,
-          tool_calls: pendingToolCalls.length > 0 ? pendingToolCalls : undefined
-        });
+        textAndTools = await streamOpenAIResponse(apiKey, model, activeMessages, onEvent);
       }
+
+      // Add model's turn to conversation history
+      activeMessages.push({
+        role: 'assistant',
+        content: textAndTools.content,
+        tool_calls: textAndTools.toolCalls.length > 0 ? textAndTools.toolCalls : undefined
+      });
 
       // C. Execute all pending tool calls
-      if (pendingToolCalls.length > 0) {
-        toolCallsExecutedThisTurn = true;
-        
-        for (const tc of pendingToolCalls) {
-          onEvent({
-            type: 'tool_call',
-            name: tc.name,
-            arguments: tc.arguments
-          });
-
-          agentLogger.logToolCall(tc.name, tc.arguments);
-
-          let result: any;
-          try {
-            const handler = toolRegistry[tc.name];
-            if (!handler) {
-              throw new Error(`Tool ${tc.name} is not implemented.`);
-            }
-
-            // Get current JIRA/Tempo credentials dynamically
-            const jiraCreds = {
-              url: settings.jiraUrl,
-              email: settings.jiraEmail,
-              apiKey: settings.jiraApiKey,
-              tempoApiKey: settings.jiraTempoApiKey,
-            };
-
-            result = await handler(tc.arguments, jiraCreds);
-          } catch (err: any) {
-            console.error(`[Agent Tool Error] Failed executing ${tc.name}:`, err);
-            result = { error: err.message || String(err) };
-          }
-
-          onEvent({
-            type: 'tool_result',
-            name: tc.name,
-            result
-          });
-
-          agentLogger.logToolResult(tc.name, result);
-
-          // Add tool response to convo history
-          activeMessages.push({
-            role: 'tool',
-            name: tc.name,
-            tool_call_id: tc.id,
-            content: JSON.stringify(result)
-          });
-        }
-      }
-
-      // If no tools were called, the loop finishes!
-      if (!toolCallsExecutedThisTurn) {
+      if (textAndTools.toolCalls.length > 0) {
+        await executeToolCalls(textAndTools.toolCalls, settings, activeMessages, onEvent);
+      } else {
+        // If no tools were called, the loop finishes!
         break;
       }
     }
