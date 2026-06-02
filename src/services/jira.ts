@@ -1,5 +1,4 @@
 import type { JiraIssue, Worklog } from '../models/jira'
-export type { JiraIssue }
 type TempoWorklogData = Worklog & {
   trackerProjectId?: string | null
 }
@@ -42,7 +41,7 @@ const stringToADF = (text: string) => {
 /**
  * Jira API Client
  */
-export const jiraClient = {
+const jiraClient = {
   fetch: async (creds: JiraCredentials, path: string, options: RequestInit = {}) => {
     if (!creds.url || !creds.email || !creds.apiKey) {
       console.error('[Jira API Error] Missing credentials:', { 

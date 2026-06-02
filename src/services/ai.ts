@@ -9,7 +9,7 @@ import { getSettings } from '../store/settingsStore'
  * Supports both Gemini and OpenAI providers dynamically based on user settings.
  */
 
-export const AI_MODELS = {
+const AI_MODELS = {
   GEMINI_2_5_FLASH: 'gemini-2.5-flash',
   GEMINI_2_0_FLASH: 'gemini-2.0-flash',
   GPT_4O: 'gpt-4o',
@@ -44,7 +44,7 @@ export const PROVIDER_MODELS = {
 
 const adapterCache = new Map<string, any>()
 
-export const isConfigured = () => {
+const isConfigured = () => {
   const settings = getSettings()
   if (settings.aiProvider === 'openai') {
     return !!(settings.openaiApiKey || import.meta.env.VITE_OPENAI_API_KEY)

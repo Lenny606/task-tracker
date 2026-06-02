@@ -10,7 +10,7 @@ import {
 import { getExtensionTokenFn } from '../services/settingsServer'
 
 
-export interface Task {
+interface Task {
   id: string
   name: string
   jiraKey?: string | null
@@ -22,7 +22,7 @@ export interface Task {
   startTime?: number
 }
 
-export interface GlobalTimer {
+interface GlobalTimer {
   totalSeconds: number
   isRunning: boolean
   startTime?: number

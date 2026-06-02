@@ -58,24 +58,7 @@ export const searchJiraIssuesFn = createServerFn({
     return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
   })
 
-/**
- * Server function to create a Jira issue
- */
-export const createJiraIssueFn = createServerFn({
-  method: 'POST',
-})
-  .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
-    issueData: z.object({
-      projectKey: z.string(),
-      summary: z.string(),
-      description: z.string(),
-      issueTypeName: z.string(),
-    }),
-  }).parse(data))
-  .handler(async ({ data }) => {
-    return await jiraService.createIssue(data.credentials, data.issueData)
-  })
+
 
 /**
  * Server function to log work via Tempo
@@ -133,31 +116,7 @@ export const logTempoWorkloadFn = createServerFn({
     }
   })
 
-/**
- * Server function to get projects
- */
-export const getJiraProjectsFn = createServerFn({
-  method: 'GET',
-})
-  .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
-  }).parse(data))
-  .handler(async ({ data }) => {
-    return await jiraService.getProjects(data.credentials)
-  })
 
-/**
- * Server function to get current user
- */
-export const getJiraMyselfFn = createServerFn({
-  method: 'GET',
-})
-  .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
-  }).parse(data))
-  .handler(async ({ data }) => {
-    return await jiraService.getMyself(data.credentials)
-  })
 
 /**
  * Server function to get Tempo worklogs

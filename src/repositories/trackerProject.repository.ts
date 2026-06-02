@@ -2,7 +2,7 @@ import { trackerProjects, historyTasks, worklogs } from '../db/schema';
 import { BaseRepository } from './base.repository';
 import { eq, sql } from 'drizzle-orm';
 
-export class TrackerProjectRepository extends BaseRepository<typeof trackerProjects> {
+class TrackerProjectRepository extends BaseRepository<typeof trackerProjects> {
   constructor() {
     super(trackerProjects);
   }

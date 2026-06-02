@@ -39,7 +39,7 @@ vi.mock('@tanstack/ai-openai', () => ({
   })),
 }))
 
-import { getAiAdapter, aiService, AI_MODELS, PROVIDER_MODELS } from './ai'
+import { getAiAdapter, aiService, PROVIDER_MODELS } from './ai'
 import { createGeminiChat } from '@tanstack/ai-gemini'
 import { createOpenaiChat } from '@tanstack/ai-openai'
 

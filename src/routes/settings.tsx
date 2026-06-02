@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Settings, Bot, Check, ChevronDown } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
-import { AI_MODELS, AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
+import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
 import { useState, useRef, useEffect } from 'react'
 import { getExtensionTokenFn } from '../services/settingsServer'

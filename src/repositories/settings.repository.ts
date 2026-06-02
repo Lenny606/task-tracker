@@ -2,7 +2,7 @@ import { settings } from '../db/schema';
 import { BaseRepository } from './base.repository';
 import { eq } from 'drizzle-orm';
 
-export class SettingsRepository extends BaseRepository<typeof settings> {
+class SettingsRepository extends BaseRepository<typeof settings> {
   constructor() {
     super(settings);
   }

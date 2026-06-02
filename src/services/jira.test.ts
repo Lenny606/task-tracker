@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { jiraService, jiraClient } from './jira'
+import { jiraService } from './jira'
 
 describe('jiraService', () => {
   const mockCreds = {

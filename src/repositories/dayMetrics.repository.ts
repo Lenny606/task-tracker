@@ -2,7 +2,7 @@ import { dayMetrics } from '../db/schema';
 import { BaseRepository } from './base.repository';
 import { eq } from 'drizzle-orm';
 
-export class DayMetricsRepository extends BaseRepository<typeof dayMetrics> {
+class DayMetricsRepository extends BaseRepository<typeof dayMetrics> {
   constructor() {
     super(dayMetrics);
   }

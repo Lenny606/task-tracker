@@ -32,7 +32,7 @@ let settingsCache: AppSettings = DEFAULT_SETTINGS
 /**
  * Fetch settings from server and update cache
  */
-export const loadSettings = async (): Promise<AppSettings> => {
+const loadSettings = async (): Promise<AppSettings> => {
   try {
     const remote = await getAppSettingsFn()
     if (remote) {
@@ -54,7 +54,7 @@ export const getSettings = (): AppSettings => {
   return settingsCache
 }
 
-export const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
+const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
   const current = getSettings()
   const updated = { ...current, ...patch }
 

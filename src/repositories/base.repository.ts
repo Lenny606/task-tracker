@@ -23,6 +23,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   async findAll() {
     try {
       return await this.db.select().from(this.table).all();
@@ -32,6 +33,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   async findById(id: string | number) {
     try {
       // @ts-ignore - Assuming all table have an 'id' column
@@ -42,6 +44,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   async create(data: any) {
     try {
       return await this.db.insert(this.table).values(data).returning().get();
@@ -51,6 +54,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   async update(id: string | number, data: any) {
     try {
       // @ts-ignore
@@ -61,6 +65,7 @@ export abstract class BaseRepository<T extends SQLiteTableWithColumns<any>> {
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   async delete(id: string | number) {
     try {
       // @ts-ignore

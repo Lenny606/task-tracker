@@ -2,7 +2,7 @@ import { worklogs } from '../db/schema';
 import { BaseRepository } from './base.repository';
 import { desc, and, gte, lte } from 'drizzle-orm';
 
-export class WorklogRepository extends BaseRepository<typeof worklogs> {
+class WorklogRepository extends BaseRepository<typeof worklogs> {
   constructor() {
     super(worklogs);
   }

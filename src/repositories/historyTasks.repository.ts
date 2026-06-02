@@ -2,7 +2,7 @@ import { historyTasks } from '../db/schema';
 import { BaseRepository } from './base.repository';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
-export class HistoryTasksRepository extends BaseRepository<typeof historyTasks> {
+class HistoryTasksRepository extends BaseRepository<typeof historyTasks> {
   constructor() {
     super(historyTasks);
   }

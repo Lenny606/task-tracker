@@ -14,7 +14,7 @@ export interface ChatMessage {
   tool_call_id?: string;
 }
 
-export interface ToolDefinition {
+interface ToolDefinition {
   name: string;
   description: string;
   parameters: {
@@ -25,7 +25,7 @@ export interface ToolDefinition {
 }
 
 // 1. Unified Tool Schemas
-export const tools: ToolDefinition[] = [
+const tools: ToolDefinition[] = [
   // Local Database Projects Tool
   {
     name: 'tracker_get_projects',
