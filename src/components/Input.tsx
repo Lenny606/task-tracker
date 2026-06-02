@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react'
 import { type LucideIcon, Loader2 } from 'lucide-react'
 
-export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string
   error?: string
   icon?: LucideIcon | React.ComponentType<{ className?: string }>

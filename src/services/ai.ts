@@ -122,7 +122,7 @@ export const aiService = {
     const resolvedModel = model ?? getSettings().aiModel
 
     console.log(`[AI] Generating text for model: ${resolvedModel}...`)
-    
+
     const response = await chat({
       adapter: getAiAdapter(resolvedModel),
       messages: [{ role: 'user', content: prompt }],
@@ -146,7 +146,7 @@ export const aiService = {
     }
 
     // First filter every user except Tomas Kravcik (case insensitive and handle prefix)
-    const tomasCommits = commits.filter(c => 
+    const tomasCommits = commits.filter(c =>
       c.authorName.toLowerCase().includes('tomas')
     )
 

@@ -56,9 +56,9 @@ describe('AI Analysis Service', () => {
 
   it('should filter commits only for Tomas Kravcik', async () => {
     await aiService.analyzeCommitsForJira(mockCommits)
-    
+
     const calledPrompt = vi.mocked(chat).mock.calls[0][0].messages[0].content
-    
+
     expect(calledPrompt).toContain('feat: add task tracking service')
     expect(calledPrompt).toContain('docs: update implementation plan')
     expect(calledPrompt).not.toContain('fix: typo in readme')
@@ -68,16 +68,16 @@ describe('AI Analysis Service', () => {
   it('should return a message if no commits are found for Tomas Kravcik', async () => {
     const otherCommits = [mockCommits[1]]
     const result = await aiService.analyzeCommitsForJira(otherCommits)
-    
+
     expect(result).toBe('No commits found for Tomas Kravcik in the provided data.')
     expect(chat).not.toHaveBeenCalled()
   })
 
   it('should construct a prompt with the expected structure', async () => {
     await aiService.analyzeCommitsForJira(mockCommits)
-    
+
     const calledPrompt = vi.mocked(chat).mock.calls[0][0].messages[0].content
-    
+
     expect(calledPrompt).toContain('Main Objectives')
     expect(calledPrompt).toContain('Implementation Details')
     expect(calledPrompt).toContain('Git Commits:')

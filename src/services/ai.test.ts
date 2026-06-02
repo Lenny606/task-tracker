@@ -68,7 +68,7 @@ describe('AI Service Multi-Provider', () => {
     mockSettings.geminiApiKey = 'custom-gemini-key'
 
     const adapter = getAiAdapter()
-    
+
     expect(createGeminiChat).toHaveBeenCalledWith('gemini-2.5-flash', 'custom-gemini-key', expect.any(Object))
     expect(adapter).toBeDefined()
   })

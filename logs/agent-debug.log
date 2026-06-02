@@ -1242,3 +1242,151 @@ Result:
 [2026-06-02T18:28:25.088Z] 💬 [ASSISTANT RESPONSE]
 Done!
 ================================================================================
+
+================================================================================
+[2026-06-02T18:35:17.768Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-02.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-02T18:35:17.774Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-02T18:35:17.775Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-02T18:35:17.777Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-06-02T18:35:55.932Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-02.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-02T18:35:55.950Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-02T18:35:55.951Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-02T18:35:55.953Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-06-02T18:36:23.532Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-02.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-02T18:36:23.542Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-02T18:36:23.544Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-02T18:36:23.547Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-06-02T18:48:37.322Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-02.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-02T18:48:37.331Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-02T18:48:37.333Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-02T18:48:37.336Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================

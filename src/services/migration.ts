@@ -3,7 +3,7 @@ import { historyTasksRepository } from '../repositories/historyTasks.repository'
 import { dayMetricsRepository } from '../repositories/dayMetrics.repository';
 import { settingsRepository } from '../repositories/settings.repository';
 
-export interface MigrationPayload {
+interface MigrationPayload {
   settings?: any;
   history?: {
     [date: string]: {

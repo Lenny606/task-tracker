@@ -12,10 +12,10 @@ export class TrackerProjectRepository extends BaseRepository<typeof trackerProje
     // This is a bit complex for a single query in SQLite with Drizzle return types, 
     // so we'll fetch projects and then aggregate stats.
     const projects = await this.findAll();
-    
+
     const stats = await Promise.all(projects.map(async (project) => {
       const dbTasks = await this.db
-        .select({ 
+        .select({
           name: historyTasks.name,
           date: historyTasks.date,
           seconds: historyTasks.totalSeconds,
@@ -25,7 +25,7 @@ export class TrackerProjectRepository extends BaseRepository<typeof trackerProje
         .all();
 
       const dbWorklogs = await this.db
-        .select({ 
+        .select({
           name: worklogs.summary,
           date: sql<string>`strftime('%Y-%m-%d', datetime(${worklogs.startedAt}/1000, 'unixepoch'))`,
           seconds: worklogs.timeSpentSeconds,
@@ -36,7 +36,7 @@ export class TrackerProjectRepository extends BaseRepository<typeof trackerProje
 
       // Combine and aggregate by name + date
       const taskMap = new Map<string, { name: string, date: string, seconds: number }>();
-      
+
       [...dbTasks, ...dbWorklogs].forEach(t => {
         const key = `${t.date}-${t.name}`;
         const existing = taskMap.get(key);
@@ -51,7 +51,7 @@ export class TrackerProjectRepository extends BaseRepository<typeof trackerProje
         .sort((a, b) => b.date.localeCompare(a.date));
 
       const totalSpent = relatedTasks.reduce((sum, t) => sum + t.seconds, 0);
-      
+
       return {
         ...project,
         totalSpentSeconds: totalSpent,

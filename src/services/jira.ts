@@ -1,6 +1,6 @@
 import type { JiraIssue, Worklog } from '../models/jira'
 export type { JiraIssue }
-export type TempoWorklogData = Worklog & {
+type TempoWorklogData = Worklog & {
   trackerProjectId?: string | null
 }
 
@@ -11,7 +11,7 @@ export interface JiraCredentials {
   tempoApiKey?: string
 }
 
-export interface CreateIssueData {
+interface CreateIssueData {
   projectKey: string
   summary: string
   description: string

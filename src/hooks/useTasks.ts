@@ -28,7 +28,7 @@ export interface GlobalTimer {
   startTime?: number
 }
 
-export interface DayData {
+interface DayData {
   tasks: Task[]
   globalTimer?: GlobalTimer
   aiSummary?: string

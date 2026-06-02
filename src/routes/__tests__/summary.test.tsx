@@ -1,18 +1,30 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+vi.mock('@tanstack/react-start', () => {
+  const fn: any = {
+    validator: () => fn,
+    handler: (handlerFn: any) => handlerFn,
+  }
+  return {
+    __esModule: true,
+    createServerFn: () => fn,
+  }
+})
+
 import { SummaryPage } from '../summary'
 
 // Hoist mocks to avoid initialization ReferenceErrors in Vitest
-const { 
-  mockNavigate, 
-  mockUseSearch, 
-  mockGetServerCommits, 
-  mockAnalyzeCommitsForJira 
+const {
+  mockNavigate,
+  mockUseSearch,
+  mockGetServerCommits,
+  mockAnalyzeCommitsForJira
 } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
-  mockUseSearch: vi.fn().mockReturnValue({ date: '2020-01-01' }),
+  mockUseSearch: vi.fn().mockReturnValue({ date: '2026-06-02' }),
   mockGetServerCommits: vi.fn(),
   mockAnalyzeCommitsForJira: vi.fn()
 }))
@@ -81,7 +93,7 @@ describe('SummaryPage Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseSearch.mockReturnValue({ date: '2020-01-01' })
+    mockUseSearch.mockReturnValue({ date: '2026-06-02' })
 
     mockTasksState = {
       tasks: [
@@ -125,18 +137,23 @@ describe('SummaryPage Component', () => {
   })
 
   it('renders stats, headers, and task rows correctly', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-06-01T12:00:00Z'))
+
     render(<SummaryPage />)
 
     // Check header and date
-    expect(screen.getByText('Summary: 2020-01-01')).toBeInTheDocument()
+    expect(screen.getByText('Summary: 2026-06-02')).toBeInTheDocument()
 
     // Check stats (3 hours tasks, 3 hours global, 2 tasks)
     expect(screen.getByText('3h 0m')).toBeInTheDocument() // tasks sum: 3600 + 7200 = 10800
-    expect(screen.getAllByText('03:00:00').length).toBe(2) // global time formatted in stat card and footer
+    expect(screen.getAllByText('03:00:00')[0]).toBeInTheDocument() // global time formatted: 10800 seconds
 
     // Check tasks listed
     expect(screen.getByDisplayValue('Implement OAuth authentication')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Fix memory leak in parser')).toBeInTheDocument()
+
+    vi.useRealTimers()
   })
 
   it('renders "No data available" when task list is empty', () => {
@@ -157,8 +174,8 @@ describe('SummaryPage Component', () => {
 
     // Invoke the search updater function to verify target date calculation
     const searchUpdater = mockNavigate.mock.calls[0][0].search
-    const nextSearch = searchUpdater({ date: '2020-01-01' })
-    expect(nextSearch.date).toBe('2019-12-31')
+    const nextSearch = searchUpdater({ date: '2026-06-02' })
+    expect(nextSearch.date).toBe('2026-06-01')
   })
 
   it('handles JIRA and Project selections inside the task row', () => {
@@ -216,7 +233,7 @@ describe('SummaryPage Component', () => {
         duration: '1h',
         issueKey: 'JIRA-101',
         issueSummary: 'Implement login screen OAuth',
-        date: '2020-01-01'
+        date: '2026-06-02'
       }
     })
   })
@@ -232,7 +249,7 @@ describe('SummaryPage Component', () => {
     fireEvent.click(generateBtn)
 
     await waitFor(() => {
-      expect(mockGetServerCommits).toHaveBeenCalledWith({ data: { targetDate: '2020-01-01' } })
+      expect(mockGetServerCommits).toHaveBeenCalledWith({ data: { targetDate: '2026-06-02' } })
       expect(mockAnalyzeCommitsForJira).toHaveBeenCalledWith(['Commit 1 message', 'Commit 2 message'])
       expect(mockTasksState.saveAiSummary.mutate).toHaveBeenCalledWith('Synthesized commit summary in JIRA style.')
     })

@@ -4,11 +4,6 @@
     "src/index.{ts,tsx,js,jsx}",
     "src/main.{ts,tsx,js,jsx}"
   ],
-  "ignorePatterns": [
-    "**/__tests__/**",
-    "**/*.test.{ts,tsx,js,jsx}",
-    "vitest.setup.ts"
-  ],
   "duplicates": {
     // Hide pair-only clones; focus on widespread copy-paste
     // worth refactoring. Lower to 2 to report every duplicate pair.

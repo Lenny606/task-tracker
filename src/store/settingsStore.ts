@@ -57,7 +57,7 @@ export const getSettings = (): AppSettings => {
 export const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
   const current = getSettings()
   const updated = { ...current, ...patch }
-  
+
   // Save to server
   try {
     await saveAppSettingsFn({ data: updated })
@@ -67,12 +67,12 @@ export const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSett
 
   // Update cache
   settingsCache = updated
-  
+
   // Trigger local event for components
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('settings-changed', { detail: updated }))
   }
-  
+
   return updated
 }
 

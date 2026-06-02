@@ -18,7 +18,7 @@ export const getRecentTicketsFn = createServerFn({
 }).handler(async () => {
   try {
     const recentWorklogs = await worklogRepository.getRecent(50)
-    
+
     // Extract unique keys and summaries, preserving order (most recent first)
     const uniqueTickets: { key: string; summary: string }[] = []
     const keys = new Set<string>()

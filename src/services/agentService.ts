@@ -648,7 +648,7 @@ async function streamGeminiResponse(
           });
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   return { content: gatheredContent, toolCalls };
@@ -697,7 +697,7 @@ async function streamOpenAIResponse(
   let buffer = '';
   let gatheredContent = '';
   const toolCalls: any[] = [];
-  
+
   // Collect partial tool call inputs streamed by OpenAI
   const openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }> = {};
 
@@ -736,7 +736,7 @@ async function streamOpenAIResponse(
             if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
           }
         }
-      } catch (err) {}
+      } catch (err) { }
     }
   }
 
@@ -824,7 +824,7 @@ export async function runAgentLoop(
 
     const provider = settings.aiProvider || 'gemini';
     const model = settings.aiModel || 'gemini-2.5-flash';
-    
+
     // B. Build the system instruction (injecting current date and capabilities)
     const systemPrompt = `You are an advanced agentic Task and Time Tracking assistant.
 Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
