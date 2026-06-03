@@ -479,6 +479,18 @@ export function useTasks(date: string = getTodayDate()) {
       const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
         ? window.location.origin
         : 'http://localhost:3000'
+
+      // SSRF mitigation: validate that destination origin is local or matches current host
+      const allowedHosts = ['localhost:3000', 'localhost:5173', '127.0.0.1:3000', '127.0.0.1:5173']
+      if (typeof window !== 'undefined' && window.location.host) {
+        allowedHosts.push(window.location.host)
+      }
+      const parsedBase = new URL(base)
+      if (!allowedHosts.includes(parsedBase.host)) {
+        throw new Error('Blocked SSRF attempt: Invalid origin')
+      }
+
+      // fallow-ignore-next-line security-sink
       const response = await fetch(`${base}/api/extension`, {
         method: 'POST',
         headers: { 

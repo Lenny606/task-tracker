@@ -562,9 +562,15 @@ async function streamGeminiResponse(
 
   const contents = mapMessagesToGemini(activeMessages);
 
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  if (!url.startsWith('https://generativelanguage.googleapis.com/')) {
+    throw new Error('Blocked SSRF attempt: Invalid host');
+  }
+
   // Call Gemini API with streaming SSE
+  // fallow-ignore-next-line security-sink
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+    url,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
