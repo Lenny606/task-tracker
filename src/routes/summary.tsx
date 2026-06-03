@@ -1,20 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { BarChart3, Clock, CheckCircle2, Circle, Timer, Sparkles, Loader2, FileText, RotateCcw, Plus, Trash2, Database, GitBranch, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { aiService } from '../services/ai'
 import { getServerCommits } from '../services/git'
 import { useState } from 'react'
 import { useSettings, getJiraCredentials } from '../store/settingsStore'
-import { JiraIssueSelector } from '../components/JiraIssueSelector'
 import { useIsMounted } from '../hooks/useIsMounted'
-import { parseDurationToSeconds, formatSecondsToDuration, formatFullTime } from '../utils/duration'
+import { formatSecondsToDuration } from '../utils/duration'
 import { escapeHtml } from '../utils/sanitize'
 import { useNavigate } from '@tanstack/react-router'
-import { ProjectSelector } from '../components/ProjectSelector'
 import { PageHeader } from '../components/PageHeader'
-import { StatCard } from '../components/StatCard'
-import { Button } from '../components/Button'
-import { CollapseChevron } from '../components/CollapseChevron'
+
+// Import extracted sub-components
+import { SummaryDateNav } from '../components/summary/SummaryDateNav'
+import { SummaryStats } from '../components/summary/SummaryStats'
+import { SummaryAiSection } from '../components/summary/SummaryAiSection'
+import { SummaryBreakdownTable } from '../components/summary/SummaryBreakdownTable'
 
 export const Route = createFileRoute('/summary')({
   component: SummaryPage,
@@ -112,13 +112,6 @@ export function SummaryPage() {
   const totalSeconds = liveTasks.reduce((acc, t) => acc + t.displaySeconds, 0)
   const globalSeconds = getDisplayGlobalTime(globalTimer)
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    return `${h}h ${m}m`
-  }
-
-
   const handleGenerateSummary = async () => {
     setIsGenerating(true)
     setError(null)
@@ -172,405 +165,54 @@ export function SummaryPage() {
         }
       />
 
-      {/* Date Navigation Bar */}
-      <div className="glass-panel p-4 rounded-3xl mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            onClick={() => navigateDay(-1)}
-            className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
-            title="Previous Day"
-          >
-            <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
-          </Button>
+      <SummaryDateNav
+        displayDate={displayDate}
+        isToday={displayDate === new Date().toISOString().split('T')[0]}
+        onNavigateDay={navigateDay}
+        onNavigateToday={() => navigate({ search: (prev) => ({ ...prev, date: undefined }) })}
+        onDateSelect={(val) => navigate({ search: (prev) => ({ ...prev, date: val }) })}
+        getFormattedDate={getFormattedDate}
+        isMounted={isMounted}
+      />
 
-          <Button
-            variant="ghost"
-            onClick={() => navigateDay(1)}
-            className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
-            title="Next Day"
-          >
-            <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
-          </Button>
+      <SummaryStats
+        isMounted={isMounted}
+        globalSeconds={globalSeconds}
+        totalSeconds={totalSeconds}
+        tasksCount={tasks.length}
+        WORK_GOAL_SECONDS={WORK_GOAL_SECONDS}
+        isGoalReached={isGoalReached}
+        remainingSeconds={remainingSeconds}
+      />
 
-          {isMounted && displayDate !== new Date().toISOString().split('T')[0] && (
-            <Button
-              variant="ghost"
-              onClick={() => navigate({ search: (prev) => ({ ...prev, date: undefined }) })}
-              className="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400"
-            >
-              Dnes
-            </Button>
-          )}
-        </div>
+      <SummaryAiSection
+        aiSummary={aiSummary}
+        isGenerating={isGenerating}
+        error={error}
+        isSummaryCollapsed={isSummaryCollapsed}
+        onToggleCollapse={toggleSummaryCollapse}
+        onGenerateSummary={handleGenerateSummary}
+        onViewCommits={() => navigate({ to: '/commits', search: { date: displayDate } })}
+      />
 
-        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 px-4 py-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 relative group hover:border-indigo-500/30 transition-colors">
-          <Calendar size={18} className="text-indigo-500" />
-          {isMounted ? (
-            <>
-              <span className="font-semibold text-slate-700 dark:text-slate-200 pr-1 capitalize">
-                {getFormattedDate(displayDate)}
-              </span>
-              <input
-                type="date"
-                value={displayDate}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    navigate({ search: (prev) => ({ ...prev, date: e.target.value }) })
-                  }
-                }}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                title="Select Date"
-              />
-            </>
-          ) : (
-            <span className="text-slate-400">Načítání data...</span>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-        {!isMounted ? (
-           Array.from({length: 5}).map((_, i) => (
-             <div key={i} className="glass-panel p-6 rounded-3xl h-32 animate-pulse bg-slate-100/50 dark:bg-slate-800/50" />
-           ))
-        ) : (
-          <>
-            <StatCard
-              title="Global Tracked Time"
-              value={formatFullTime(globalSeconds)}
-              icon={Clock}
-              variant="indigo"
-              hasRing={true}
-              valueClassName="font-mono tabular-nums"
-            />
-
-            <StatCard
-              title="Tasks Time Sum"
-              value={formatTime(totalSeconds)}
-              icon={Timer}
-              variant="slate"
-            />
-
-            <StatCard
-              title="Tasks Worked On"
-              value={tasks.length}
-              icon={CheckCircle2}
-              variant="emerald"
-            />
-
-            <StatCard
-              title="Average per Task"
-              value={tasks.length > 0 ? formatTime(Math.floor(totalSeconds / tasks.length)) : '0h 0m'}
-              icon={BarChart3}
-              variant="amber"
-            />
-
-            <StatCard
-              title={isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
-              value={isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
-              icon={Clock}
-              variant={isGoalReached ? 'emerald' : 'slate'}
-              hasRing={isGoalReached}
-              valueClassName={isGoalReached ? 'text-emerald-600' : ''}
-            />
-          </>
-        )}
-      </div>
-
-      {/* AI Summary Section */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-indigo-500" />
-              AI Commits Summary
-            </h2>
-            <CollapseChevron
-              isCollapsed={isSummaryCollapsed}
-              onToggle={toggleSummaryCollapse}
-              title={isSummaryCollapsed ? "Show AI Summary" : "Hide AI Summary"}
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => navigate({ to: '/commits', search: { date: displayDate } })}
-              icon={GitBranch}
-              className="px-6 py-2 rounded-xl"
-            >
-              View Commits
-            </Button>
-            {!aiSummary && !isGenerating && (
-              <Button
-                variant="primary"
-                onClick={handleGenerateSummary}
-                icon={Sparkles}
-                className="px-6 py-2 rounded-xl"
-              >
-                Generate JIRA Summary
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-          isSummaryCollapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[1000px] opacity-100'
-        }`}>
-          {isGenerating ? (
-            <div className="glass-panel p-12 rounded-3xl text-center border-dashed border-indigo-200 dark:border-indigo-900">
-              <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
-              <p className="text-slate-500 font-medium">Analyzing your commits and generating a professional summary...</p>
-            </div>
-          ) : aiSummary ? (
-            <div className="glass-panel p-8 rounded-3xl border-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-900/10 relative group">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                  <FileText size={20} />
-                </div>
-                <div className="flex-1">
-                  <div className=" prose-slate dark:prose-invert max-w-none">
-                    <pre className="whitespace-pre-wrap font-sans text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
-                      {aiSummary}
-                    </pre>
-                  </div>
-                </div>
-              </div>
-              <Button
-                variant="icon"
-                onClick={handleGenerateSummary}
-                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 hover:text-indigo-500"
-                title="Regenerate Summary"
-                icon={RotateCcw}
-              />
-            </div>
-          ) : error ? (
-            <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl text-red-600 dark:text-red-400 flex items-center justify-between">
-              <p className="font-medium">{error}</p>
-              <Button
-                variant="danger"
-                onClick={handleGenerateSummary}
-                className="px-4 py-2 bg-red-600 text-white hover:bg-red-500"
-                size="sm"
-              >
-                Try Again
-              </Button>
-            </div>
-          ) : (
-            <div className="glass-panel p-10 rounded-3xl text-center border-dashed border-slate-200 dark:border-slate-800">
-              <p className="text-slate-400">Generate a professional JIRA summary based on your git activity for this day.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Breakdown Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Detailed Breakdown</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50">
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-12"></th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-40">Jira Ticket</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Project</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {liveTasks.length === 0 && !newTaskName && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                    No data available for {displayDate}. Use the input below to add tasks retrospectively.
-                  </td>
-                </tr>
-              )}
-              {liveTasks.map((task) => {
-                const percentage = totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0
-                return (
-                  <tr 
-                    key={task.id} 
-                    className={`transition-colors group ${
-                      task.isMarked 
-                        ? 'bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' 
-                        : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
-                    }`}
-                  >
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleMarked.mutate(task.id)}
-                        className={`transition-all active:scale-95 ${
-                          task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
-                        }`}
-                      >
-                        {task.isMarked ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <input
-                        type="text"
-                        defaultValue={task.name}
-                        onBlur={(e) => {
-                          if (e.target.value.trim() && e.target.value !== task.name) {
-                            updateTask.mutate({ taskId: task.id, name: e.target.value.trim() })
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            e.stopPropagation()
-                              ; (e.target as HTMLInputElement).blur()
-                          }
-                        }}
-                        className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <JiraIssueSelector
-                        credentials={credentials}
-                        compact={true}
-                        onSelect={(issue) => {
-                          updateTask.mutate({ 
-                            taskId: task.id, 
-                            jiraKey: issue.key, 
-                            jiraSummary: issue.fields.summary 
-                          })
-                        }}
-                        currentSelection={task.jiraKey || null}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <ProjectSelector 
-                        compact 
-                        selectedProjectId={task.trackerProjectId} 
-                        onSelect={(projectId) => updateTask.mutate({ taskId: task.id, trackerProjectId: projectId })}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="relative group/duration">
-                        <input
-                          type="text"
-                          defaultValue={formatFullTime(task.displaySeconds)}
-                          onBlur={(e) => {
-                            const seconds = parseDurationToSeconds(e.target.value)
-                            if (seconds !== task.displaySeconds) {
-                              updateTask.mutate({ taskId: task.id, totalSeconds: seconds })
-                            }
-                            // Reset to formatted value if needed
-                            e.target.value = formatFullTime(seconds)
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              ;(e.target as HTMLInputElement).blur()
-                            }
-                          }}
-                          title="Manual duration edit (e.g. 1h 30m, 01:30:00, or 90)"
-                          className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-edit"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-indigo-500 rounded-full"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-slate-500 w-10 text-right">{Math.round(percentage)}%</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="icon"
-                          onClick={() => handleLogToJira(task)}
-                          className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
-                          title="Log to Jira"
-                          icon={Database}
-                        />
-                        <Button
-                          variant="icon"
-                          onClick={() => deleteTask.mutate(task.id)}
-                          className="p-2 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                          title="Delete task"
-                          icon={Trash2}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-
-              {/* Add Task Row */}
-              <tr className="bg-slate-50/30 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800">
-                <td className="px-6 py-4">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center">
-                    <Plus size={18} />
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <form onSubmit={handleAddTask} className="flex items-center gap-4">
-                    <input
-                      type="text"
-                      placeholder="Add task retrospectively..."
-                      value={newTaskName}
-                      onChange={(e) => setNewTaskName(e.target.value)}
-                      className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium py-1"
-                    />
-                    {newTaskName.trim() && (
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        size="sm"
-                      >
-                        Add Task
-                      </Button>
-                    )}
-                  </form>
-                </td>
-                <td className="px-6 py-4">
-                  <JiraIssueSelector
-                    credentials={credentials}
-                    compact={true}
-                    onSelect={(issue) => {
-                      if (!newTaskName.trim()) {
-                        setNewTaskName(issue.fields.summary)
-                      }
-                      setPendingJiraTicket({ key: issue.key, summary: issue.fields.summary })
-                    }}
-                    currentSelection={pendingJiraTicket?.key || null}
-                  />
-                </td>
-                <td className="px-6 py-4" colSpan={3}></td>
-              </tr>
-              {globalSeconds > 0 && (
-                <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
-                  <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
-                  <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
-                  <td className="px-6 py-6" colSpan={4}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
-                      <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                        <span className="text-xs uppercase tracking-widest opacity-60">Remaining to 8h:</span>
-                        <span className="text-sm font-bold">{isGoalReached ? 'Goal Reached!' : formatTime(remainingSeconds)}</span>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <SummaryBreakdownTable
+        liveTasks={liveTasks}
+        totalSeconds={totalSeconds}
+        globalSeconds={globalSeconds}
+        isGoalReached={isGoalReached}
+        remainingSeconds={remainingSeconds}
+        newTaskName={newTaskName}
+        setNewTaskName={setNewTaskName}
+        pendingJiraTicket={pendingJiraTicket}
+        setPendingJiraTicket={setPendingJiraTicket}
+        credentials={credentials}
+        displayDate={displayDate}
+        onToggleMarked={(id) => toggleMarked.mutate(id)}
+        onUpdateTask={(args) => updateTask.mutate(args)}
+        onDeleteTask={(id) => deleteTask.mutate(id)}
+        onAddTask={handleAddTask}
+        onLogToJira={handleLogToJira}
+      />
     </div>
   )
 }
-
-

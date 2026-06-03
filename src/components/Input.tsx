@@ -11,6 +11,47 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
   size?: 'sm' | 'md' | 'lg'
 }
 
+interface InputIconProps {
+  icon?: LucideIcon | React.ComponentType<{ className?: string }>
+  isLoading: boolean
+  size: 'sm' | 'md' | 'lg'
+  position: 'left' | 'right'
+  iconPosition: 'left' | 'right'
+}
+
+const InputIcon: React.FC<InputIconProps> = ({
+  icon: Icon,
+  isLoading,
+  size,
+  position,
+  iconPosition
+}) => {
+  if (position !== iconPosition) return null
+  if (!Icon && !isLoading) return null
+
+  const sizeClasses = {
+    sm: 'w-3.5 h-3.5',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5'
+  }
+
+  const wrapperClasses = {
+    sm: position === 'left' ? 'left-2.5' : 'right-2.5',
+    md: position === 'left' ? 'left-3' : 'right-3',
+    lg: position === 'left' ? 'left-4' : 'right-4'
+  }
+
+  return (
+    <div className={`absolute ${wrapperClasses[size]} top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10`}>
+      {isLoading ? (
+        <Loader2 className={`${sizeClasses[size]} animate-spin`} />
+      ) : (
+        Icon && <Icon className={sizeClasses[size]} />
+      )}
+    </div>
+  )
+}
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(({
   label,
   error,
@@ -23,7 +64,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   type = 'text',
   ...props
 }, ref) => {
-  // Premium visual tokens aligned with our design system
   const variantStyles = {
     default: 'bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500',
     filled: 'bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:bg-white dark:focus:bg-slate-900 focus:ring-2',
@@ -36,15 +76,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
     lg: 'px-5 py-3.5 text-base rounded-2xl'
   }
 
-  // Adjust input paddings dynamically to accommodate left/right icons or loaders
-  const iconPaddingStyles = () => {
-    if (!Icon && !isLoading) return ''
-    if (iconPosition === 'left') {
-      return size === 'sm' ? 'pl-8' : size === 'lg' ? 'pl-12' : 'pl-10'
-    } else {
-      return size === 'sm' ? 'pr-8' : size === 'lg' ? 'pr-12' : 'pr-10'
-    }
-  }
+  const iconPadding = (Icon || isLoading)
+    ? (iconPosition === 'left'
+        ? { sm: 'pl-8', md: 'pl-10', lg: 'pl-12' }[size]
+        : { sm: 'pr-8', md: 'pr-10', lg: 'pr-12' }[size])
+    : ''
 
   return (
     <div className="w-full space-y-1.5 text-left">
@@ -54,15 +90,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         </label>
       )}
       <div className="relative flex items-center w-full">
-        {((Icon || isLoading) && iconPosition === 'left') && (
-          <div className={`absolute ${size === 'sm' ? 'left-2.5' : size === 'lg' ? 'left-4' : 'left-3'} top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10`}>
-            {isLoading && iconPosition === 'left' ? (
-              <Loader2 className={`${size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} animate-spin`} />
-            ) : (
-              Icon && <Icon className={size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />
-            )}
-          </div>
-        )}
+        <InputIcon
+          icon={Icon}
+          isLoading={isLoading}
+          size={size}
+          position="left"
+          iconPosition={iconPosition}
+        />
 
         <input
           ref={ref}
@@ -70,22 +104,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
           className={`w-full outline-none transition-all duration-200 dark:text-white font-medium
             ${variantStyles[variant]}
             ${sizeStyles[size]}
-            ${iconPaddingStyles()}
+            ${iconPadding}
             ${error ? 'border-red-500 ring-red-500/20 focus:border-red-500 focus:ring-red-500/20' : ''}
             ${className}
           `}
           {...props}
         />
 
-        {((isLoading && iconPosition === 'right') || (Icon && iconPosition === 'right' && !isLoading)) && (
-          <div className={`absolute ${size === 'sm' ? 'right-2.5' : size === 'lg' ? 'right-4' : 'right-3'} top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10`}>
-            {isLoading && iconPosition === 'right' ? (
-              <Loader2 className={`${size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} animate-spin`} />
-            ) : (
-              Icon && <Icon className={size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'} />
-            )}
-          </div>
-        )}
+        <InputIcon
+          icon={Icon}
+          isLoading={isLoading}
+          size={size}
+          position="right"
+          iconPosition={iconPosition}
+        />
       </div>
       {error && (
         <span className="block text-xs font-semibold text-red-500 ml-1">

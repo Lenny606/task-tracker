@@ -16,6 +16,9 @@
     //   "**/generated/**"     // OpenAPI, Protobuf codegen
     // ]
   },
+  "ignoreDependencies": [
+    "wait-on"
+  ],
   "rules": {
     "unused-dependencies": "warn"
   }
