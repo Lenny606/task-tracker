@@ -385,7 +385,7 @@ export const toolRegistry: Record<string, (args: any, creds: Partial<JiraCredent
   // Jira Operations
   jira_search_issues: async (args, creds) => {
     const validated = ensureJiraCredentials(creds);
-    const filteredJql = `(${args.jql}) AND issuetype in (Task, Epic, "Sub-task")`;
+    const filteredJql = `(${args.jql}) AND issuetype in (Task, Epic, "Sub-task", Story)`;
     return await jiraService.searchIssues(validated, filteredJql, args.maxResults);
   },
   jira_create_issue: async (args, creds) => {

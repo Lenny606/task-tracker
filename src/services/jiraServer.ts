@@ -53,8 +53,8 @@ export const searchJiraIssuesFn = createServerFn({
     maxResults: z.number().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    // Refined search: Only issues of type "Task", "Epic", and "Sub-task" across all users and statuses
-    const filteredJql = `(${data.jql}) AND issuetype in (Task, Epic, "Sub-task")`
+    // Refined search: Only issues of type "Task", "Epic", "Sub-task", and "Story" across all users and statuses
+    const filteredJql = `(${data.jql}) AND issuetype in (Task, Epic, "Sub-task", Story)`
     return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
   })
 
