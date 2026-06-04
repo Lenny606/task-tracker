@@ -155,6 +155,22 @@ export const Route = createFileRoute('/api/extension')({
           const resetState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
           await fs.writeFile(timerPath, JSON.stringify(resetState, null, 2))
           responseData.timerState = resetState
+        } else if (body.type === 'UPDATE_TIMER') {
+          let timerState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
+          try {
+            const data = await fs.readFile(timerPath, 'utf-8')
+            timerState = JSON.parse(data)
+          } catch (e) {}
+
+          timerState = {
+            ...timerState,
+            accumulatedSeconds: body.accumulatedSeconds ?? timerState.accumulatedSeconds,
+            startTime: body.isRunning ? (body.startTime ?? Date.now()) : null,
+            isRunning: body.isRunning ?? timerState.isRunning,
+          }
+
+          await fs.writeFile(timerPath, JSON.stringify(timerState, null, 2))
+          responseData.timerState = timerState
         } else {
           let existingClips = []
           try {

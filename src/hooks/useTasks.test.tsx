@@ -97,18 +97,33 @@ describe('useTasks', () => {
       }
     }
     mockTimerRunning = false
-    global.fetch = vi.fn().mockImplementation(async (url) => {
+    global.fetch = vi.fn().mockImplementation(async (url, options) => {
       const urlStr = typeof url === 'string' ? url : (url as any).url || ''
       if (urlStr.includes('/api/extension')) {
-        const isRunning = !mockTimerRunning
-        mockTimerRunning = isRunning
+        let isRunning = !mockTimerRunning
+        let accumulatedSeconds = 120
+        if (options && options.body) {
+          const body = JSON.parse(options.body)
+          if (body.type === 'UPDATE_TIMER') {
+            accumulatedSeconds = body.accumulatedSeconds
+            isRunning = body.isRunning
+          } else if (body.type === 'CLEAR_TIMER') {
+            accumulatedSeconds = 0
+            isRunning = false
+            mockTimerRunning = false
+          } else {
+            mockTimerRunning = isRunning
+          }
+        } else {
+          mockTimerRunning = isRunning
+        }
         return {
           ok: true,
           json: async () => ({
             timerState: {
               isRunning,
               startTime: isRunning ? new Date().toISOString() : null,
-              accumulatedSeconds: 120
+              accumulatedSeconds
             }
           })
         } as Response
@@ -225,6 +240,22 @@ describe('useTasks', () => {
       expect(result.current.globalTimer.isRunning).toBe(false)
     })
     expect(result.current.globalTimer.totalSeconds).toBeGreaterThanOrEqual(0)
+  })
+
+  it('can edit global timer value', async () => {
+    const { result } = renderHook(() => useTasks(), {
+      wrapper: createWrapper(),
+    })
+
+    expect(result.current.globalTimer.totalSeconds).toBe(0)
+
+    await act(async () => {
+      await result.current.updateGlobalTimer.mutateAsync(3600)
+    })
+
+    await waitFor(() => {
+      expect(result.current.globalTimer.totalSeconds).toBe(3600)
+    })
   })
 
   it('can toggle marked state', async () => {

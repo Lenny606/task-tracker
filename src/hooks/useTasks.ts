@@ -636,6 +636,99 @@ export function useTasks(date: string = getTodayDate()) {
     }
   })
 
+  const updateGlobalTimer = useMutation({
+    mutationFn: async (newSeconds: number) => {
+      const token = await getExtensionTokenFn()
+      const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
+        ? window.location.origin
+        : 'http://localhost:3000'
+
+      const allowedHosts = ['localhost:3000', 'localhost:5173', '127.0.0.1:3000', '127.0.0.1:5173']
+      if (typeof window !== 'undefined' && window.location.host) {
+        allowedHosts.push(window.location.host)
+      }
+      const parsedBase = new URL(base)
+      if (!allowedHosts.includes(parsedBase.host)) {
+        throw new Error('Blocked SSRF attempt: Invalid origin')
+      }
+
+      const isRunning = globalTimer.isRunning
+      const startTime = isRunning ? Date.now() : null
+
+      // fallow-ignore-next-line security-sink
+      const response = await fetch(`${base}/api/extension`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Extension-Auth': token
+        },
+        body: JSON.stringify({ 
+          type: 'UPDATE_TIMER', 
+          accumulatedSeconds: newSeconds,
+          isRunning,
+          startTime
+        }),
+      })
+      
+      if (!response.ok) throw new Error('Failed to update timer on server')
+      const { timerState: serverState } = await response.json()
+
+      const newTimer: GlobalTimer = {
+        isRunning: serverState.isRunning,
+        startTime: serverState.startTime,
+        totalSeconds: serverState.accumulatedSeconds || 0
+      }
+      
+      await updateDayMetricsFn({ data: { date, metrics: { globalTimer: newTimer } } })
+      return newTimer
+    },
+    onMutate: async (newSeconds) => {
+      await queryClient.cancelQueries({ queryKey: ['history'] })
+      const previousHistory = queryClient.getQueryData(['history'])
+
+      queryClient.setQueryData(['history'], (old: any) => {
+        const currentHistory = old || {}
+        const day = currentHistory[date] || { tasks: [] }
+        const timer = day.globalTimer || { totalSeconds: 0, isRunning: false }
+
+        const newTimer: GlobalTimer = {
+          isRunning: timer.isRunning,
+          totalSeconds: newSeconds,
+          startTime: timer.isRunning ? Date.now() : undefined
+        }
+
+        return {
+          ...currentHistory,
+          [date]: {
+            ...day,
+            globalTimer: newTimer
+          }
+        }
+      })
+
+      return { previousHistory }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousHistory) {
+        queryClient.setQueryData(['history'], context.previousHistory)
+      }
+    },
+    onSuccess: (data) => {
+      if (!data) return
+      queryClient.setQueryData(['history'], (old: any) => {
+        const currentHistory = old || {}
+        const day = currentHistory[date] || { tasks: [] }
+        return {
+          ...currentHistory,
+          [date]: {
+            ...day,
+            globalTimer: data
+          }
+        }
+      })
+    }
+  })
+
   const saveAiSummary = useMutation({
     mutationFn: async (summary: string) => {
       await updateDayMetricsFn({ data: { date, metrics: { aiSummary: summary } } })
@@ -753,6 +846,7 @@ export function useTasks(date: string = getTodayDate()) {
     updateTask,
     toggleGlobalTimer,
     resetGlobalTimer,
+    updateGlobalTimer,
     saveAiSummary,
     deleteHistoryDay,
     syncExtensionData,

@@ -8,6 +8,7 @@ export function Sidebar() {
     globalTimer, 
     toggleGlobalTimer, 
     resetGlobalTimer, 
+    updateGlobalTimer,
     getDisplayGlobalTime,
     isSyncingExtension,
     syncExtension
@@ -18,6 +19,37 @@ export function Sidebar() {
     const m = Math.floor((seconds % 3600) / 60)
     const s = seconds % 60
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleEditTimer = () => {
+    const currentVal = formatTime(getDisplayGlobalTime(globalTimer))
+    const input = prompt('Enter new global timer value (HH:MM:SS, MM:SS, or total seconds):', currentVal)
+    if (input === null) return
+
+    let totalSeconds = 0
+    const parts = input.split(':').map(Number)
+    if (parts.some(isNaN)) {
+      const val = Number(input)
+      if (!isNaN(val) && val >= 0) {
+        totalSeconds = val
+      } else {
+        alert('Invalid time format. Please use HH:MM:SS, MM:SS, or raw seconds.')
+        return
+      }
+    } else {
+      if (parts.length === 3) {
+        totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+      } else if (parts.length === 2) {
+        totalSeconds = parts[0] * 60 + parts[1]
+      } else if (parts.length === 1) {
+        totalSeconds = parts[0]
+      } else {
+        alert('Invalid time format. Please use HH:MM:SS, MM:SS, or raw seconds.')
+        return
+      }
+    }
+
+    updateGlobalTimer.mutate(totalSeconds)
   }
 
   return (
@@ -90,9 +122,13 @@ export function Sidebar() {
                 {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
               </button>
               <div className="flex-1">
-                <div className={`font-mono text-xl tabular-nums ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}>
+                <button
+                  onClick={handleEditTimer}
+                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded transition-colors ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}
+                  title="Click to edit timer"
+                >
                   {formatTime(getDisplayGlobalTime(globalTimer))}
-                </div>
+                </button>
               </div>
               {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
                 <button
