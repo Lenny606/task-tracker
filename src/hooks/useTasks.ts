@@ -38,6 +38,24 @@ interface HistoryData {
   [date: string]: DayData
 }
 
+async function getValidatedExtensionBase(): Promise<{ base: string; token: string }> {
+  const token = await getExtensionTokenFn()
+  const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
+    ? window.location.origin
+    : 'http://localhost:3000'
+
+  // SSRF mitigation: validate that destination origin is local or matches current host
+  const allowedHosts = ['localhost:3000', 'localhost:5173', '127.0.0.1:3000', '127.0.0.1:5173']
+  if (typeof window !== 'undefined' && window.location.host) {
+    allowedHosts.push(window.location.host)
+  }
+  const parsedBase = new URL(base)
+  if (!allowedHosts.includes(parsedBase.host)) {
+    throw new Error('Blocked SSRF attempt: Invalid origin')
+  }
+  return { base, token }
+}
+
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
 export function useTasks(date: string = getTodayDate()) {
@@ -475,20 +493,7 @@ export function useTasks(date: string = getTodayDate()) {
 
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
-      const token = await getExtensionTokenFn()
-      const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
-        ? window.location.origin
-        : 'http://localhost:3000'
-
-      // SSRF mitigation: validate that destination origin is local or matches current host
-      const allowedHosts = ['localhost:3000', 'localhost:5173', '127.0.0.1:3000', '127.0.0.1:5173']
-      if (typeof window !== 'undefined' && window.location.host) {
-        allowedHosts.push(window.location.host)
-      }
-      const parsedBase = new URL(base)
-      if (!allowedHosts.includes(parsedBase.host)) {
-        throw new Error('Blocked SSRF attempt: Invalid origin')
-      }
+      const { base, token } = await getValidatedExtensionBase()
 
       // fallow-ignore-next-line security-sink
       const response = await fetch(`${base}/api/extension`, {
@@ -638,19 +643,7 @@ export function useTasks(date: string = getTodayDate()) {
 
   const updateGlobalTimer = useMutation({
     mutationFn: async (newSeconds: number) => {
-      const token = await getExtensionTokenFn()
-      const base = typeof window !== 'undefined' && window.location.origin && !window.location.origin.startsWith('null')
-        ? window.location.origin
-        : 'http://localhost:3000'
-
-      const allowedHosts = ['localhost:3000', 'localhost:5173', '127.0.0.1:3000', '127.0.0.1:5173']
-      if (typeof window !== 'undefined' && window.location.host) {
-        allowedHosts.push(window.location.host)
-      }
-      const parsedBase = new URL(base)
-      if (!allowedHosts.includes(parsedBase.host)) {
-        throw new Error('Blocked SSRF attempt: Invalid origin')
-      }
+      const { base, token } = await getValidatedExtensionBase()
 
       const isRunning = globalTimer.isRunning
       const startTime = isRunning ? Date.now() : null
