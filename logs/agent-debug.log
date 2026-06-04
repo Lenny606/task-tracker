@@ -1649,3 +1649,77 @@ Result:
 [2026-06-04T17:16:47.012Z] 💬 [ASSISTANT RESPONSE]
 Done!
 ================================================================================
+
+================================================================================
+[2026-06-04T17:41:25.160Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-04.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-04T17:41:25.166Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-04T17:41:25.167Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-04T17:41:25.169Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-06-04T17:52:17.733Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-06-04.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-06-04T17:52:17.775Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-06-04T17:52:17.776Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-06-04T17:52:17.778Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
