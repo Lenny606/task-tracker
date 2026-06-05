@@ -1,5 +1,5 @@
 import React from 'react'
-import { BarChart3, Clock, CheckCircle2, Timer } from 'lucide-react'
+import { BarChart3, Clock, CheckCircle2, Timer, Database } from 'lucide-react'
 import { StatCard } from '../StatCard'
 import { formatFullTime } from '../../utils/duration'
 
@@ -11,6 +11,7 @@ interface SummaryStatsProps {
   WORK_GOAL_SECONDS: number
   isGoalReached: boolean
   remainingSeconds: number
+  onLogGlobalToJira?: () => void
 }
 
 export const SummaryStats: React.FC<SummaryStatsProps> = ({
@@ -20,7 +21,8 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
   tasksCount,
   WORK_GOAL_SECONDS,
   isGoalReached,
-  remainingSeconds
+  remainingSeconds,
+  onLogGlobalToJira
 }) => {
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -47,6 +49,20 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
         variant="indigo"
         hasRing={true}
         valueClassName="font-mono tabular-nums"
+        action={
+          globalSeconds > 0 && onLogGlobalToJira && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onLogGlobalToJira()
+              }}
+              className="p-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/30 rounded-xl transition-all active:scale-95 cursor-pointer border-none bg-transparent"
+              title="Log Global Timer to Jira (PCSD-24)"
+            >
+              <Database className="w-5 h-5" />
+            </button>
+          )
+        }
       />
 
       <StatCard

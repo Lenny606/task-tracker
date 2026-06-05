@@ -39,6 +39,7 @@ interface SummaryBreakdownTableProps {
   onDeleteTask: (id: string) => void
   onAddTask: (e?: React.FormEvent) => void
   onLogToJira: (task: TaskType) => void
+  onLogGlobalToJira?: () => void
 }
 
 export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
@@ -57,7 +58,8 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
   onUpdateTask,
   onDeleteTask,
   onAddTask,
-  onLogToJira
+  onLogToJira,
+  onLogGlobalToJira
 }) => {
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600)
@@ -255,17 +257,34 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
               <td className="px-6 py-4" colSpan={4}></td>
             </tr>
             {globalSeconds > 0 && (
-              <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t-2 border-indigo-500/20">
-                <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400">GLOBAL TRACKED TIME</td>
+              <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t border-indigo-500/20">
+                <td className="px-6 py-6"></td>
+                <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400 text-sm tracking-wide font-black">GLOBAL TRACKED TIME</td>
+                <td className="px-6 py-6">
+                  <span className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-wider">
+                    PCSD-24
+                  </span>
+                </td>
+                <td className="px-6 py-6"></td>
                 <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
-                <td className="px-6 py-6" colSpan={5}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
-                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                      <span className="text-xs uppercase tracking-widest opacity-60">Remaining to 8h:</span>
-                      <span className="text-sm font-bold">{isGoalReached ? 'Goal Reached!' : formatTime(remainingSeconds)}</span>
-                    </div>
+                <td className="px-6 py-6">
+                  <div className="flex flex-col gap-1 text-indigo-600 dark:text-indigo-400">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
+                    <span className="text-xs font-bold">{isGoalReached ? 'Goal Reached!' : `${formatTime(remainingSeconds)} remaining to 8h`}</span>
                   </div>
+                </td>
+                <td className="px-6 py-6 text-right">
+                  {onLogGlobalToJira && (
+                    <div className="flex items-center justify-end">
+                      <Button
+                        variant="icon"
+                        onClick={onLogGlobalToJira}
+                        className="p-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg inline-flex"
+                        title="Log Global Tracked Time to Jira (PCSD-24)"
+                        icon={Database}
+                      />
+                    </div>
+                  )}
                 </td>
               </tr>
             )}

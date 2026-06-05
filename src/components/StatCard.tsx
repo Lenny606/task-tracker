@@ -10,6 +10,7 @@ interface StatCardProps {
   hasRing?: boolean
   className?: string
   valueClassName?: string
+  action?: React.ReactNode
 }
 
 const variantStyles: Record<StatCardVariant, {
@@ -46,15 +47,19 @@ export function StatCard({
   variant = 'slate',
   hasRing = false,
   className = '',
-  valueClassName = ''
+  valueClassName = '',
+  action
 }: StatCardProps) {
   const styles = variantStyles[variant]
   const ringClass = hasRing ? styles.ring : ''
 
   return (
     <div className={`glass-panel p-6 rounded-3xl shadow-sm border-transparent hover:scale-[1.02] transition-transform ${ringClass} ${className}`}>
-      <div className={`w-12 h-12 ${styles.iconBg} ${styles.iconColor} rounded-2xl flex items-center justify-center mb-4`}>
-        <Icon className="w-6 h-6" />
+      <div className="flex justify-between items-start mb-4">
+        <div className={`w-12 h-12 ${styles.iconBg} ${styles.iconColor} rounded-2xl flex items-center justify-center`}>
+          <Icon className="w-6 h-6" />
+        </div>
+        {action}
       </div>
       <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
         {title}

@@ -112,6 +112,35 @@ export function SummaryPage() {
   const totalSeconds = liveTasks.reduce((acc, t) => acc + t.displaySeconds, 0)
   const globalSeconds = getDisplayGlobalTime(globalTimer)
 
+  const handleLogGlobalToJira = () => {
+    const durationStr = formatSecondsToDuration(globalSeconds)
+    
+    let dayOfWeek = ''
+    if (displayDate) {
+      const parts = displayDate.split('-')
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10)
+        const month = parseInt(parts[1], 10) - 1
+        const day = parseInt(parts[2], 10)
+        const dateObj = new Date(year, month, day)
+        const dayName = dateObj.toLocaleDateString('cs-CZ', { weekday: 'long' })
+        dayOfWeek = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+      }
+    }
+
+    navigate({
+      to: '/jira',
+      search: {
+        view: 'create',
+        description: dayOfWeek || 'Global Tracked Time',
+        duration: durationStr,
+        issueKey: 'PCSD-24',
+        issueSummary: 'PCSD-24',
+        date: displayDate
+      }
+    })
+  }
+
   const handleGenerateSummary = async () => {
     setIsGenerating(true)
     setError(null)
@@ -183,6 +212,7 @@ export function SummaryPage() {
         WORK_GOAL_SECONDS={WORK_GOAL_SECONDS}
         isGoalReached={isGoalReached}
         remainingSeconds={remainingSeconds}
+        onLogGlobalToJira={handleLogGlobalToJira}
       />
 
       <SummaryAiSection
@@ -212,6 +242,7 @@ export function SummaryPage() {
         onDeleteTask={(id) => deleteTask.mutate(id)}
         onAddTask={handleAddTask}
         onLogToJira={handleLogToJira}
+        onLogGlobalToJira={handleLogGlobalToJira}
       />
     </div>
   )
