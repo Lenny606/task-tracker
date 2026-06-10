@@ -29,6 +29,7 @@
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "^1.132.0",
+    "@thomas666/frontend-lib": "^0.1.2",
     "better-sqlite3": "^12.9.0",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.545.0",
