@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
 export const trackerProjects = sqliteTable('tracker_projects', {
   id: text('id').primaryKey(),
@@ -58,7 +58,9 @@ export const historyTasks = sqliteTable('history_tasks', {
   isMarked: integer('is_marked', { mode: 'boolean' }).notNull().default(false),
   startTime: integer('start_time', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
-});
+}, (table) => ({
+  dateIdx: index('idx_history_tasks_date').on(table.date),
+}));
 
 export const dayMetrics = sqliteTable('day_metrics', {
   id: integer('id').primaryKey({ autoIncrement: true }),

@@ -39,9 +39,23 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 import { useEffect } from 'react'
 import { migrateLocalStorageFn } from '../services/migration'
+import { reconcileTimersFn } from '../services/tasksServer'
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
+
+  // Stop stale timers (left running from a previous day / over 10h) once per app start.
+  // This used to happen as a side-effect of reading history; now it is explicit.
+  useEffect(() => {
+    reconcileTimersFn()
+      .then((result) => {
+        if (result && (result.reconciledTasks > 0 || result.reconciledTimers > 0)) {
+          console.log('[Reconcile] Stopped stale timers:', result)
+          queryClient.invalidateQueries({ queryKey: ['history'] })
+        }
+      })
+      .catch((error) => console.error('[Reconcile] Failed to reconcile timers:', error))
+  }, [queryClient])
 
   useEffect(() => {
     const checkMigration = async () => {

@@ -10,7 +10,7 @@ import {
 import { getExtensionTokenFn } from '../services/settingsServer'
 
 
-interface Task {
+export interface Task {
   id: string
   name: string
   jiraKey?: string | null
@@ -28,13 +28,13 @@ interface GlobalTimer {
   startTime?: number
 }
 
-interface DayData {
+export interface DayData {
   tasks: Task[]
   globalTimer?: GlobalTimer
   aiSummary?: string
 }
 
-interface HistoryData {
+export interface HistoryData {
   [date: string]: DayData
 }
 
@@ -73,9 +73,12 @@ export function useTasks(date: string = getTodayDate()) {
 
   const queryClient = useQueryClient()
 
+  // Each day has its own cache entry; the server only loads that day's rows
+  const historyKey = ['history', date]
+
   const { data: history = {} as HistoryData } = useQuery({
-    queryKey: ['history'],
-    queryFn: () => getHistoryDataFn().then(res => res as HistoryData),
+    queryKey: historyKey,
+    queryFn: () => getHistoryDataFn({ data: { from: date, to: date } }).then(res => res as HistoryData),
   })
 
   const dayData = history[date] || { tasks: [] }
@@ -116,12 +119,12 @@ export function useTasks(date: string = getTodayDate()) {
       return task
     },
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
       const taskId = variables.id || 'temp-' + crypto.randomUUID()
       const nowTime = Date.now()
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const stoppedTasks = (day.tasks || []).map((t: any) => {
@@ -162,12 +165,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -223,10 +226,10 @@ export function useTasks(date: string = getTodayDate()) {
       return updatedTask
     },
     onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -250,12 +253,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, taskId, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -287,10 +290,10 @@ export function useTasks(date: string = getTodayDate()) {
       return updatedTask
     },
     onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => 
@@ -306,12 +309,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, taskId, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -339,10 +342,10 @@ export function useTasks(date: string = getTodayDate()) {
       return taskId
     },
     onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).filter((t: any) => t.id !== taskId)
@@ -356,7 +359,7 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, taskId, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     }
   })
@@ -378,10 +381,10 @@ export function useTasks(date: string = getTodayDate()) {
       return updatedTask
     },
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -411,12 +414,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -447,10 +450,10 @@ export function useTasks(date: string = getTodayDate()) {
       return updatedTask
     },
     onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => 
@@ -466,12 +469,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, taskId, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const newTasks = (day.tasks || []).map((t: any) => {
@@ -518,10 +521,10 @@ export function useTasks(date: string = getTodayDate()) {
       return newTimer
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const timer = day.globalTimer || { totalSeconds: 0, isRunning: false }
@@ -555,12 +558,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -599,10 +602,10 @@ export function useTasks(date: string = getTodayDate()) {
       return newTimer
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -622,12 +625,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -676,10 +679,10 @@ export function useTasks(date: string = getTodayDate()) {
       return newTimer
     },
     onMutate: async (newSeconds) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         const timer = day.globalTimer || { totalSeconds: 0, isRunning: false }
@@ -703,12 +706,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -728,10 +731,10 @@ export function useTasks(date: string = getTodayDate()) {
       return summary
     },
     onMutate: async (summary) => {
-      await queryClient.cancelQueries({ queryKey: ['history'] })
-      const previousHistory = queryClient.getQueryData(['history'])
+      await queryClient.cancelQueries({ queryKey: historyKey })
+      const previousHistory = queryClient.getQueryData(historyKey)
 
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -747,12 +750,12 @@ export function useTasks(date: string = getTodayDate()) {
     },
     onError: (err, variables, context) => {
       if (context?.previousHistory) {
-        queryClient.setQueryData(['history'], context.previousHistory)
+        queryClient.setQueryData(historyKey, context.previousHistory)
       }
     },
     onSuccess: (data) => {
       if (!data) return
-      queryClient.setQueryData(['history'], (old: any) => {
+      queryClient.setQueryData(historyKey, (old: any) => {
         const currentHistory = old || {}
         const day = currentHistory[date] || { tasks: [] }
         return {
@@ -830,7 +833,6 @@ export function useTasks(date: string = getTodayDate()) {
     tasks,
     globalTimer,
     aiSummary,
-    history,
     addTask,
     toggleTask,
     toggleMarked,

@@ -1,10 +1,32 @@
 import { dayMetrics } from '../db/schema';
 import { BaseRepository } from './base.repository';
-import { eq } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 class DayMetricsRepository extends BaseRepository<typeof dayMetrics> {
   constructor() {
     super(dayMetrics);
+  }
+
+  async findByDateRange(startDate: string, endDate: string) {
+    try {
+      return await this.db
+        .select()
+        .from(this.table)
+        .where(and(gte(this.table.date, startDate), lte(this.table.date, endDate)))
+        .all();
+    } catch (error) {
+      console.error(`[DB Error] Failed to find metrics in range ${startDate} to ${endDate}:`, error);
+      throw error;
+    }
+  }
+
+  async findRunning() {
+    try {
+      return await this.db.select().from(this.table).where(eq(this.table.timerIsRunning, true)).all();
+    } catch (error) {
+      console.error('[DB Error] Failed to find running day timers:', error);
+      throw error;
+    }
   }
 
   async findByDate(date: string) {

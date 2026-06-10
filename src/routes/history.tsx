@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTasks } from '../hooks/useTasks'
+import { useHistoryOverview } from '../hooks/useHistoryOverview'
 import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3, ListFilter } from 'lucide-react'
 import { useState } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/history')({
 })
 
 function HistoryPage() {
-  const { history, deleteHistoryDay } = useTasks()
+  const { history, deleteHistoryDay } = useHistoryOverview()
   const [filter, setFilter] = useState<'current' | 'all'>('current')
   const isMounted = useIsMounted()
   

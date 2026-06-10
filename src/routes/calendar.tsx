@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTasks } from '../hooks/useTasks'
+import { useHistoryOverview } from '../hooks/useHistoryOverview'
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Timer, LayoutGrid } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
@@ -11,8 +11,7 @@ export const Route = createFileRoute('/calendar')({
 
 function CalendarPage() {
   const isMounted = useIsMounted()
-  const { history } = useTasks()
-  
+
   // State for the currently viewed week's Monday
   const [baseDate, setBaseDate] = useState(() => {
     const now = new Date()
@@ -35,6 +34,9 @@ function CalendarPage() {
     }
     return dates
   }, [baseDate])
+
+  // Only load the displayed week from the server
+  const { history } = useHistoryOverview({ from: weekDates[0], to: weekDates[4] })
 
   const navigateWeek = (weeks: number) => {
     const newDate = new Date(baseDate)

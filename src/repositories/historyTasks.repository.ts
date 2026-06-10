@@ -29,6 +29,15 @@ class HistoryTasksRepository extends BaseRepository<typeof historyTasks> {
     }
   }
 
+  async findRunning() {
+    try {
+      return await this.db.select().from(this.table).where(eq(this.table.isRunning, true)).all();
+    } catch (error) {
+      console.error('[DB Error] Failed to find running tasks:', error);
+      throw error;
+    }
+  }
+
   async findByDateAndId(date: string, id: string) {
     try {
       return await this.db

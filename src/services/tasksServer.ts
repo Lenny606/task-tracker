@@ -4,69 +4,76 @@ import { dayMetricsRepository } from '../repositories/dayMetrics.repository';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
-export const getHistoryDataFn = createServerFn({
-  method: 'GET',
+const STALE_TIMER_LIMIT_MS = 10 * 60 * 60 * 1000; // cap runaway timers at 10 hours
+
+/**
+ * Stops timers that were left running (from a previous day, or for more
+ * than 10 hours) and folds the capped elapsed time into their totals.
+ * Only touches rows that are actually running — meant to be called
+ * explicitly (e.g. once on app start), not as a read side-effect.
+ */
+export const reconcileTimersFn = createServerFn({
+  method: 'POST',
 }).handler(async () => {
   try {
-    const allTasks = await historyTasksRepository.findAll();
-    const allMetrics = await dayMetricsRepository.findAll();
-
     const todayStr = new Date().toISOString().split('T')[0];
-    const tenHoursMs = 10 * 60 * 60 * 1000;
     const nowMs = Date.now();
+    let reconciledTasks = 0;
+    let reconciledTimers = 0;
 
-    // 1. Reconcile running tasks
-    for (const task of allTasks) {
-      if (task.isRunning && task.startTime) {
-        const startTimeMs = task.startTime.getTime();
-        const elapsedMs = nowMs - startTimeMs;
-        const isOlderThanToday = task.date < todayStr;
-        const exceededTenHours = elapsedMs > tenHoursMs;
-
-        if (isOlderThanToday || exceededTenHours) {
-          const sensibleElapsedMs = Math.min(elapsedMs, tenHoursMs);
-          const elapsedSeconds = Math.floor(sensibleElapsedMs / 1000);
-          const newTotalSeconds = task.totalSeconds + elapsedSeconds;
-
-          await historyTasksRepository.update(task.id, {
-            isRunning: false,
-            startTime: null,
-            totalSeconds: newTotalSeconds,
-          });
-
-          task.isRunning = false;
-          task.startTime = null;
-          task.totalSeconds = newTotalSeconds;
-        }
+    const runningTasks = await historyTasksRepository.findRunning();
+    for (const task of runningTasks) {
+      if (!task.startTime) continue;
+      const elapsedMs = nowMs - task.startTime.getTime();
+      if (task.date < todayStr || elapsedMs > STALE_TIMER_LIMIT_MS) {
+        const elapsedSeconds = Math.floor(Math.min(elapsedMs, STALE_TIMER_LIMIT_MS) / 1000);
+        await historyTasksRepository.update(task.id, {
+          isRunning: false,
+          startTime: null,
+          totalSeconds: task.totalSeconds + elapsedSeconds,
+        });
+        reconciledTasks++;
       }
     }
 
-    // 2. Reconcile running day metric timers
-    for (const metric of allMetrics) {
-      if (metric.timerIsRunning && metric.timerStartTime) {
-        const startTimeMs = metric.timerStartTime.getTime();
-        const elapsedMs = nowMs - startTimeMs;
-        const isOlderThanToday = metric.date < todayStr;
-        const exceededTenHours = elapsedMs > tenHoursMs;
-
-        if (isOlderThanToday || exceededTenHours) {
-          const sensibleElapsedMs = Math.min(elapsedMs, tenHoursMs);
-          const elapsedSeconds = Math.floor(sensibleElapsedMs / 1000);
-          const newTotalSeconds = metric.timerTotalSeconds + elapsedSeconds;
-
-          await dayMetricsRepository.saveMetrics(metric.date, {
-            timerIsRunning: false,
-            timerStartTime: null,
-            timerTotalSeconds: newTotalSeconds,
-            aiSummary: metric.aiSummary,
-          });
-
-          metric.timerIsRunning = false;
-          metric.timerStartTime = null;
-          metric.timerTotalSeconds = newTotalSeconds;
-        }
+    const runningMetrics = await dayMetricsRepository.findRunning();
+    for (const metric of runningMetrics) {
+      if (!metric.timerStartTime) continue;
+      const elapsedMs = nowMs - metric.timerStartTime.getTime();
+      if (metric.date < todayStr || elapsedMs > STALE_TIMER_LIMIT_MS) {
+        const elapsedSeconds = Math.floor(Math.min(elapsedMs, STALE_TIMER_LIMIT_MS) / 1000);
+        await dayMetricsRepository.saveMetrics(metric.date, {
+          timerIsRunning: false,
+          timerStartTime: null,
+          timerTotalSeconds: metric.timerTotalSeconds + elapsedSeconds,
+        });
+        reconciledTimers++;
       }
     }
+
+    return { reconciledTasks, reconciledTimers };
+  } catch (error) {
+    console.error('[Server Function Error] reconcileTimersFn:', error);
+    throw error;
+  }
+});
+
+export const getHistoryDataFn = createServerFn({
+  method: 'GET',
+})
+  .inputValidator((data: unknown) => z.object({
+    from: z.string().optional(),
+    to: z.string().optional(),
+  }).optional().parse(data))
+  .handler(async ({ data }) => {
+  try {
+    const hasRange = !!(data?.from || data?.to);
+    const allTasks = hasRange
+      ? await historyTasksRepository.findByDateRange(data?.from ?? '0000-01-01', data?.to ?? '9999-12-31')
+      : await historyTasksRepository.findAll();
+    const allMetrics = hasRange
+      ? await dayMetricsRepository.findByDateRange(data?.from ?? '0000-01-01', data?.to ?? '9999-12-31')
+      : await dayMetricsRepository.findAll();
 
     const history: any = {};
 
