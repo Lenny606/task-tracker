@@ -859,7 +859,7 @@ Guidelines:
       let textAndTools: { content: string; toolCalls: any[] };
 
       if (provider === 'gemini') {
-        const apiKey = settings.geminiApiKey || process.env.VITE_GEMINI_API_KEY || '';
+        const apiKey = settings.geminiApiKey || process.env.GEMINI_API_KEY || '';
         if (!apiKey) {
           onEvent({ type: 'error', error: 'Gemini API Key is missing.' });
           return;
