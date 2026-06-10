@@ -2,28 +2,35 @@ import { useState, useEffect } from 'react'
 import type { AiModel } from '../services/ai'
 import { getAppSettingsFn, saveAppSettingsFn } from '../services/settingsServer'
 
-const SETTINGS_KEY = 'task-tracker-settings'
-
 export interface AppSettings {
   aiProvider: 'gemini' | 'openai'
   aiModel: AiModel
-  geminiApiKey: string
-  openaiApiKey: string
-  jiraApiKey: string
   jiraEmail: string
-  jiraTempoApiKey: string
   jiraUrl: string
+  // Secret keys are stored server-side only; the client just knows whether they are set.
+  hasGeminiApiKey: boolean
+  hasOpenaiApiKey: boolean
+  hasJiraApiKey: boolean
+  hasJiraTempoApiKey: boolean
+}
+
+// Secret values can be written (sent to the server) but are never read back.
+export type AppSettingsPatch = Partial<AppSettings> & {
+  geminiApiKey?: string
+  openaiApiKey?: string
+  jiraApiKey?: string
+  jiraTempoApiKey?: string
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   aiProvider: 'gemini',
   aiModel: 'gemini-2.5-flash' as AiModel,
-  geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
-  openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-  jiraApiKey: import.meta.env.VITE_JIRA_API_KEY || '',
   jiraEmail: import.meta.env.VITE_JIRA_EMAIL || '',
-  jiraTempoApiKey: import.meta.env.VITE_JIRA_TEMPO_API_KEY || '',
   jiraUrl: import.meta.env.VITE_JIRA_URL || '',
+  hasGeminiApiKey: false,
+  hasOpenaiApiKey: false,
+  hasJiraApiKey: false,
+  hasJiraTempoApiKey: false,
 }
 
 // Client-side cache for synchronous access
@@ -37,12 +44,6 @@ const loadSettings = async (): Promise<AppSettings> => {
     const remote = await getAppSettingsFn()
     if (remote) {
       settingsCache = { ...DEFAULT_SETTINGS, ...remote } as AppSettings
-    } else {
-      // Fallback to localStorage if any, for migration period
-      const stored = typeof window !== 'undefined' ? localStorage.getItem(SETTINGS_KEY) : null
-      if (stored) {
-        settingsCache = { ...DEFAULT_SETTINGS, ...JSON.parse(stored) }
-      }
     }
   } catch (e) {
     console.error('[Settings] Failed to load settings from server:', e)
@@ -54,26 +55,21 @@ export const getSettings = (): AppSettings => {
   return settingsCache
 }
 
-const saveSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
-  const current = getSettings()
-  const updated = { ...current, ...patch }
-
-  // Save to server
+const saveSettings = async (patch: AppSettingsPatch): Promise<AppSettings> => {
+  // Send only the patch; the server merges it and returns the sanitized result
   try {
-    await saveAppSettingsFn({ data: updated })
+    const updated = await saveAppSettingsFn({ data: patch })
+    settingsCache = { ...DEFAULT_SETTINGS, ...updated } as AppSettings
   } catch (e) {
     console.error('[Settings] Failed to save settings to server:', e)
   }
 
-  // Update cache
-  settingsCache = updated
-
   // Trigger local event for components
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('settings-changed', { detail: updated }))
+    window.dispatchEvent(new CustomEvent('settings-changed', { detail: settingsCache }))
   }
 
-  return updated
+  return settingsCache
 }
 
 export function useSettings() {
@@ -91,13 +87,4 @@ export function useSettings() {
   }, [])
 
   return { settings, saveSettings }
-}
-
-export const getJiraCredentials = (settings: AppSettings) => {
-  return {
-    url: settings.jiraUrl,
-    email: settings.jiraEmail,
-    apiKey: settings.jiraApiKey,
-    tempoApiKey: settings.jiraTempoApiKey,
-  }
 }

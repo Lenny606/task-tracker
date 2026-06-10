@@ -1,14 +1,23 @@
 import { createServerFn } from '@tanstack/react-start'
 import { jiraService } from './jira'
+import type { JiraCredentials } from './jira'
 import { worklogRepository } from '../repositories/worklog.repository'
+import { settingsRepository } from '../repositories/settings.repository'
 import { z } from 'zod'
 
-const jiraCredentialsSchema = z.object({
-  url: z.string(),
-  email: z.string(),
-  apiKey: z.string(),
-  tempoApiKey: z.string().optional(),
-})
+/**
+ * Loads Jira/Tempo credentials from the server-side settings store.
+ * Credentials never travel to or from the client.
+ */
+async function loadJiraCredentials(): Promise<JiraCredentials> {
+  const settings = await settingsRepository.getSettings()
+  return {
+    url: settings?.jiraUrl || '',
+    email: settings?.jiraEmail || '',
+    apiKey: settings?.jiraApiKey || '',
+    tempoApiKey: settings?.jiraTempoApiKey || '',
+  }
+}
 
 /**
  * Server function to get recent unique tickets from database
@@ -48,14 +57,14 @@ export const searchJiraIssuesFn = createServerFn({
   method: 'POST',
 })
   .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
     jql: z.string(),
     maxResults: z.number().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
+    const credentials = await loadJiraCredentials()
     // Refined search: Only issues of type "Task", "Epic", "Sub-task", and "Story" across all users and statuses
     const filteredJql = `(${data.jql}) AND issuetype in (Task, Epic, "Sub-task", Story)`
-    return await jiraService.searchIssues(data.credentials, filteredJql, data.maxResults)
+    return await jiraService.searchIssues(credentials, filteredJql, data.maxResults)
   })
 
 
@@ -67,7 +76,6 @@ export const logTempoWorkloadFn = createServerFn({
   method: 'POST',
 })
   .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
     worklogData: z.object({
       id: z.number().optional(),
       tempoWorklogId: z.string().optional(),
@@ -81,8 +89,10 @@ export const logTempoWorkloadFn = createServerFn({
   }).parse(data))
   .handler(async ({ data }) => {
     try {
+      const credentials = await loadJiraCredentials()
+
       // To ensure correct attribution in Tempo v4, we fetch the user's accountId
-      const myself = await jiraService.getMyself(data.credentials)
+      const myself = await jiraService.getMyself(credentials)
       const authorAccountId = myself.accountId
 
       if (!authorAccountId) {
@@ -94,7 +104,7 @@ export const logTempoWorkloadFn = createServerFn({
         authorAccountId,
       }
 
-      const result = await jiraService.logWork(data.credentials, enhancedWorklogData)
+      const result = await jiraService.logWork(credentials, enhancedWorklogData)
 
       // Save to local database for internal tracking
       if (result && result.id) {
@@ -125,22 +135,14 @@ export const getTempoWorklogsFn = createServerFn({
   method: 'POST',
 })
   .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
     from: z.string(),
     to: z.string(),
   }).parse(data))
   .handler(async ({ data }) => {
-    // Debug log (lengths only for security)
-    console.log('[getTempoWorklogsFn] Received credentials:', {
-      hasUrl: !!data.credentials.url,
-      url: data.credentials.url,
-      emailLength: data.credentials.email?.length,
-      apiKeyLength: data.credentials.apiKey?.length,
-      tempoApiKeyLength: data.credentials.tempoApiKey?.length,
-    })
+    const credentials = await loadJiraCredentials()
 
     // First get the account ID of the user
-    const myself = await jiraService.getMyself(data.credentials)
+    const myself = await jiraService.getMyself(credentials)
     const authorAccountId = myself.accountId
 
     if (!authorAccountId) {
@@ -148,7 +150,7 @@ export const getTempoWorklogsFn = createServerFn({
     }
 
     // Then fetch worklogs for that user
-    return await jiraService.getWorklogs(data.credentials, data.from, data.to, authorAccountId)
+    return await jiraService.getWorklogs(credentials, data.from, data.to, authorAccountId)
   })
 
 /**
@@ -158,9 +160,9 @@ export const deleteTempoWorklogFn = createServerFn({
   method: 'POST',
 })
   .inputValidator((data: unknown) => z.object({
-    credentials: jiraCredentialsSchema,
     worklogId: z.number(),
   }).parse(data))
   .handler(async ({ data }) => {
-    return await jiraService.deleteWorklog(data.credentials, data.worklogId)
+    const credentials = await loadJiraCredentials()
+    return await jiraService.deleteWorklog(credentials, data.worklogId)
   })

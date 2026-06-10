@@ -92,22 +92,18 @@ function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-              <Input
-                type="password"
+              <SecretKeyInput
                 label="Gemini API Key"
                 placeholder="Google Studio API Key"
-                className="py-3"
-                value={settings.geminiApiKey || ''}
-                onChange={(e) => saveSettings({ geminiApiKey: e.target.value })}
+                isSet={settings.hasGeminiApiKey}
+                onSave={(value) => saveSettings({ geminiApiKey: value })}
               />
 
-              <Input
-                type="password"
+              <SecretKeyInput
                 label="OpenAI API Key"
                 placeholder="OpenAI Platform API Key"
-                className="py-3"
-                value={settings.openaiApiKey || ''}
-                onChange={(e) => saveSettings({ openaiApiKey: e.target.value })}
+                isSet={settings.hasOpenaiApiKey}
+                onSave={(value) => saveSettings({ openaiApiKey: value })}
               />
             </div>
           </div>
@@ -141,22 +137,18 @@ function SettingsPage() {
               onChange={(e) => saveSettings({ jiraEmail: e.target.value })}
             />
 
-            <Input
-              type="password"
+            <SecretKeyInput
               label="Jira API Key"
               placeholder="Paste your Jira API Token"
-              className="py-3"
-              value={settings.jiraApiKey}
-              onChange={(e) => saveSettings({ jiraApiKey: e.target.value })}
+              isSet={settings.hasJiraApiKey}
+              onSave={(value) => saveSettings({ jiraApiKey: value })}
             />
 
-            <Input
-              type="password"
+            <SecretKeyInput
               label="Tempo API Key"
               placeholder="Paste your Tempo API Token"
-              className="py-3"
-              value={settings.jiraTempoApiKey}
-              onChange={(e) => saveSettings({ jiraTempoApiKey: e.target.value })}
+              isSet={settings.hasJiraTempoApiKey}
+              onSave={(value) => saveSettings({ jiraTempoApiKey: value })}
             />
           </div>
         </SectionCard>
@@ -183,6 +175,42 @@ function SettingsPage() {
         </SectionCard>
       </div>
     </div>
+  )
+}
+
+function SecretKeyInput({
+  label,
+  placeholder,
+  isSet,
+  onSave,
+}: {
+  label: string
+  placeholder: string
+  isSet: boolean
+  onSave: (value: string) => void
+}) {
+  // The stored key never leaves the server, so the input only holds what the user types
+  const [value, setValue] = useState('')
+
+  const commit = () => {
+    if (!value.trim()) return
+    onSave(value.trim())
+    setValue('')
+  }
+
+  return (
+    <Input
+      type="password"
+      label={label}
+      placeholder={isSet ? '•••••••• (saved — type to replace)' : placeholder}
+      className="py-3"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit()
+      }}
+    />
   )
 }
 

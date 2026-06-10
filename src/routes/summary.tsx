@@ -1,9 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import { aiService } from '../services/ai'
-import { getServerCommits } from '../services/git'
+import { analyzeCommitsForJiraFn } from '../services/aiServer'
 import { useState } from 'react'
-import { useSettings, getJiraCredentials } from '../store/settingsStore'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { formatSecondsToDuration } from '../utils/duration'
 import { escapeHtml } from '../utils/sanitize'
@@ -32,8 +30,6 @@ export function SummaryPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-  const { settings } = useSettings()
-  const credentials = getJiraCredentials(settings)
 
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -145,8 +141,7 @@ export function SummaryPage() {
     setIsGenerating(true)
     setError(null)
     try {
-      const commits = await getServerCommits({ data: { targetDate: displayDate } })
-      const summary = await aiService.analyzeCommitsForJira(commits)
+      const summary = await analyzeCommitsForJiraFn({ data: { targetDate: displayDate } })
       saveAiSummary.mutate(summary)
     } catch (err) {
       console.error('Failed to generate summary:', err)
@@ -235,7 +230,6 @@ export function SummaryPage() {
         setNewTaskName={setNewTaskName}
         pendingJiraTicket={pendingJiraTicket}
         setPendingJiraTicket={setPendingJiraTicket}
-        credentials={credentials}
         displayDate={displayDate}
         onToggleMarked={(id) => toggleMarked.mutate(id)}
         onUpdateTask={(args) => updateTask.mutate(args)}

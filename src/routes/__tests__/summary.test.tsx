@@ -20,12 +20,10 @@ import { SummaryPage } from '../summary'
 const {
   mockNavigate,
   mockUseSearch,
-  mockGetServerCommits,
   mockAnalyzeCommitsForJira
 } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
   mockUseSearch: vi.fn().mockReturnValue({ date: '2026-06-02' }),
-  mockGetServerCommits: vi.fn(),
   mockAnalyzeCommitsForJira: vi.fn()
 }))
 
@@ -38,25 +36,9 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }))
 
-// Mock settings store
-vi.mock('../../store/settingsStore', () => ({
-  useSettings: () => ({
-    settings: { jiraUrl: 'https://test-jira.com' }
-  }),
-  getJiraCredentials: () => ({
-    username: 'test-user',
-    token: 'test-token'
-  })
-}))
-
-vi.mock('../../services/git', () => ({
-  getServerCommits: (...args: any[]) => mockGetServerCommits(...args)
-}))
-
-vi.mock('../../services/ai', () => ({
-  aiService: {
-    analyzeCommitsForJira: (...args: any[]) => mockAnalyzeCommitsForJira(...args)
-  }
+// Mock the server-side AI analysis function
+vi.mock('../../services/aiServer', () => ({
+  analyzeCommitsForJiraFn: (...args: any[]) => mockAnalyzeCommitsForJira(...args)
 }))
 
 // Mock JiraIssueSelector and ProjectSelector
@@ -240,7 +222,6 @@ describe('SummaryPage Component', () => {
 
   it('handles AI JIRA Summary generation flow', async () => {
     mockTasksState.aiSummary = null
-    mockGetServerCommits.mockResolvedValue(['Commit 1 message', 'Commit 2 message'])
     mockAnalyzeCommitsForJira.mockResolvedValue('Synthesized commit summary in JIRA style.')
 
     render(<SummaryPage />)
@@ -249,8 +230,7 @@ describe('SummaryPage Component', () => {
     fireEvent.click(generateBtn)
 
     await waitFor(() => {
-      expect(mockGetServerCommits).toHaveBeenCalledWith({ data: { targetDate: '2026-06-02' } })
-      expect(mockAnalyzeCommitsForJira).toHaveBeenCalledWith(['Commit 1 message', 'Commit 2 message'])
+      expect(mockAnalyzeCommitsForJira).toHaveBeenCalledWith({ data: { targetDate: '2026-06-02' } })
       expect(mockTasksState.saveAiSummary.mutate).toHaveBeenCalledWith('Synthesized commit summary in JIRA style.')
     })
   })

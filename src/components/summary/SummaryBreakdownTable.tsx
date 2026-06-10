@@ -25,7 +25,6 @@ interface SummaryBreakdownTableProps {
   setNewTaskName: (val: string) => void
   pendingJiraTicket: { key: string; summary: string } | null
   setPendingJiraTicket: (val: { key: string; summary: string } | null) => void
-  credentials: any
   displayDate: string
   onToggleMarked: (id: string) => void
   onUpdateTask: (args: {
@@ -52,7 +51,6 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
   setNewTaskName,
   pendingJiraTicket,
   setPendingJiraTicket,
-  credentials,
   displayDate,
   onToggleMarked,
   onUpdateTask,
@@ -140,7 +138,6 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                   </td>
                   <td className="px-6 py-4">
                     <JiraIssueSelector
-                      credentials={credentials}
                       compact={true}
                       onSelect={(issue) => {
                         onUpdateTask({
@@ -243,7 +240,6 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
               </td>
               <td className="px-6 py-4">
                 <JiraIssueSelector
-                  credentials={credentials}
                   compact={true}
                   onSelect={(issue) => {
                     if (!newTaskName.trim()) {

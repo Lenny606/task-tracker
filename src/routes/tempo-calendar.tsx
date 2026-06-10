@@ -3,7 +3,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Timer, Layo
 import { useState, useMemo, useEffect } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { getTempoWorklogsFn } from '../services/jiraServer'
-import { useSettings, getJiraCredentials } from '../store/settingsStore'
+import { useSettings } from '../store/settingsStore'
 import { toast } from '../store/toastStore'
 import { Button } from '../components/Button'
 
@@ -14,8 +14,7 @@ export const Route = createFileRoute('/tempo-calendar')({
 function TempoCalendarPage() {
   const isMounted = useIsMounted()
   const { settings } = useSettings()
-  const credentials = useMemo(() => getJiraCredentials(settings), [settings])
-  
+
   // State for the currently viewed week's Monday
   const [baseDate, setBaseDate] = useState(() => {
     const now = new Date()
@@ -44,7 +43,7 @@ function TempoCalendarPage() {
 
   useEffect(() => {
     const fetchWorklogs = async () => {
-      if (!credentials.url || !credentials.tempoApiKey) {
+      if (!settings.jiraUrl || !settings.hasJiraTempoApiKey) {
         setIsLoading(false)
         return
       }
@@ -53,9 +52,8 @@ function TempoCalendarPage() {
       try {
         const from = weekDates[0]
         const to = weekDates[4]
-        
-        // @ts-ignore
-        const results = await getTempoWorklogsFn({ data: { credentials, from, to } })
+
+        const results = await getTempoWorklogsFn({ data: { from, to } })
         
         const grouped = (results || []).reduce((acc: any, log: any) => {
           const date = log.startDate
@@ -74,7 +72,7 @@ function TempoCalendarPage() {
     }
 
     fetchWorklogs()
-  }, [baseDate, credentials, weekDates])
+  }, [baseDate, settings.jiraUrl, settings.hasJiraTempoApiKey, weekDates])
 
   const navigateWeek = (weeks: number) => {
     const newDate = new Date(baseDate)

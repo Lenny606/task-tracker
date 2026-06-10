@@ -4,9 +4,8 @@ import { searchJiraIssuesFn } from '../services/jiraServer'
 import type { JiraIssue } from '../models/jira'
 import { Input } from './Input'
 
-export function JiraIssueSelector({ onSelect, credentials, currentSelection, compact = false }: {
+export function JiraIssueSelector({ onSelect, currentSelection, compact = false }: {
   onSelect: (issue: JiraIssue | { key: string; fields: { summary: string } }) => void,
-  credentials: any,
   currentSelection: string | null,
   compact?: boolean
 }) {
@@ -46,8 +45,7 @@ export function JiraIssueSelector({ onSelect, credentials, currentSelection, com
       try {
         // Search by summary or key across all projects
         const jql = `summary ~ "${query}*" OR key ~ "${query}*"`
-        // @ts-ignore - Ignoring type issue with server function input
-        const issues = await searchJiraIssuesFn({ data: { credentials, jql, maxResults: 10 } })
+        const issues = await searchJiraIssuesFn({ data: { jql, maxResults: 10 } })
         setResults(issues)
         setIsOpen(true)
       } catch (error) {
@@ -58,7 +56,7 @@ export function JiraIssueSelector({ onSelect, credentials, currentSelection, com
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [query, credentials, currentSelection])
+  }, [query, currentSelection])
 
   return (
     <div className={`relative ${compact ? 'w-36' : 'w-full'}`} ref={dropdownRef}>

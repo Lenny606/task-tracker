@@ -1,23 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('../store/settingsStore', () => ({
-  getSettings: () => ({ aiModel: 'gemini-2.5-flash' }),
-  loadSettings: async () => ({ aiModel: 'gemini-2.5-flash' }),
-  saveSettings: vi.fn(),
+// AI settings come from the server-side settings repository
+vi.mock('../repositories/settings.repository', () => ({
+  settingsRepository: {
+    getSettings: vi.fn(async () => ({
+      aiProvider: 'gemini',
+      aiModel: 'gemini-2.5-flash',
+      geminiApiKey: 'test-key',
+      openaiApiKey: '',
+    })),
+  },
 }))
-
-import { aiService } from './ai'
-import { GitCommit } from './git'
-import { chat } from '@tanstack/ai'
 
 // Mock the tanstack ai functions
 vi.mock('@tanstack/ai', () => ({
   chat: vi.fn(),
 }))
 
+vi.mock('@tanstack/ai-gemini', () => ({
+  createGeminiChat: vi.fn(() => ({})),
+}))
+
 vi.mock('@tanstack/ai-openai', () => ({
   createOpenaiChat: vi.fn(() => ({})),
 }))
+
+import { analyzeCommitsForJira } from './aiCore'
+import type { GitCommit } from './gitCore'
+import { chat } from '@tanstack/ai'
 
 describe('AI Analysis Service', () => {
   const mockCommits: GitCommit[] = [
@@ -49,13 +59,12 @@ describe('AI Analysis Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubEnv('VITE_GEMINI_API_KEY', 'test-key')
     // Default mock implementation
     vi.mocked(chat).mockResolvedValue('Mocked JIRA description' as any)
   })
 
   it('should filter commits only for Tomas Kravcik', async () => {
-    await aiService.analyzeCommitsForJira(mockCommits)
+    await analyzeCommitsForJira(mockCommits)
 
     const calledPrompt = vi.mocked(chat).mock.calls[0][0].messages[0].content
 
@@ -67,14 +76,14 @@ describe('AI Analysis Service', () => {
 
   it('should return a message if no commits are found for Tomas Kravcik', async () => {
     const otherCommits = [mockCommits[1]]
-    const result = await aiService.analyzeCommitsForJira(otherCommits)
+    const result = await analyzeCommitsForJira(otherCommits)
 
     expect(result).toBe('No commits found for Tomas Kravcik in the provided data.')
     expect(chat).not.toHaveBeenCalled()
   })
 
   it('should construct a prompt with the expected structure', async () => {
-    await aiService.analyzeCommitsForJira(mockCommits)
+    await analyzeCommitsForJira(mockCommits)
 
     const calledPrompt = vi.mocked(chat).mock.calls[0][0].messages[0].content
 

@@ -3,7 +3,7 @@ import { Database, List, PlusCircle, Search, Clock, Type, Loader2, CheckCircle2,
 import { z } from 'zod'
 import { useState, useEffect } from 'react'
 import { logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
-import { useSettings, getJiraCredentials } from '../store/settingsStore'
+import { useSettings } from '../store/settingsStore'
 import { parseDurationToSeconds } from '../utils/duration'
 import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
@@ -73,7 +73,6 @@ function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; 
 
 function WorklogForm() {
   const { settings } = useSettings()
-  const credentials = getJiraCredentials(settings)
   const search = useSearch({ from: '/jira' })
   
   const [selectedIssue, setSelectedIssue] = useState<any>(null)
@@ -125,7 +124,6 @@ function WorklogForm() {
       // @ts-ignore - Ignoring type issue with server function input
       await logTempoWorkloadFn({
         data: {
-          credentials,
           worklogData: {
             issueId: selectedIssue.id,
             issueKey: selectedIssue.key,
@@ -186,7 +184,6 @@ function WorklogForm() {
             <Search className="w-4 h-4" /> Search Issue
           </label>
           <JiraIssueSelector
-            credentials={credentials}
             onSelect={setSelectedIssue}
             currentSelection={selectedIssue?.key || null}
           />
@@ -289,7 +286,7 @@ function WorklogForm() {
   )
 }
 
-function WorklogList({ credentials, filter }: { credentials: any, filter: 'month' | 'all' }) {
+function WorklogList({ filter }: { filter: 'month' | 'all' }) {
   const [worklogs, setWorklogs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -309,8 +306,7 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
           to = now.toISOString().split('T')[0]
         }
         
-        // @ts-ignore
-        const results = await getTempoWorklogsFn({ data: { credentials, from, to } })
+        const results = await getTempoWorklogsFn({ data: { from, to } })
         setWorklogs(results || [])
       } catch (error) {
         console.error('Failed to fetch worklogs:', error)
@@ -319,14 +315,13 @@ function WorklogList({ credentials, filter }: { credentials: any, filter: 'month
       }
     }
     fetchWorklogs()
-  }, [credentials, filter])
+  }, [filter])
 
   const handleDelete = async (worklogId: number) => {
     if (!window.confirm('Are you sure you want to delete this worklog?')) return
     
     try {
-      // @ts-ignore
-      await deleteTempoWorklogFn({ data: { credentials, worklogId } })
+      await deleteTempoWorklogFn({ data: { worklogId } })
       setWorklogs(prev => prev.filter(log => (log.tempoWorklogId || log.tempoId) !== worklogId))
       toast.success('Worklog deleted successfully')
     } catch (error) {
@@ -498,9 +493,6 @@ function JiraPage() {
 
   const activePeriod = search.period || 'month'
 
-  const { settings } = useSettings()
-  const credentials = getJiraCredentials(settings)
-
   return (
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
@@ -566,7 +558,7 @@ function JiraPage() {
               </Button>
             </div>
 
-            <WorklogList credentials={credentials} filter={activePeriod} />
+            <WorklogList filter={activePeriod} />
           </div>
         ) : (
           <WorklogForm />

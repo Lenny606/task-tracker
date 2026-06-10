@@ -3,10 +3,31 @@ import { settingsRepository } from '../repositories/settings.repository';
 import { getOrCreateExtensionToken } from './extensionAuth';
 import { z } from 'zod';
 
+const SECRET_FIELDS = ['geminiApiKey', 'openaiApiKey', 'jiraApiKey', 'jiraTempoApiKey'] as const;
+
+/**
+ * Shape of settings exposed to the client: secret values are replaced
+ * by boolean "configured" flags so API keys never leave the server.
+ */
+export type ClientAppSettings = ReturnType<typeof sanitizeSettings>;
+
+function sanitizeSettings(row: Awaited<ReturnType<typeof settingsRepository.getSettings>>) {
+  return {
+    aiProvider: row?.aiProvider || 'gemini',
+    aiModel: row?.aiModel || 'gemini-2.5-flash',
+    jiraEmail: row?.jiraEmail || '',
+    jiraUrl: row?.jiraUrl || '',
+    hasGeminiApiKey: !!row?.geminiApiKey,
+    hasOpenaiApiKey: !!row?.openaiApiKey,
+    hasJiraApiKey: !!row?.jiraApiKey,
+    hasJiraTempoApiKey: !!row?.jiraTempoApiKey,
+  };
+}
+
 export const getAppSettingsFn = createServerFn({
   method: 'GET',
 }).handler(async () => {
-  return await settingsRepository.getSettings();
+  return sanitizeSettings(await settingsRepository.getSettings());
 });
 
 export const saveAppSettingsFn = createServerFn({
@@ -23,7 +44,14 @@ export const saveAppSettingsFn = createServerFn({
     jiraUrl: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    return await settingsRepository.saveSettings(data);
+    // Empty secret fields mean "leave unchanged" so the client never has to
+    // round-trip stored keys just to update other settings.
+    const patch: Record<string, string> = { ...data } as Record<string, string>;
+    for (const field of SECRET_FIELDS) {
+      if (!patch[field]) delete patch[field];
+    }
+
+    return sanitizeSettings(await settingsRepository.saveSettings(patch));
   });
 
 export const getExtensionTokenFn = createServerFn({
@@ -31,4 +59,3 @@ export const getExtensionTokenFn = createServerFn({
 }).handler(async () => {
   return await getOrCreateExtensionToken();
 });
-

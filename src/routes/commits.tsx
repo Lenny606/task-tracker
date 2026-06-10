@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkles, Copy, Check } from 'lucide-react'
 import { getServerCommits } from '../services/git'
-import { aiService } from '../services/ai'
+import { analyzeCommitsForJiraFn } from '../services/aiServer'
 import { useState } from 'react'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
@@ -70,18 +70,13 @@ function CommitsComponent() {
   const [copied, setCopied] = useState(false)
 
   const handleAnalyze = async () => {
-    if (!aiService.isConfigured()) {
-      alert('AI Service is not configured. Please set VITE_GEMINI_API_KEY in your .env file.')
-      return
-    }
-
     setIsAnalyzing(true)
     try {
-      const result = await aiService.analyzeCommitsForJira(commits)
+      const result = await analyzeCommitsForJiraFn({ data: { targetDate: date } })
       setAnalysisResult(result)
     } catch (error) {
       console.error('Analysis failed:', error)
-      alert('Failed to analyze commits. Check console for details.')
+      alert('Failed to analyze commits. Make sure your AI API key is set in Settings.')
     } finally {
       setIsAnalyzing(false)
     }
