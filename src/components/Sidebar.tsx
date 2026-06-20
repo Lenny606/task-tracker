@@ -97,17 +97,23 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => toggleGlobalTimer.mutate()}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                  }`}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-95 border border-transparent cursor-pointer ${
+                  globalTimer.isRunning
+                    ? 'bg-transparent text-indigo-400 hover:bg-indigo-950/20 hover:scale-105'
+                    : 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 hover:scale-105'
+                }`}
+                title={globalTimer.isRunning ? 'Pause Global Timer' : 'Start Global Timer'}
               >
-                {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
+                {globalTimer.isRunning ? (
+                  <Pause size={16} fill="currentColor" className="animate-pulse" />
+                ) : (
+                  <Play size={16} fill="currentColor" className="ml-0.5" />
+                )}
               </button>
               <div className="flex-1">
                 <button
                   onClick={handleEditTimer}
-                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded transition-colors ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}
+                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded transition-colors cursor-pointer ${globalTimer.isRunning ? 'text-white font-semibold' : 'text-slate-500'}`}
                   title="Click to edit timer"
                 >
                   {formatTime(getDisplayGlobalTime(globalTimer))}
@@ -120,10 +126,10 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                       resetGlobalTimer.mutate()
                     }
                   }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center bg-transparent text-slate-500 hover:text-rose-400 hover:bg-rose-950/20 border border-transparent transition-all active:scale-90 cursor-pointer"
                   title="Reset Timer"
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={12} />
                 </button>
               )}
             </div>
