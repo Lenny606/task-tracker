@@ -1,10 +1,15 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database, Calendar, LayoutGrid } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database, Calendar, LayoutGrid, X } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import React, { useState } from 'react'
+
 import { Divider } from './Divider'
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const {
     globalTimer,
     toggleGlobalTimer,
@@ -54,14 +59,27 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-950 text-slate-300 border-r border-slate-900 flex flex-col z-50 shadow-2xl">
-      <div className="p-8 border-b border-slate-900 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <Clock className="w-6 h-6 text-white" />
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-slate-950 text-slate-300 border-r border-slate-900 flex flex-col z-50 shadow-2xl transition-transform duration-300 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+    }`}>
+      <div className="p-8 border-b border-slate-900 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <Clock className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            TimeTrack
+          </h1>
         </div>
-        <h1 className="text-2xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-          TimeTrack
-        </h1>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden p-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close navigation menu"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
@@ -114,6 +132,7 @@ export function Sidebar() {
 
         <Link
           to="/"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -123,6 +142,7 @@ export function Sidebar() {
 
         <Link
           to="/summary"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -132,6 +152,7 @@ export function Sidebar() {
 
         <Link
           to="/calendar"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -141,6 +162,7 @@ export function Sidebar() {
 
         <Link
           to="/projects"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -152,6 +174,7 @@ export function Sidebar() {
 
         <Link
           to="/jira"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -161,6 +184,7 @@ export function Sidebar() {
 
         <Link
           to="/tempo-calendar"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -172,6 +196,7 @@ export function Sidebar() {
 
         <Link
           to="/history"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -183,6 +208,7 @@ export function Sidebar() {
 
         <Link
           to="/commits"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
@@ -195,6 +221,7 @@ export function Sidebar() {
       <div className="p-6 border-t border-slate-900 space-y-1">
         <Link
           to="/settings"
+          onClick={onClose}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-500 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >

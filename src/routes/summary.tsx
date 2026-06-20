@@ -176,7 +176,7 @@ export function SummaryPage() {
         title={!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
         description={!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
         rightContent={
-          <div className="flex flex-col items-end gap-2">
+          <div className="hidden md:flex flex-col items-end gap-2">
             <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
             <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
               <div

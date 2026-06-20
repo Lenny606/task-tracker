@@ -32,7 +32,7 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
 
   if (!isMounted) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="glass-panel p-6 rounded-3xl h-32 animate-pulse bg-slate-100/50 dark:bg-slate-800/50" />
         ))}
@@ -41,7 +41,7 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
       <StatCard
         title="Global Tracked Time"
         value={formatFullTime(globalSeconds)}

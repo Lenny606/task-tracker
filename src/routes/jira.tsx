@@ -82,7 +82,7 @@ function WorklogForm() {
   const [description, setDescription] = useState(search.description ? unescapeHtml(search.description) : '')
   const [trackerProjectId, setTrackerProjectId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/jira' })
 
   const handleReset = () => {
     setSelectedIssue(null)
@@ -157,7 +157,7 @@ function WorklogForm() {
 
   return (
     <form onSubmit={handleSubmit} className="relative p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="absolute top-8 right-8 flex items-center gap-3">
+      <div className="md:absolute md:top-8 md:right-8 flex flex-wrap items-center gap-3 justify-end">
         <Button
           variant="ghost"
           onClick={() => navigate({ to: '/summary', search: { date } })}
@@ -428,7 +428,7 @@ function WorklogList({ filter }: { filter: 'month' | 'all' }) {
             </div>
 
             <div className="grid grid-cols-1 gap-4">
-              {groupedWorklogs[date].map((log) => (
+              {groupedWorklogs[date].map((log: any) => (
                 <div key={log.tempoId || log.tempoWorklogId} className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 rounded-3xl shadow-sm hover:ring-2 hover:ring-blue-500/50 transition-all group">
                   <div className="flex gap-5 items-center min-w-0">
                     <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-black rounded-lg border border-blue-100 dark:border-blue-900/30 uppercase tracking-tighter shrink-0">
