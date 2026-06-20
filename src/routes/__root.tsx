@@ -43,10 +43,65 @@ import { reconcileTimersFn } from '../services/tasksServer'
 import { useTasks } from '../hooks/useTasks'
 import { Menu, Clock } from 'lucide-react'
 
+function AppLayout({
+  isSidebarOpen,
+  setIsSidebarOpen,
+}: {
+  isSidebarOpen: boolean
+  setIsSidebarOpen: (val: boolean) => void
+}) {
+  const { globalTimer } = useTasks()
+
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen">
+      {/* Mobile Header */}
+      <header className="md:hidden flex items-center justify-between px-6 py-4 bg-slate-950 text-slate-300 border-b border-slate-900 sticky top-0 z-40 w-full shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Open navigation menu"
+          >
+            <Menu size={24} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center">
+              <Clock className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              TimeTrack
+            </span>
+          </div>
+        </div>
+
+        {/* Running timer status indicator */}
+        {globalTimer.isRunning && (
+          <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-950/50 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold animate-pulse-soft">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
+            Tracking
+          </span>
+        )}
+      </header>
+
+      {/* Mobile Sidebar backdrop */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <main className="flex-1 md:ml-64 min-h-screen pt-4 md:pt-0 w-full overflow-x-hidden">
+        <Outlet />
+      </main>
+    </div>
+  )
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const { globalTimer } = useTasks()
 
   // Stop stale timers (left running from a previous day / over 10h) once per app start.
   // This used to happen as a side-effect of reading history; now it is explicit.
@@ -98,49 +153,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col md:flex-row min-h-screen">
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-6 py-4 bg-slate-950 text-slate-300 border-b border-slate-900 sticky top-0 z-40 w-full shrink-0">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              aria-label="Open navigation menu"
-            >
-              <Menu size={24} />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                TimeTrack
-              </span>
-            </div>
-          </div>
-
-          {/* Running timer status indicator */}
-          {globalTimer.isRunning && (
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-950/50 border border-indigo-500/20 text-indigo-400 rounded-full text-xs font-bold animate-pulse-soft">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
-              Tracking
-            </span>
-          )}
-        </header>
-
-        {/* Mobile Sidebar backdrop */}
-        {isSidebarOpen && (
-          <div
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
-          />
-        )}
-
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-1 md:ml-64 min-h-screen pt-4 md:pt-0 w-full overflow-x-hidden">
-          <Outlet />
-        </main>
-      </div>
+      <AppLayout isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
       <ToastContainer />
       <AgentCopilot />
       <TanStackDevtools
