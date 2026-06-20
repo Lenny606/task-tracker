@@ -1,5 +1,5 @@
 import React from 'react'
-import { BarChart3, Clock, CheckCircle2, Timer, Database } from 'lucide-react'
+import { Clock, CheckCircle2, Timer, Database } from 'lucide-react'
 import { StatCard } from '../StatCard'
 import { formatFullTime } from '../../utils/duration'
 
@@ -32,8 +32,8 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
 
   if (!isMounted) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="glass-panel p-6 rounded-3xl h-32 animate-pulse bg-slate-100/50 dark:bg-slate-800/50" />
         ))}
       </div>
@@ -41,7 +41,7 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
       <StatCard
         title="Global Tracked Time"
         value={formatFullTime(globalSeconds)}
@@ -77,13 +77,6 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
         value={tasksCount}
         icon={CheckCircle2}
         variant="emerald"
-      />
-
-      <StatCard
-        title="Average per Task"
-        value={tasksCount > 0 ? formatTime(Math.floor(totalSeconds / tasksCount)) : '0h 0m'}
-        icon={BarChart3}
-        variant="amber"
       />
 
       <StatCard
