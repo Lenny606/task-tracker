@@ -109,6 +109,147 @@ function ProjectsPage() {
   )
 }
 
+interface ProjectCardHeaderProps {
+  project: any
+  onEdit: () => void
+  onDelete: () => void
+}
+
+const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, onEdit, onDelete }) => {
+  return (
+    <div className="flex justify-between items-start mb-6">
+      <div className="flex items-center gap-3">
+        <div 
+          className="w-3 h-10 rounded-full"
+          style={{ backgroundColor: project.color || '#6366f1' }}
+        />
+        <div>
+          <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">
+            {project.name}
+          </h3>
+          {project.description && (
+            <p className="text-sm text-slate-500 line-clamp-1 mt-1">{project.description}</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Button onClick={onEdit} variant="icon" icon={Edit2} />
+        <Button onClick={onDelete} variant="icon" icon={Trash2} />
+      </div>
+    </div>
+  )
+}
+
+interface ProjectBudgetProgressProps {
+  project: any
+  isOverBudget: boolean
+  progress: number
+}
+
+const ProjectBudgetProgress: React.FC<ProjectBudgetProgressProps> = ({ project, isOverBudget, progress }) => {
+  return (
+    <div className="space-y-4 flex-1">
+      <div className="flex justify-between items-end">
+        <div className="space-y-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</span>
+          <div className={`text-2xl font-mono font-bold ${isOverBudget ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
+            {formatSecondsToDuration(project.totalSpentSeconds)}
+          </div>
+        </div>
+        <div className="text-right space-y-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Budget</span>
+          <div className="text-lg font-mono font-bold text-slate-500">
+            {project.timeBudgetSeconds > 0 ? formatSecondsToDuration(project.timeBudgetSeconds) : 'No Budget'}
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="relative h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+        <div 
+          className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out rounded-full ${
+            isOverBudget ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : ''
+          }`}
+          style={{ 
+            width: `${progress}%`,
+            backgroundColor: isOverBudget ? undefined : (project.color || '#6366f1')
+          }}
+        />
+      </div>
+
+      <div className="flex justify-between items-center pt-2">
+        {isOverBudget ? (
+          <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-wider animate-pulse">
+            <AlertTriangle size={14} />
+            Budget Overflow
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-wider">
+            <CheckCircle2 size={14} />
+            Within Budget ({Math.round(progress)}%)
+          </div>
+        )}
+        
+        <div className="text-xs font-bold text-slate-400 flex items-center gap-1">
+          <Clock size={12} />
+          {Math.round(project.totalSpentSeconds / 3600)}h tracked
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface ProjectRelatedTasksProps {
+  relatedTasks?: any[]
+  showTasks: boolean
+  setShowTasks: (show: boolean) => void
+}
+
+const ProjectRelatedTasks: React.FC<ProjectRelatedTasksProps> = ({ relatedTasks, showTasks, setShowTasks }) => {
+  if (!relatedTasks || relatedTasks.length === 0) return null
+
+  return (
+    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+      <button 
+        onClick={() => setShowTasks(!showTasks)}
+        className="flex items-center justify-between w-full text-slate-500 hover:text-indigo-500 transition-colors"
+      >
+        <span className="text-xs font-black uppercase tracking-widest">
+          Related Tasks ({relatedTasks.length})
+        </span>
+        <ChevronRight 
+          size={16} 
+          className={`transition-transform duration-300 ${showTasks ? 'rotate-90 text-indigo-500' : ''}`} 
+        />
+      </button>
+      
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+        showTasks ? 'max-h-60 mt-4 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <ul className="space-y-3 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
+          {relatedTasks.map((task: any, i: number) => (
+            <li key={i} className="flex flex-col gap-1 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group/item">
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
+                  {task.name}
+                </span>
+                <span className="text-[11px] font-mono font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md shrink-0">
+                  {formatSecondsToDuration(task.seconds)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <Clock size={10} />
+                <span>{task.date}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () => void; onDelete: () => void }) {
   const [showTasks, setShowTasks] = useState(false)
   const progress = project.timeBudgetSeconds > 0 
@@ -127,117 +268,15 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
         style={{ backgroundColor: project.color || '#6366f1' }}
       />
 
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex items-center gap-3">
-          <div 
-            className="w-3 h-10 rounded-full"
-            style={{ backgroundColor: project.color || '#6366f1' }}
-          />
-          <div>
-            <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">
-              {project.name}
-            </h3>
-            {project.description && (
-              <p className="text-sm text-slate-500 line-clamp-1 mt-1">{project.description}</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button onClick={onEdit} variant="icon" icon={Edit2} />
-          <Button onClick={onDelete} variant="icon" icon={Trash2} />
-        </div>
-      </div>
+      <ProjectCardHeader project={project} onEdit={onEdit} onDelete={onDelete} />
 
-      <div className="space-y-4 flex-1">
-        <div className="flex justify-between items-end">
-          <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</span>
-            <div className={`text-2xl font-mono font-bold ${isOverBudget ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
-              {formatSecondsToDuration(project.totalSpentSeconds)}
-            </div>
-          </div>
-          <div className="text-right space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Budget</span>
-            <div className="text-lg font-mono font-bold text-slate-500">
-              {project.timeBudgetSeconds > 0 ? formatSecondsToDuration(project.timeBudgetSeconds) : 'No Budget'}
-            </div>
-          </div>
-        </div>
+      <ProjectBudgetProgress project={project} isOverBudget={isOverBudget} progress={progress} />
 
-        {/* Progress Bar */}
-        <div className="relative h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-          <div 
-            className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out rounded-full ${
-              isOverBudget ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : ''
-            }`}
-            style={{ 
-              width: `${progress}%`,
-              backgroundColor: isOverBudget ? undefined : (project.color || '#6366f1')
-            }}
-          />
-        </div>
-
-        <div className="flex justify-between items-center pt-2">
-          {isOverBudget ? (
-            <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-wider animate-pulse">
-              <AlertTriangle size={14} />
-              Budget Overflow
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-wider">
-              <CheckCircle2 size={14} />
-              Within Budget ({Math.round(progress)}%)
-            </div>
-          )}
-          
-          <div className="text-xs font-bold text-slate-400 flex items-center gap-1">
-            <Clock size={12} />
-            {Math.round(project.totalSpentSeconds / 3600)}h tracked
-          </div>
-        </div>
-      </div>
-
-      {/* Related Tasks Toggle */}
-      {project.relatedTasks?.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button 
-            onClick={() => setShowTasks(!showTasks)}
-            className="flex items-center justify-between w-full text-slate-500 hover:text-indigo-500 transition-colors"
-          >
-            <span className="text-xs font-black uppercase tracking-widest">
-              Related Tasks ({project.relatedTasks.length})
-            </span>
-            <ChevronRight 
-              size={16} 
-              className={`transition-transform duration-300 ${showTasks ? 'rotate-90 text-indigo-500' : ''}`} 
-            />
-          </button>
-          
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            showTasks ? 'max-h-60 mt-4 opacity-100' : 'max-h-0 opacity-0'
-          }`}>
-            <ul className="space-y-3 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
-              {project.relatedTasks.map((task: any, i: number) => (
-                <li key={i} className="flex flex-col gap-1 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group/item">
-                  <div className="flex justify-between items-start gap-3">
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
-                      {task.name}
-                    </span>
-                    <span className="text-[11px] font-mono font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md shrink-0">
-                      {formatSecondsToDuration(task.seconds)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <Clock size={10} />
-                    <span>{task.date}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <ProjectRelatedTasks 
+        relatedTasks={project.relatedTasks} 
+        showTasks={showTasks} 
+        setShowTasks={setShowTasks} 
+      />
     </div>
   )
 }

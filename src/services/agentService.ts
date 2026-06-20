@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { historyTasksRepository } from '../repositories/historyTasks.repository';
 import { dayMetricsRepository } from '../repositories/dayMetrics.repository';
 import { trackerProjectRepository } from '../repositories/trackerProject.repository';
-import { jiraService, JiraCredentials } from './jira';
+import { jiraService, type JiraCredentials } from './jira';
 import { settingsRepository } from '../repositories/settings.repository';
 import { agentLogger } from '../utils/agentLogger';
 
@@ -485,7 +485,7 @@ export function mapMessagesToGemini(messages: ChatMessage[]): any[] {
       const parts: any[] = [];
       while (i < messages.length && messages[i].role === 'tool') {
         const toolMsg = messages[i];
-        let responseObj = { success: true };
+        let responseObj: any = { success: true };
         try {
           responseObj = typeof toolMsg.content === 'string' ? JSON.parse(toolMsg.content) : toolMsg.content;
         } catch (e) {
@@ -547,6 +547,41 @@ async function loadAgentSettings() {
   return settings;
 }
 
+function parseGeminiChunk(
+  line: string,
+  toolCalls: any[],
+  onEvent: (event: any) => void
+): string {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('data:')) return '';
+  const jsonStr = trimmed.substring(5).trim();
+  if (!jsonStr) return '';
+
+  try {
+    const data = JSON.parse(jsonStr);
+    const part = data.candidates?.[0]?.content?.parts?.[0];
+    let content = '';
+
+    if (part?.text) {
+      content = part.text;
+      onEvent({ type: 'text', delta: part.text });
+    }
+
+    if (part?.functionCalls && part.functionCalls.length > 0) {
+      for (const fc of part.functionCalls) {
+        toolCalls.push({
+          id: `call_${randomUUID().replace(/-/g, '')}`,
+          name: fc.name,
+          arguments: fc.args
+        });
+      }
+    }
+    return content;
+  } catch (err) {
+    return '';
+  }
+}
+
 async function streamGeminiResponse(
   apiKey: string,
   model: string,
@@ -606,58 +641,53 @@ async function streamGeminiResponse(
     buffer = lines.pop() || '';
 
     for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data:')) continue;
-      const jsonStr = trimmed.substring(5).trim();
-      if (!jsonStr) continue;
-
-      try {
-        const data = JSON.parse(jsonStr);
-        const part = data.candidates?.[0]?.content?.parts?.[0];
-
-        if (part?.text) {
-          gatheredContent += part.text;
-          onEvent({ type: 'text', delta: part.text });
-        }
-
-        if (part?.functionCalls && part.functionCalls.length > 0) {
-          for (const fc of part.functionCalls) {
-            toolCalls.push({
-              id: `call_${randomUUID().replace(/-/g, '')}`,
-              name: fc.name,
-              arguments: fc.args
-            });
-          }
-        }
-      } catch (err) {
-        // Ignore partial parsing failures
-      }
+      gatheredContent += parseGeminiChunk(line, toolCalls, onEvent);
     }
   }
 
   // Handle any left-overs in buffer
-  if (buffer.trim().startsWith('data:')) {
-    try {
-      const jsonStr = buffer.trim().substring(5).trim();
-      const data = JSON.parse(jsonStr);
-      const part = data.candidates?.[0]?.content?.parts?.[0];
-      if (part?.text) {
-        gatheredContent += part.text;
-        onEvent({ type: 'text', delta: part.text });
-      }
-      if (part?.functionCalls) {
-        for (const fc of part.functionCalls) {
-          toolCalls.push({
-            id: `call_${randomUUID().replace(/-/g, '')}`,
-            name: fc.name,
-            arguments: fc.args
-          });
-        }
-      }
-    } catch (e) { }
+  if (buffer) {
+    gatheredContent += parseGeminiChunk(buffer, toolCalls, onEvent);
   }
 
   return { content: gatheredContent, toolCalls };
+}
+
+function parseOpenAIChunk(
+  line: string,
+  openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }>,
+  onEvent: (event: any) => void
+): string {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('data:')) return '';
+  const dataStr = trimmed.substring(5).trim();
+  if (dataStr === '[DONE]') return '';
+
+  try {
+    const parsed = JSON.parse(dataStr);
+    const delta = parsed.choices?.[0]?.delta;
+    let content = '';
+
+    if (delta?.content) {
+      content = delta.content;
+      onEvent({ type: 'text', delta: delta.content });
+    }
+
+    if (delta?.tool_calls) {
+      for (const tc of delta.tool_calls) {
+        const idx = tc.index;
+        if (!openAiToolCallsBuffer[idx]) {
+          openAiToolCallsBuffer[idx] = { arguments: '' };
+        }
+        if (tc.id) openAiToolCallsBuffer[idx].id = tc.id;
+        if (tc.function?.name) openAiToolCallsBuffer[idx].name = tc.function.name;
+        if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
+      }
+    }
+    return content;
+  } catch (err) {
+    return '';
+  }
 }
 
 async function streamOpenAIResponse(
@@ -704,7 +734,6 @@ async function streamOpenAIResponse(
   let gatheredContent = '';
   const toolCalls: any[] = [];
 
-  // Collect partial tool call inputs streamed by OpenAI
   const openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }> = {};
 
   const streamReader = reader.getReader();
@@ -717,32 +746,7 @@ async function streamOpenAIResponse(
     buffer = lines.pop() || '';
 
     for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data:')) continue;
-      const dataStr = trimmed.substring(5).trim();
-      if (dataStr === '[DONE]') continue;
-
-      try {
-        const parsed = JSON.parse(dataStr);
-        const delta = parsed.choices?.[0]?.delta;
-
-        if (delta?.content) {
-          gatheredContent += delta.content;
-          onEvent({ type: 'text', delta: delta.content });
-        }
-
-        if (delta?.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const idx = tc.index;
-            if (!openAiToolCallsBuffer[idx]) {
-              openAiToolCallsBuffer[idx] = { arguments: '' };
-            }
-            if (tc.id) openAiToolCallsBuffer[idx].id = tc.id;
-            if (tc.function?.name) openAiToolCallsBuffer[idx].name = tc.function.name;
-            if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
-          }
-        }
-      } catch (err) { }
+      gatheredContent += parseOpenAIChunk(line, openAiToolCallsBuffer, onEvent);
     }
   }
 

@@ -31,6 +31,109 @@ async function handleUnauthorized(corsHeaders: Record<string, string>) {
   })
 }
 
+async function handleToggleTimer(body: any, timerPath: string) {
+  let timerState = { isRunning: false, startTime: null as number | null, accumulatedSeconds: 0, taskName: '' }
+  try {
+    const data = await fs.readFile(timerPath, 'utf-8')
+    timerState = JSON.parse(data)
+  } catch (e) {}
+
+  if (timerState.isRunning) {
+    const elapsed = Math.floor((Date.now() - (timerState.startTime || Date.now())) / 1000)
+    timerState = { 
+      ...timerState,
+      isRunning: false, 
+      startTime: null, 
+      accumulatedSeconds: (timerState.accumulatedSeconds || 0) + elapsed 
+    }
+  } else {
+    timerState = { 
+      ...timerState,
+      isRunning: true, 
+      startTime: Date.now(),
+      taskName: body.taskName || timerState.taskName || 'Untitled Task'
+    }
+  }
+
+  await fs.writeFile(timerPath, JSON.stringify(timerState, null, 2))
+  return timerState
+}
+
+async function handleSaveTimer(clipsPath: string, timerPath: string) {
+  let timerState = { isRunning: false, startTime: null as number | null, accumulatedSeconds: 0, taskName: '' }
+  try {
+    const data = await fs.readFile(timerPath, 'utf-8')
+    timerState = JSON.parse(data)
+  } catch (e) {}
+
+  let totalElapsed = timerState.accumulatedSeconds || 0
+  if (timerState.isRunning && timerState.startTime) {
+    totalElapsed += Math.floor((Date.now() - timerState.startTime) / 1000)
+  }
+
+  if (totalElapsed > 0) {
+    let existingClips = []
+    try {
+      const data = await fs.readFile(clipsPath, 'utf-8')
+      existingClips = JSON.parse(data)
+    } catch (e) {}
+
+    existingClips.push({
+      id: randomUUID(),
+      title: timerState.taskName || 'Timed Task',
+      totalSeconds: totalElapsed,
+      timestamp: new Date().toISOString(),
+      isTimerTask: true
+    })
+
+    await fs.writeFile(clipsPath, JSON.stringify(existingClips, null, 2))
+  }
+
+  const resetState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
+  await fs.writeFile(timerPath, JSON.stringify(resetState, null, 2))
+  return resetState
+}
+
+async function handleClearTimer(timerPath: string) {
+  const resetState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
+  await fs.writeFile(timerPath, JSON.stringify(resetState, null, 2))
+  return resetState
+}
+
+async function handleUpdateTimer(body: any, timerPath: string) {
+  let timerState = { isRunning: false, startTime: null as number | null, accumulatedSeconds: 0, taskName: '' }
+  try {
+    const data = await fs.readFile(timerPath, 'utf-8')
+    timerState = JSON.parse(data)
+  } catch (e) {}
+
+  timerState = {
+    ...timerState,
+    accumulatedSeconds: body.accumulatedSeconds ?? timerState.accumulatedSeconds,
+    startTime: body.isRunning ? (body.startTime ?? Date.now()) : null,
+    isRunning: body.isRunning ?? timerState.isRunning,
+  }
+
+  await fs.writeFile(timerPath, JSON.stringify(timerState, null, 2))
+  return timerState
+}
+
+async function handleDefaultClip(body: any, clipsPath: string) {
+  let existingClips = []
+  try {
+    const data = await fs.readFile(clipsPath, 'utf-8')
+    existingClips = JSON.parse(data)
+  } catch (e) {}
+
+  existingClips.push({
+    ...body,
+    id: randomUUID(),
+    timestamp: new Date().toISOString()
+  })
+
+  await fs.writeFile(clipsPath, JSON.stringify(existingClips, null, 2))
+}
+
 export const Route = createFileRoute('/api/extension')({
   server: {
     handlers: {
@@ -89,102 +192,15 @@ export const Route = createFileRoute('/api/extension')({
         let responseData: any = { success: true }
 
         if (body.type === 'TOGGLE_TIMER') {
-          let timerState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
-          try {
-            const data = await fs.readFile(timerPath, 'utf-8')
-            timerState = JSON.parse(data)
-          } catch (e) {}
-
-          if (timerState.isRunning) {
-            // Pausing: calculate newly elapsed time and add to accumulated
-            const elapsed = Math.floor((Date.now() - (timerState.startTime || Date.now())) / 1000)
-            timerState = { 
-              ...timerState,
-              isRunning: false, 
-              startTime: null, 
-              accumulatedSeconds: (timerState.accumulatedSeconds || 0) + elapsed 
-            }
-          } else {
-            // Starting/Resuming
-            timerState = { 
-              ...timerState,
-              isRunning: true, 
-              startTime: Date.now(),
-              taskName: body.taskName || timerState.taskName || 'Untitled Task'
-            }
-          }
-
-          await fs.writeFile(timerPath, JSON.stringify(timerState, null, 2))
-          responseData.timerState = timerState
+          responseData.timerState = await handleToggleTimer(body, timerPath)
         } else if (body.type === 'SAVE_TIMER') {
-          // Calculate final duration and save as task
-          let timerState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
-          try {
-            const data = await fs.readFile(timerPath, 'utf-8')
-            timerState = JSON.parse(data)
-          } catch (e) {}
-
-          let totalElapsed = timerState.accumulatedSeconds || 0
-          if (timerState.isRunning && timerState.startTime) {
-            totalElapsed += Math.floor((Date.now() - timerState.startTime) / 1000)
-          }
-
-          if (totalElapsed > 0) {
-            let existingClips = []
-            try {
-              const data = await fs.readFile(clipsPath, 'utf-8')
-              existingClips = JSON.parse(data)
-            } catch (e) {}
-
-            existingClips.push({
-              id: randomUUID(),
-              title: timerState.taskName || 'Timed Task',
-              totalSeconds: totalElapsed,
-              timestamp: new Date().toISOString(),
-              isTimerTask: true
-            })
-
-            await fs.writeFile(clipsPath, JSON.stringify(existingClips, null, 2))
-          }
-
-          // Reset timer
-          const resetState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
-          await fs.writeFile(timerPath, JSON.stringify(resetState, null, 2))
-          responseData.timerState = resetState
+          responseData.timerState = await handleSaveTimer(clipsPath, timerPath)
         } else if (body.type === 'CLEAR_TIMER') {
-          const resetState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
-          await fs.writeFile(timerPath, JSON.stringify(resetState, null, 2))
-          responseData.timerState = resetState
+          responseData.timerState = await handleClearTimer(timerPath)
         } else if (body.type === 'UPDATE_TIMER') {
-          let timerState = { isRunning: false, startTime: null, accumulatedSeconds: 0, taskName: '' }
-          try {
-            const data = await fs.readFile(timerPath, 'utf-8')
-            timerState = JSON.parse(data)
-          } catch (e) {}
-
-          timerState = {
-            ...timerState,
-            accumulatedSeconds: body.accumulatedSeconds ?? timerState.accumulatedSeconds,
-            startTime: body.isRunning ? (body.startTime ?? Date.now()) : null,
-            isRunning: body.isRunning ?? timerState.isRunning,
-          }
-
-          await fs.writeFile(timerPath, JSON.stringify(timerState, null, 2))
-          responseData.timerState = timerState
+          responseData.timerState = await handleUpdateTimer(body, timerPath)
         } else {
-          let existingClips = []
-          try {
-            const data = await fs.readFile(clipsPath, 'utf-8')
-            existingClips = JSON.parse(data)
-          } catch (e) {}
-
-          existingClips.push({
-            ...body,
-            id: randomUUID(),
-            timestamp: new Date().toISOString()
-          })
-
-          await fs.writeFile(clipsPath, JSON.stringify(existingClips, null, 2))
+          await handleDefaultClip(body, clipsPath)
         }
 
         return new Response(JSON.stringify(responseData), {

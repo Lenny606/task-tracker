@@ -8,7 +8,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Database,
-  ExternalLink,
   ChevronRight,
   MessageSquare
 } from 'lucide-react';
@@ -283,6 +282,44 @@ const CopilotInput: React.FC<CopilotInputProps> = ({
   )
 }
 
+interface StreamEvent {
+  type: 'text' | 'tool_call' | 'tool_result' | 'error';
+  delta?: string;
+  name?: string;
+  arguments?: any;
+  result?: any;
+  error?: string;
+}
+
+async function readAgentStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onEvent: (event: StreamEvent) => void
+): Promise<void> {
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      try {
+        const event = JSON.parse(trimmed);
+        onEvent(event);
+      } catch (e) {
+        console.error('Failed to parse NDJSON line:', trimmed, e);
+      }
+    }
+  }
+}
+
 export function AgentCopilot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -359,59 +396,37 @@ export function AgentCopilot() {
         throw new Error('ReadableStream not supported on response.');
       }
 
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
       let accumulatedText = '';
       let activeLoopMessages = [...updatedMessages];
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-
-          let event;
-          try {
-            event = JSON.parse(trimmed);
-          } catch (e) {
-            console.error('Failed to parse NDJSON line:', trimmed, e);
-            continue;
-          }
-
-          if (event.type === 'error') {
-            throw new Error(event.error);
-          }
-
-          if (event.type === 'text') {
-            accumulatedText += event.delta;
-            setStreamingText(accumulatedText);
-          } 
-          else if (event.type === 'tool_call') {
-            setActiveTools(prev => [...prev, { name: event.name, args: event.arguments }]);
-          } 
-          else if (event.type === 'tool_result') {
-            setActiveTools(prev => prev.filter(t => t.name !== event.name));
-            
-            const isError = !!event.result?.error;
-            const resultMsg: ChatMessage = {
-              role: 'tool',
-              name: event.name,
-              content: JSON.stringify(event.result),
-              isCompleted: !isError,
-              isError: isError
-            };
-            
-            activeLoopMessages.push(resultMsg);
-            saveMessages([...activeLoopMessages]);
-          }
+      await readAgentStream(reader, (event) => {
+        if (event.type === 'error') {
+          throw new Error(event.error);
         }
-      }
+
+        if (event.type === 'text') {
+          accumulatedText += event.delta || '';
+          setStreamingText(accumulatedText);
+        } 
+        else if (event.type === 'tool_call') {
+          setActiveTools(prev => [...prev, { name: event.name || '', args: event.arguments }]);
+        } 
+        else if (event.type === 'tool_result') {
+          setActiveTools(prev => prev.filter(t => t.name !== event.name));
+          
+          const isError = !!event.result?.error;
+          const resultMsg: ChatMessage = {
+            role: 'tool',
+            name: event.name,
+            content: JSON.stringify(event.result),
+            isCompleted: !isError,
+            isError: isError
+          };
+          
+          activeLoopMessages.push(resultMsg);
+          saveMessages([...activeLoopMessages]);
+        }
+      });
 
       if (accumulatedText) {
         const assistantMsg: ChatMessage = { role: 'assistant', content: accumulatedText };
