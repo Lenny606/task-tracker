@@ -56,3 +56,6 @@ todos.json
 .antigravitycli/
 .gemini/
 
+# Testing and coverage
+coverage/
+*.lcov

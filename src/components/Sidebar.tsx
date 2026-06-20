@@ -4,10 +4,10 @@ import { useTasks } from '../hooks/useTasks'
 import React, { useState } from 'react'
 
 export function Sidebar() {
-  const { 
-    globalTimer, 
-    toggleGlobalTimer, 
-    resetGlobalTimer, 
+  const {
+    globalTimer,
+    toggleGlobalTimer,
+    resetGlobalTimer,
     updateGlobalTimer,
     getDisplayGlobalTime,
     isSyncingExtension,
@@ -70,7 +70,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Dashboard</span>
+          <span className="font-semibold tracking-wide">Daily Dashboard</span>
         </Link>
 
         <Link
@@ -88,7 +88,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Calendar</span>
+          <span className="font-semibold tracking-wide">Task Calendar</span>
         </Link>
 
         <Link
@@ -115,8 +115,8 @@ export function Sidebar() {
               <button
                 onClick={() => toggleGlobalTimer.mutate()}
                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                   }`}
               >
                 {globalTimer.isRunning ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
@@ -213,7 +213,7 @@ export function Sidebar() {
 }
 function SyncExtensionButton({ isSyncing, onSync }: { isSyncing: boolean, onSync: () => Promise<void> }) {
   return (
-    <button 
+    <button
       onClick={onSync}
       disabled={isSyncing}
       className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-indigo-900/20 hover:text-indigo-400 text-slate-500 group ${isSyncing ? 'animate-pulse' : ''}`}
