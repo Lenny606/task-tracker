@@ -290,6 +290,7 @@ function WorklogList({ filter }: { filter: 'month' | 'all' }) {
   const [worklogs, setWorklogs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const { settings } = useSettings()
 
   useEffect(() => {
     const fetchWorklogs = async () => {
@@ -444,6 +445,17 @@ function WorklogList({ filter }: { filter: 'month' | 'all' }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 pl-4">
+                    {settings.jiraUrl && (
+                      <a
+                        href={`${settings.jiraUrl.replace(/\/$/, '')}/browse/${log.issue.key}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200 outline-none active:scale-95"
+                        title="Open in Jira"
+                      >
+                        <ExternalLink size={20} />
+                      </a>
+                    )}
                     <Button
                       variant="icon"
                       onClick={() => handleDelete(log.tempoWorklogId || log.tempoId)}
