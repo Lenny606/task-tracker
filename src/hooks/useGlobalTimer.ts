@@ -1,6 +1,7 @@
 import { useMutation, type QueryClient } from '@tanstack/react-query'
 import { getExtensionTokenFn } from '../services/settingsServer'
 import { updateDayMetricsFn } from '../services/tasksServer'
+import { useEffect } from 'react'
 
 export interface GlobalTimer {
   totalSeconds: number
@@ -32,6 +33,73 @@ export function useGlobalTimer(
   queryClient: QueryClient,
   historyKey: any[]
 ) {
+  useEffect(() => {
+    let active = true
+    let eventSource: EventSource | null = null
+
+    const connect = async () => {
+      try {
+        const token = await getExtensionTokenFn()
+        if (!active) return
+
+        // Establish connection to Server-Sent Events endpoint if EventSource is available (client-side only)
+        if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
+          return
+        }
+
+        eventSource = new window.EventSource(`/api/timer/stream?token=${encodeURIComponent(token)}`)
+
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            if (data.type === 'TIMER_UPDATE') {
+              const { timerState, serverTime } = data
+              
+              // Calculate clock drift/offset
+              const offset = Date.now() - serverTime
+              if (typeof window !== 'undefined') {
+                window.sessionStorage.setItem('timer_clock_offset', String(offset))
+              }
+
+              queryClient.setQueryData(historyKey, (old: any) => {
+                const currentHistory = old || {}
+                const day = currentHistory[date] || { tasks: [] }
+                return {
+                  ...currentHistory,
+                  [date]: {
+                    ...day,
+                    globalTimer: {
+                      isRunning: timerState.isRunning,
+                      startTime: timerState.startTime,
+                      totalSeconds: timerState.accumulatedSeconds || 0
+                    }
+                  }
+                }
+              })
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE timer update:', e)
+          }
+        }
+
+        eventSource.onerror = () => {
+          console.warn('SSE stream lost, retrying connection...')
+        }
+      } catch (err) {
+        console.error('Failed to initialize SSE timer sync:', err)
+      }
+    }
+
+    connect()
+
+    return () => {
+      active = false
+      if (eventSource) {
+        eventSource.close()
+      }
+    }
+  }, [date, queryClient, historyKey])
+
   const toggleGlobalTimer = useMutation({
     mutationFn: async () => {
       const { base, token } = await getValidatedExtensionBase()

@@ -20,6 +20,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiExtensionRouteImport } from './routes/api.extension'
+import { Route as ApiTimerStreamRouteImport } from './routes/api.timer.stream'
 import { Route as ApiAgentChatRouteImport } from './routes/api.agent.chat'
 
 const TempoCalendarRoute = TempoCalendarRouteImport.update({
@@ -77,6 +78,11 @@ const ApiExtensionRoute = ApiExtensionRouteImport.update({
   path: '/api/extension',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTimerStreamRoute = ApiTimerStreamRouteImport.update({
+  id: '/api/timer/stream',
+  path: '/api/timer/stream',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAgentChatRoute = ApiAgentChatRouteImport.update({
   id: '/api/agent/chat',
   path: '/api/agent/chat',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/api/extension': typeof ApiExtensionRoute
   '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/timer/stream': typeof ApiTimerStreamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/api/extension': typeof ApiExtensionRoute
   '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/timer/stream': typeof ApiTimerStreamRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/tempo-calendar': typeof TempoCalendarRoute
   '/api/extension': typeof ApiExtensionRoute
   '/api/agent/chat': typeof ApiAgentChatRoute
+  '/api/timer/stream': typeof ApiTimerStreamRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/api/extension'
     | '/api/agent/chat'
+    | '/api/timer/stream'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/api/extension'
     | '/api/agent/chat'
+    | '/api/timer/stream'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/tempo-calendar'
     | '/api/extension'
     | '/api/agent/chat'
+    | '/api/timer/stream'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   TempoCalendarRoute: typeof TempoCalendarRoute
   ApiExtensionRoute: typeof ApiExtensionRoute
   ApiAgentChatRoute: typeof ApiAgentChatRoute
+  ApiTimerStreamRoute: typeof ApiTimerStreamRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiExtensionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/timer/stream': {
+      id: '/api/timer/stream'
+      path: '/api/timer/stream'
+      fullPath: '/api/timer/stream'
+      preLoaderRoute: typeof ApiTimerStreamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/agent/chat': {
       id: '/api/agent/chat'
       path: '/api/agent/chat'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   TempoCalendarRoute: TempoCalendarRoute,
   ApiExtensionRoute: ApiExtensionRoute,
   ApiAgentChatRoute: ApiAgentChatRoute,
+  ApiTimerStreamRoute: ApiTimerStreamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

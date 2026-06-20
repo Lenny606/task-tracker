@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { verifyExtensionToken } from '../services/extensionAuth'
+import { timerEventEmitter } from '../services/timerEvents'
 
 function getCorsHeaders(request: Request) {
   const origin = request.headers.get('origin') || ''
@@ -163,7 +164,7 @@ export const Route = createFileRoute('/api/extension')({
           timerState = JSON.parse(data)
         } catch (e) {}
 
-        return new Response(JSON.stringify({ clips, timerState }), {
+        return new Response(JSON.stringify({ clips, timerState, serverTime: Date.now() }), {
           headers: { 
             ...corsHeaders,
             'Content-Type': 'application/json',
@@ -190,17 +191,32 @@ export const Route = createFileRoute('/api/extension')({
         } catch (e) {}
 
         let responseData: any = { success: true }
+        let timerUpdated = false
 
         if (body.type === 'TOGGLE_TIMER') {
           responseData.timerState = await handleToggleTimer(body, timerPath)
+          timerUpdated = true
         } else if (body.type === 'SAVE_TIMER') {
           responseData.timerState = await handleSaveTimer(clipsPath, timerPath)
+          timerUpdated = true
         } else if (body.type === 'CLEAR_TIMER') {
           responseData.timerState = await handleClearTimer(timerPath)
+          timerUpdated = true
         } else if (body.type === 'UPDATE_TIMER') {
           responseData.timerState = await handleUpdateTimer(body, timerPath)
+          timerUpdated = true
         } else {
           await handleDefaultClip(body, clipsPath)
+        }
+
+        responseData.serverTime = Date.now()
+
+        if (timerUpdated && responseData.timerState) {
+          timerEventEmitter.broadcastUpdate({
+            type: 'TIMER_UPDATE',
+            timerState: responseData.timerState,
+            serverTime: responseData.serverTime
+          })
         }
 
         return new Response(JSON.stringify(responseData), {

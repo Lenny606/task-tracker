@@ -144,17 +144,31 @@ export function useTasks(date: string = getTodayDate()) {
   })
 
   // Time Helpers
+  const getClockOffset = () => {
+    if (typeof window !== 'undefined') {
+      const stored = window.sessionStorage.getItem('timer_clock_offset')
+      if (stored) {
+        const parsed = Number(stored)
+        return isNaN(parsed) ? 0 : parsed
+      }
+    }
+    return 0
+  }
+
   const getDisplayTime = (task: Task) => {
     if (!task.isRunning || !task.startTime) return task.totalSeconds
-    const extra = Math.floor((now - task.startTime) / 1000)
+    const offset = getClockOffset()
+    const extra = Math.floor((now - offset - task.startTime) / 1000)
     return task.totalSeconds + extra
   }
 
   const getDisplayGlobalTime = (timer: GlobalTimer) => {
     if (!timer.isRunning || !timer.startTime) return timer.totalSeconds
-    const extra = Math.floor((now - timer.startTime) / 1000)
+    const offset = getClockOffset()
+    const extra = Math.floor((now - offset - timer.startTime) / 1000)
     return timer.totalSeconds + extra
   }
+
 
   return {
     tasks,
