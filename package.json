@@ -13,7 +13,8 @@
     "time": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate": "node --import tsx/esm src/db/migrate.ts"
   },
   "dependencies": {
     "@tanstack/ai": "^0.6.3",
@@ -31,6 +32,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.22.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {

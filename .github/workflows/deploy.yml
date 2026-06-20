@@ -1,0 +1,107 @@
+# name: Deploy to VPS
+
+# on:
+#   push:
+#     branches:
+#       - feature/complete-refactor
+
+# jobs:
+#   # ─────────────────────────────────────────────────────────────
+#   # JOB 1: Build & Test
+#   # ─────────────────────────────────────────────────────────────
+#   build:
+#     name: Build & Test
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+
+#       - name: Install all dependencies (including dev)
+#         run: npm ci
+
+#       - name: Run tests
+#         run: npm run test
+
+#       - name: Build production bundle
+#         run: npm run build
+
+#       - name: Package build artifacts
+#         # Bundles only the files needed on the VPS:
+#         #   .output/      — compiled server + client
+#         #   drizzle/      — SQL migration files for programmatic migrator
+#         #   src/db/migrate.ts — migration script (run via tsx on the VPS)
+#         #   ecosystem.config.cjs — PM2 config
+#         #   package.json + package-lock.json — for npm install on VPS
+#         run: |
+#           tar -czf deploy.tar.gz \
+#             .output \
+#             drizzle \
+#             src/db/migrate.ts \
+#             ecosystem.config.cjs \
+#             package.json \
+#             package-lock.json
+
+#       - name: Upload artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: deploy-package
+#           path: deploy.tar.gz
+#           retention-days: 1
+
+#   # ─────────────────────────────────────────────────────────────
+#   # JOB 2: Deploy to VPS
+#   # ─────────────────────────────────────────────────────────────
+#   deploy:
+#     name: Deploy to VPS
+#     runs-on: ubuntu-latest
+#     needs: build
+
+#     steps:
+#       - name: Download artifact
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: deploy-package
+
+#       - name: Copy build to VPS via SCP
+#         uses: appleboy/scp-action@v0.1.7
+#         with:
+#           host: ${{ secrets.SSH_HOST }}
+#           username: ${{ secrets.SSH_USERNAME }}
+#           password: ${{ secrets.SSH_PASSWORD }}
+#           source: deploy.tar.gz
+#           target: ${{ secrets.DEPLOY_PATH }}
+
+#       - name: SSH into VPS and deploy
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+#           host: ${{ secrets.SSH_HOST }}
+#           username: ${{ secrets.SSH_USERNAME }}
+#           password: ${{ secrets.SSH_PASSWORD }}
+#           script: |
+#             set -e
+#             cd ${{ secrets.DEPLOY_PATH }}
+
+#             echo "→ Extracting build..."
+#             tar -xzf deploy.tar.gz
+#             rm deploy.tar.gz
+
+#             echo "→ Installing production dependencies (compiles better-sqlite3 natively)..."
+#             npm ci --omit=dev
+
+#             echo "→ Running DB migrations..."
+#             npm run db:migrate
+
+#             echo "→ Reloading PM2 (or starting if not running)..."
+#             pm2 reload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs
+
+#             echo "→ Saving PM2 process list..."
+#             pm2 save
+
+#             echo "✓ Deployment complete."
