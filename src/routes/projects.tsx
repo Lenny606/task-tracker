@@ -115,7 +115,7 @@ interface ProjectCardHeaderProps {
   onDelete: () => void
 }
 
-const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, onEdit, onDelete }) => {
+export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, onEdit, onDelete }) => {
   return (
     <div className="flex justify-between items-start mb-6">
       <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ interface ProjectBudgetProgressProps {
   progress: number
 }
 
-const ProjectBudgetProgress: React.FC<ProjectBudgetProgressProps> = ({ project, isOverBudget, progress }) => {
+export const ProjectBudgetProgress: React.FC<ProjectBudgetProgressProps> = ({ project, isOverBudget, progress }) => {
   return (
     <div className="space-y-4 flex-1">
       <div className="flex justify-between items-end">
@@ -206,7 +206,7 @@ interface ProjectRelatedTasksProps {
   setShowTasks: (show: boolean) => void
 }
 
-const ProjectRelatedTasks: React.FC<ProjectRelatedTasksProps> = ({ relatedTasks, showTasks, setShowTasks }) => {
+export const ProjectRelatedTasks: React.FC<ProjectRelatedTasksProps> = ({ relatedTasks, showTasks, setShowTasks }) => {
   if (!relatedTasks || relatedTasks.length === 0) return null
 
   return (
@@ -250,7 +250,7 @@ const ProjectRelatedTasks: React.FC<ProjectRelatedTasksProps> = ({ relatedTasks,
   )
 }
 
-function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () => void; onDelete: () => void }) {
+export function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () => void; onDelete: () => void }) {
   const [showTasks, setShowTasks] = useState(false)
   const progress = project.timeBudgetSeconds > 0 
     ? Math.min((project.totalSpentSeconds / project.timeBudgetSeconds) * 100, 100)

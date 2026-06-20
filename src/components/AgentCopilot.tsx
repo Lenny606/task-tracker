@@ -291,7 +291,7 @@ interface StreamEvent {
   error?: string;
 }
 
-async function readAgentStream(
+export async function readAgentStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   onEvent: (event: StreamEvent) => void
 ): Promise<void> {
