@@ -156,7 +156,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <Database className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Jira</span>
+          <span className="font-semibold tracking-wide">Log Tempo</span>
         </Link>
 
         <Link
