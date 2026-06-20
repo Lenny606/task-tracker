@@ -9,7 +9,6 @@ const SECRET_FIELDS = ['geminiApiKey', 'openaiApiKey', 'jiraApiKey', 'jiraTempoA
  * Shape of settings exposed to the client: secret values are replaced
  * by boolean "configured" flags so API keys never leave the server.
  */
-export type ClientAppSettings = ReturnType<typeof sanitizeSettings>;
 
 function sanitizeSettings(row: Awaited<ReturnType<typeof settingsRepository.getSettings>>) {
   return {

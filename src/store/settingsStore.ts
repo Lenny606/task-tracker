@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import type { AiModel } from '../services/ai'
 import { getAppSettingsFn, saveAppSettingsFn } from '../services/settingsServer'
 
-export interface AppSettings {
+interface AppSettings {
   aiProvider: 'gemini' | 'openai'
   aiModel: AiModel
   jiraEmail: string
@@ -15,7 +15,7 @@ export interface AppSettings {
 }
 
 // Secret values can be written (sent to the server) but are never read back.
-export type AppSettingsPatch = Partial<AppSettings> & {
+type AppSettingsPatch = Partial<AppSettings> & {
   geminiApiKey?: string
   openaiApiKey?: string
   jiraApiKey?: string
@@ -51,7 +51,7 @@ const loadSettings = async (): Promise<AppSettings> => {
   return settingsCache
 }
 
-export const getSettings = (): AppSettings => {
+const getSettings = (): AppSettings => {
   return settingsCache
 }
 
