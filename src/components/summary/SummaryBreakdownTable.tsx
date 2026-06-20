@@ -24,6 +24,121 @@ interface TableRowTaskProps {
   onLogToJira: (task: TaskType) => void
 }
 
+const TableRowTaskMobile: React.FC<TableRowTaskProps> = ({
+  task,
+  percentage,
+  onToggleMarked,
+  onUpdateTask,
+  onDeleteTask,
+  onLogToJira
+}) => {
+  return (
+    <div className={`p-5 flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800/60 ${
+      task.isMarked ? 'bg-emerald-50/20 dark:bg-emerald-900/5' : ''
+    }`}>
+      {/* Top row: Checkbox & Name */}
+      <div className="flex items-center gap-3 w-full">
+        <button
+          onClick={() => onToggleMarked(task.id)}
+          className={`transition-all active:scale-95 shrink-0 ${
+            task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
+          }`}
+        >
+          {task.isMarked ? <CheckCircle2 size={22} /> : <Circle size={22} />}
+        </button>
+        <input
+          type="text"
+          defaultValue={task.name}
+          onBlur={(e) => {
+            if (e.target.value.trim() && e.target.value !== task.name) {
+              onUpdateTask({ taskId: task.id, name: e.target.value.trim() })
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.stopPropagation()
+              ;(e.target as HTMLInputElement).blur()
+            }
+          }}
+          className="font-semibold text-lg text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+        />
+      </div>
+
+      {/* Selectors row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-[180px]">
+          <JiraIssueSelector
+            compact={true}
+            onSelect={(issue) => {
+              onUpdateTask({
+                taskId: task.id,
+                jiraKey: issue.key,
+                jiraSummary: issue.fields.summary
+              })
+            }}
+            currentSelection={task.jiraKey || null}
+          />
+        </div>
+        <ProjectSelector
+          compact
+          selectedProjectId={task.trackerProjectId || null}
+          onSelect={(projectId) => onUpdateTask({ taskId: task.id, trackerProjectId: projectId })}
+        />
+      </div>
+
+      {/* Bottom row: Duration, Percentage & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/60">
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            defaultValue={formatFullTime(task.displaySeconds)}
+            onBlur={(e) => {
+              const seconds = parseDurationToSeconds(e.target.value)
+              if (seconds !== task.displaySeconds) {
+                onUpdateTask({ taskId: task.id, totalSeconds: seconds })
+              }
+              e.target.value = formatFullTime(seconds)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                ;(e.target as HTMLInputElement).blur()
+              }
+            }}
+            className="font-mono text-base text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-xl px-3 py-1.5 transition-all w-24 text-center cursor-edit"
+          />
+          <div className="flex items-center gap-2 w-28">
+            <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 rounded-full"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <span className="text-xs text-slate-500 font-bold">{Math.round(percentage)}%</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="icon"
+            onClick={() => onLogToJira(task)}
+            className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl border border-slate-200/50 dark:border-slate-800/50"
+            title="Log to Jira"
+            icon={Database}
+          />
+          <Button
+            variant="icon"
+            onClick={() => onDeleteTask(task.id)}
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl border border-slate-200/50 dark:border-slate-800/50"
+            title="Delete task"
+            icon={Trash2}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const TableRowTask: React.FC<TableRowTaskProps> = ({
   task,
   percentage,
@@ -85,7 +200,7 @@ const TableRowTask: React.FC<TableRowTaskProps> = ({
       <td className="px-6 py-4">
         <ProjectSelector
           compact
-          selectedProjectId={task.trackerProjectId}
+          selectedProjectId={task.trackerProjectId || null}
           onSelect={(projectId) => onUpdateTask({ taskId: task.id, trackerProjectId: projectId })}
         />
       </td>
@@ -152,6 +267,59 @@ interface TableRowAddTaskProps {
   onAddTask: (e?: React.FormEvent) => void
 }
 
+const TableRowAddTaskMobile: React.FC<TableRowAddTaskProps> = ({
+  newTaskName,
+  setNewTaskName,
+  pendingJiraTicket,
+  setPendingJiraTicket,
+  onAddTask
+}) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onAddTask(e)
+  }
+
+  return (
+    <div className="p-5 bg-slate-50/30 dark:bg-slate-800/10 flex flex-col gap-4 border-b border-slate-100 dark:border-slate-800">
+      <form onSubmit={handleFormSubmit} className="flex items-center gap-3 w-full">
+        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center shrink-0">
+          <Plus size={18} />
+        </div>
+        <input
+          type="text"
+          placeholder="Add task retrospectively..."
+          value={newTaskName}
+          onChange={(e) => setNewTaskName(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium py-1"
+        />
+        {newTaskName.trim() && (
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            className="shrink-0"
+          >
+            Add Task
+          </Button>
+        )}
+      </form>
+
+      <div className="w-[200px] pl-11">
+        <JiraIssueSelector
+          compact={true}
+          onSelect={(issue) => {
+            if (!newTaskName.trim()) {
+              setNewTaskName(issue.fields.summary)
+            }
+            setPendingJiraTicket({ key: issue.key, summary: issue.fields.summary })
+          }}
+          currentSelection={pendingJiraTicket?.key || null}
+        />
+      </div>
+    </div>
+  )
+}
+
 const TableRowAddTask: React.FC<TableRowAddTaskProps> = ({
   newTaskName,
   setNewTaskName,
@@ -213,6 +381,48 @@ interface TableRowGlobalTimeProps {
   isGoalReached: boolean
   remainingSeconds: number
   onLogGlobalToJira?: () => void
+}
+
+const TableRowGlobalTimeMobile: React.FC<TableRowGlobalTimeProps> = ({
+  globalSeconds,
+  isGoalReached,
+  remainingSeconds,
+  onLogGlobalToJira
+}) => {
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    return `${h}h ${m}m`
+  }
+
+  return (
+    <div className="p-5 bg-indigo-50/20 dark:bg-indigo-900/5 flex flex-col gap-3 border-t border-indigo-500/20">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-[10px] font-black text-indigo-500/60 uppercase tracking-widest">GLOBAL TRACKED TIME</div>
+          <span className="font-mono text-xl font-bold text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</span>
+        </div>
+        <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-wider">
+          PCSD-24
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-105 dark:border-slate-850">
+        <div className="text-xs text-slate-500 font-bold">
+          {isGoalReached ? 'Goal Reached!' : `${formatTime(remainingSeconds)} remaining to 8h`}
+        </div>
+        {onLogGlobalToJira && (
+          <Button
+            variant="icon"
+            onClick={onLogGlobalToJira}
+            className="p-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-slate-200/50 dark:border-slate-800/50"
+            title="Log Global Tracked Time to Jira (PCSD-24)"
+            icon={Database}
+          />
+        )}
+      </div>
+    </div>
+  )
 }
 
 const TableRowGlobalTime: React.FC<TableRowGlobalTimeProps> = ({
@@ -305,12 +515,52 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
   onLogToJira,
   onLogGlobalToJira
 }) => {
+  const isEmpty = liveTasks.length === 0 && !newTaskName
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Detailed Breakdown</h2>
       </div>
-      <div className="overflow-x-auto">
+
+      {isEmpty && (
+        <div className="p-12 text-center text-slate-500 border-b border-slate-100 dark:border-slate-800">
+          No data available for {displayDate}. Use the input below to add tasks retrospectively.
+        </div>
+      )}
+
+      {/* Mobile view list */}
+      <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
+        {liveTasks.map((task) => (
+          <TableRowTaskMobile
+            key={task.id}
+            task={task}
+            percentage={totalSeconds > 0 ? (task.displaySeconds / totalSeconds) * 100 : 0}
+            onToggleMarked={onToggleMarked}
+            onUpdateTask={onUpdateTask}
+            onDeleteTask={onDeleteTask}
+            onLogToJira={onLogToJira}
+          />
+        ))}
+        <TableRowAddTaskMobile
+          newTaskName={newTaskName}
+          setNewTaskName={setNewTaskName}
+          pendingJiraTicket={pendingJiraTicket}
+          setPendingJiraTicket={setPendingJiraTicket}
+          onAddTask={onAddTask}
+        />
+        {globalSeconds > 0 && (
+          <TableRowGlobalTimeMobile
+            globalSeconds={globalSeconds}
+            isGoalReached={isGoalReached}
+            remainingSeconds={remainingSeconds}
+            onLogGlobalToJira={onLogGlobalToJira}
+          />
+        )}
+      </div>
+
+      {/* Desktop view table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50">
@@ -324,14 +574,6 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {liveTasks.length === 0 && !newTaskName && (
-              <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                  No data available for {displayDate}. Use the input below to add tasks retrospectively.
-                </td>
-              </tr>
-            )}
-            
             {liveTasks.map((task) => (
               <TableRowTask
                 key={task.id}

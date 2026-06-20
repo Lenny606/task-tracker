@@ -24,7 +24,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
 }) => {
   return (
     <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-indigo-500" />
@@ -36,12 +36,12 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
             title={isSummaryCollapsed ? "Show AI Summary" : "Hide AI Summary"}
           />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="ghost"
             onClick={onViewCommits}
             icon={GitBranch}
-            className="px-6 py-2 rounded-xl"
+            className="px-4 py-2 text-sm md:px-6 md:py-2 rounded-xl"
           >
             View Commits
           </Button>
@@ -50,7 +50,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
               variant="primary"
               onClick={onGenerateSummary}
               icon={Sparkles}
-              className="px-6 py-2 rounded-xl"
+              className="px-4 py-2 text-sm md:px-6 md:py-2 rounded-xl"
             >
               Generate JIRA Summary
             </Button>

@@ -132,8 +132,8 @@ describe('SummaryPage Component', () => {
     expect(screen.getAllByText('03:00:00')[0]).toBeInTheDocument() // global time formatted: 10800 seconds
 
     // Check tasks listed
-    expect(screen.getByDisplayValue('Implement OAuth authentication')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Fix memory leak in parser')).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('Implement OAuth authentication')[0]).toBeInTheDocument()
+    expect(screen.getAllByDisplayValue('Fix memory leak in parser')[0]).toBeInTheDocument()
 
     vi.useRealTimers()
   })

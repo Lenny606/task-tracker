@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Timer, LayoutGrid, Database, Loader2, ExternalLink } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Timer, LayoutGrid, Database, Loader2, ExternalLink } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
 import { getTempoWorklogsFn } from '../services/jiraServer'
@@ -114,7 +114,7 @@ function TempoCalendarPage() {
   if (!isMounted) return null
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="p-4 sm:p-8 max-w-[1600px] mx-auto min-h-screen">
       <header className="mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -139,36 +139,40 @@ function TempoCalendarPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 self-start lg:self-auto">
-          <Button
-            variant="icon"
-            onClick={() => navigateWeek(-1)}
-            icon={ChevronLeft}
-            title="Previous Week"
-          />
-          
-          <div className="px-4 py-1 text-center min-w-[200px]">
-            <span className="font-bold text-slate-700 dark:text-slate-200 block">
-              {weekRangeString}
-            </span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 self-start lg:self-auto w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="icon"
+              onClick={() => navigateWeek(-1)}
+              icon={ChevronLeft}
+              title="Previous Week"
+            />
+            
+            <div className="px-2 py-1 text-center min-w-[120px] sm:min-w-[200px]">
+              <span className="font-bold text-slate-700 dark:text-slate-200 text-sm sm:text-base block">
+                {weekRangeString}
+              </span>
+            </div>
+
+            <Button
+              variant="icon"
+              onClick={() => navigateWeek(1)}
+              icon={ChevronRight}
+              title="Next Week"
+            />
           </div>
 
-          <Button
-            variant="icon"
-            onClick={() => navigateWeek(1)}
-            icon={ChevronRight}
-            title="Next Week"
-          />
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-px bg-slate-200 dark:border-slate-800 mx-1 hidden sm:block" />
 
-          <div className="h-6 w-px bg-slate-200 dark:border-slate-800 mx-1" />
-
-          <Button
-            variant="ghost"
-            onClick={resetToToday}
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm border-none"
-          >
-            Today
-          </Button>
+            <Button
+              variant="ghost"
+              onClick={resetToToday}
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm border-none"
+            >
+              Today
+            </Button>
+          </div>
         </div>
       </header>
 
