@@ -2,6 +2,7 @@ import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, 
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
 import React, { useState } from 'react'
+import { Divider } from './Divider'
 
 export function Sidebar() {
   const {
@@ -64,42 +65,6 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
-        <Link
-          to="/"
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
-          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
-        >
-          <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Daily Dashboard</span>
-        </Link>
-
-        <Link
-          to="/summary"
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
-          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
-        >
-          <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Today's Summary</span>
-        </Link>
-
-        <Link
-          to="/calendar"
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
-          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
-        >
-          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Task Calendar</span>
-        </Link>
-
-        <Link
-          to="/projects"
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
-          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
-        >
-          <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Projects</span>
-        </Link>
-
         <div className="py-2 px-2">
           <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
             <div className="flex items-center justify-between mb-3">
@@ -147,16 +112,43 @@ export function Sidebar() {
           </div>
         </div>
 
-        <SyncExtensionButton isSyncing={isSyncingExtension} onSync={syncExtension} />
-
         <Link
-          to="/commits"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          to="/"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
-          <GitCommit className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Commits</span>
+          <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Daily Dashboard</span>
         </Link>
+
+        <Link
+          to="/summary"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Today's Summary</span>
+        </Link>
+
+        <Link
+          to="/calendar"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Task Calendar</span>
+        </Link>
+
+        <Link
+          to="/projects"
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Projects</span>
+        </Link>
+
+        <Divider />
 
         <Link
           to="/jira"
@@ -176,6 +168,8 @@ export function Sidebar() {
           <span className="font-semibold tracking-wide">Tempo Calendar</span>
         </Link>
 
+        <Divider />
+
         <Link
           to="/history"
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
@@ -183,6 +177,17 @@ export function Sidebar() {
         >
           <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span className="font-semibold tracking-wide">History</span>
+        </Link>
+
+        <SyncExtensionButton isSyncing={isSyncingExtension} onSync={syncExtension} />
+
+        <Link
+          to="/commits"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
+        >
+          <GitCommit className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span className="font-semibold tracking-wide">Commits</span>
         </Link>
 
         <Link
