@@ -84,36 +84,44 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         <div className="py-2 px-2">
-          <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Global Timer</span>
+          <div className={`rounded-2xl p-3 border transition-all duration-500 ${
+            globalTimer.isRunning
+              ? 'bg-indigo-950/10 border-indigo-900/40'
+              : 'bg-slate-900/30 border-slate-800/30'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors duration-300 ${
+                globalTimer.isRunning ? 'text-indigo-500' : 'text-slate-600'
+              }`}>Global Timer</span>
               {globalTimer.isRunning && (
-                <span className="flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                <span className="flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-indigo-500"></span>
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => toggleGlobalTimer.mutate()}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-95 border border-transparent cursor-pointer ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-95 border border-transparent cursor-pointer ${
                   globalTimer.isRunning
-                    ? 'bg-transparent text-indigo-400 hover:bg-indigo-950/20 hover:scale-105'
-                    : 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 hover:scale-105'
+                    ? 'text-indigo-400 hover:bg-indigo-950/30 hover:scale-105'
+                    : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40 hover:scale-105'
                 }`}
                 title={globalTimer.isRunning ? 'Pause Global Timer' : 'Start Global Timer'}
               >
                 {globalTimer.isRunning ? (
-                  <Pause size={16} fill="currentColor" className="animate-pulse" />
+                  <Pause size={14} fill="currentColor" />
                 ) : (
-                  <Play size={16} fill="currentColor" className="ml-0.5" />
+                  <Play size={14} fill="currentColor" className="ml-0.5" />
                 )}
               </button>
               <div className="flex-1">
                 <button
                   onClick={handleEditTimer}
-                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded transition-colors cursor-pointer ${globalTimer.isRunning ? 'text-white font-semibold' : 'text-slate-500'}`}
+                  className={`font-mono text-lg tabular-nums text-left w-full hover:bg-slate-800/60 px-1.5 py-0.5 rounded-lg transition-colors cursor-pointer ${
+                    globalTimer.isRunning ? 'text-white font-semibold' : 'text-slate-500'
+                  }`}
                   title="Click to edit timer"
                 >
                   {formatTime(getDisplayGlobalTime(globalTimer))}
@@ -126,10 +134,10 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                       resetGlobalTimer.mutate()
                     }
                   }}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center bg-transparent text-slate-500 hover:text-rose-400 hover:bg-rose-950/20 border border-transparent transition-all active:scale-90 cursor-pointer"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-600 hover:text-rose-400 hover:bg-rose-950/20 border border-transparent transition-all active:scale-90 cursor-pointer"
                   title="Reset Timer"
                 >
-                  <RefreshCw size={12} />
+                  <RefreshCw size={11} />
                 </button>
               )}
             </div>
