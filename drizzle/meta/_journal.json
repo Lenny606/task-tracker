@@ -8,6 +8,13 @@
       "when": 1778750591408,
       "tag": "0000_demonic_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783371068858,
+      "tag": "0001_low_vermin",
+      "breakpoints": true
     }
   ]
 }
