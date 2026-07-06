@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import { useRouterState } from '@tanstack/react-router';
+import {
   Sparkles, 
   Trash2, 
   X, 
@@ -8,7 +9,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Database,
-  ExternalLink,
   ChevronRight,
   MessageSquare
 } from 'lucide-react';
@@ -46,6 +46,9 @@ export function AgentCopilot() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const threadContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track the current UI location so the agent can resolve "today" / "this day".
+  const location = useRouterState({ select: (s) => s.location });
 
   // 1. Persistence - Load messages from localStorage on mount
   useEffect(() => {
@@ -101,12 +104,25 @@ export function AgentCopilot() {
     setStreamingText('');
     setActiveTools([]);
 
+    // Build the UI context sent alongside the conversation so the agent knows
+    // which day/view the user is currently looking at.
+    const today = new Date().toISOString().split('T')[0];
+    const search = (location.search || {}) as Record<string, any>;
+    const context = {
+      currentDate: today,
+      route: location.pathname,
+      viewedDate: search.date || today,
+    };
+
     try {
       // Fetch TanStack Start NDJSON endpoint
       const response = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updatedMessages.filter(m => m.role === 'user' || m.role === 'assistant') })
+        body: JSON.stringify({
+          messages: updatedMessages.filter(m => m.role === 'user' || m.role === 'assistant'),
+          context,
+        })
       });
 
       if (!response.ok) {
@@ -201,6 +217,8 @@ export function AgentCopilot() {
       .replace('tracker_', 'Local Tracker: ')
       .replace('task_', 'Tasks: ')
       .replace('jira_', 'JIRA: ')
+      .replace('git_', 'Git: ')
+      .replace('generate_daily_report', 'AI: daily report')
       .replace(/_/g, ' ');
   };
 

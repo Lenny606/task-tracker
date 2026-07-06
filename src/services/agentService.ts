@@ -5,6 +5,8 @@ import { trackerProjectRepository } from '../repositories/trackerProject.reposit
 import { jiraService, JiraCredentials } from './jira';
 import { settingsRepository } from '../repositories/settings.repository';
 import { agentLogger } from '../utils/agentLogger';
+import { collectCommits } from './gitCore';
+import { analyzeCommitsForJira } from './aiCore';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
@@ -131,6 +133,38 @@ const tools: ToolDefinition[] = [
     }
   },
   {
+    name: 'task_start_timer',
+    description: 'Start (resume) the timer on a local tracker task. Automatically stops any other currently running task so only one timer runs at a time.',
+    parameters: {
+      type: 'object',
+      properties: {
+        taskId: {
+          type: 'string',
+          description: 'The UUID of the task to start the timer on'
+        },
+        date: {
+          type: 'string',
+          description: 'Optional date of the task in YYYY-MM-DD format (helps disambiguate)'
+        }
+      },
+      required: ['taskId']
+    }
+  },
+  {
+    name: 'task_stop_timer',
+    description: 'Stop the timer on a running local tracker task and accumulate the elapsed time into its total.',
+    parameters: {
+      type: 'object',
+      properties: {
+        taskId: {
+          type: 'string',
+          description: 'The UUID of the task to stop the timer on'
+        }
+      },
+      required: ['taskId']
+    }
+  },
+  {
     name: 'task_get_day_metrics',
     description: 'Retrieve day metrics (global timer status, AI-generated work summary) for a specific date or all dates.',
     parameters: {
@@ -186,6 +220,35 @@ const tools: ToolDefinition[] = [
         }
       },
       required: ['date']
+    }
+  },
+  // Git & AI Reporting Tools
+  {
+    name: 'git_get_commits',
+    description: "Collect local Git commits authored across the developer's projects for a given day. Useful as raw material for building work summaries.",
+    parameters: {
+      type: 'object',
+      properties: {
+        date: {
+          type: 'string',
+          description: 'Optional day to collect commits for in YYYY-MM-DD format. Defaults to today.'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'generate_daily_report',
+    description: "Generate an AI work summary (JIRA-style daily report) from the day's Git commits. Returns the report text; persist it with task_update_day_metrics if the user wants it saved.",
+    parameters: {
+      type: 'object',
+      properties: {
+        date: {
+          type: 'string',
+          description: 'Optional day in YYYY-MM-DD format. Defaults to today.'
+        }
+      },
+      required: []
     }
   },
   // External JIRA & Tempo Tools
@@ -359,6 +422,56 @@ export const toolRegistry: Record<string, (args: any, creds: Partial<JiraCredent
   task_delete: async (args) => {
     return await historyTasksRepository.delete(args.taskId);
   },
+  task_start_timer: async (args) => {
+    const { taskId, date } = args;
+    const now = new Date();
+
+    // Enforce a single active timer: stop every other running task first.
+    const running = await historyTasksRepository.findRunning();
+    for (const t of running) {
+      if (t.id === taskId) continue;
+      const elapsed = t.startTime
+        ? Math.floor((now.getTime() - new Date(t.startTime).getTime()) / 1000)
+        : 0;
+      await historyTasksRepository.update(t.id, {
+        isRunning: false,
+        totalSeconds: t.totalSeconds + elapsed,
+        startTime: null,
+      });
+    }
+
+    const task = date
+      ? await historyTasksRepository.findByDateAndId(date, taskId)
+      : await historyTasksRepository.findById(taskId);
+    if (!task) {
+      throw new Error(`Task ${taskId} not found${date ? ` on ${date}` : ''}.`);
+    }
+    if (task.isRunning) {
+      return { ...task, message: 'Task timer is already running.' };
+    }
+
+    return await historyTasksRepository.update(taskId, {
+      isRunning: true,
+      startTime: now,
+    });
+  },
+  task_stop_timer: async (args) => {
+    const task = await historyTasksRepository.findById(args.taskId);
+    if (!task) {
+      throw new Error(`Task ${args.taskId} not found.`);
+    }
+    if (!task.isRunning) {
+      return { ...task, message: 'Task timer is not running.' };
+    }
+    const now = Date.now();
+    const startMs = task.startTime ? new Date(task.startTime).getTime() : now;
+    const elapsed = Math.floor((now - startMs) / 1000);
+    return await historyTasksRepository.update(args.taskId, {
+      isRunning: false,
+      totalSeconds: task.totalSeconds + elapsed,
+      startTime: null,
+    });
+  },
   task_get_day_metrics: async (args) => {
     if (args.date) {
       return await dayMetricsRepository.findByDate(args.date);
@@ -380,6 +493,19 @@ export const toolRegistry: Record<string, (args: any, creds: Partial<JiraCredent
     await historyTasksRepository.deleteByDate(args.date);
     await dayMetricsRepository.delete(args.date);
     return { success: true };
+  },
+
+  // Git & AI Reporting Operations
+  git_get_commits: async (args) => {
+    return await collectCommits(args.date);
+  },
+  generate_daily_report: async (args) => {
+    const commits = await collectCommits(args.date);
+    if (commits.length === 0) {
+      return { report: null, commitCount: 0, message: 'No commits found for the given day.' };
+    }
+    const report = await analyzeCommitsForJira(commits);
+    return { report, commitCount: commits.length };
   },
 
   // Jira Operations
@@ -820,9 +946,17 @@ async function executeToolCalls(
   }
 }
 
+export interface AgentUiContext {
+  currentDate?: string;
+  route?: string;
+  viewedDate?: string;
+  [key: string]: any;
+}
+
 export async function runAgentLoop(
   inputMessages: ChatMessage[],
-  onEvent: (event: { type: 'text' | 'tool_call' | 'tool_result' | 'error' | 'done'; delta?: string; name?: string; arguments?: any; result?: any; error?: string }) => void
+  onEvent: (event: { type: 'text' | 'tool_call' | 'tool_result' | 'error' | 'done'; delta?: string; name?: string; arguments?: any; result?: any; error?: string }) => void,
+  uiContext?: AgentUiContext
 ) {
   try {
     // A. Load Settings and API keys from SQLite
@@ -832,7 +966,7 @@ export async function runAgentLoop(
     const model = settings.aiModel || 'gemini-2.5-flash';
 
     // B. Build the system instruction (injecting current date and capabilities)
-    const systemPrompt = `You are an advanced agentic Task and Time Tracking assistant.
+    let systemPrompt = `You are an advanced agentic Task and Time Tracking assistant.
 Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
 Today is ${new Date().toISOString().split('T')[0]}.
 You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
@@ -841,7 +975,14 @@ Guidelines:
 1. Always use the provided tools to query or update tasks.
 2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
 3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
-4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.`;
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.`;
+
+    // Inject the user's current UI context so references like "today", "this day"
+    // or "the task I'm looking at" resolve to what is actually on screen.
+    if (uiContext && Object.values(uiContext).some((v) => v !== undefined && v !== null)) {
+      systemPrompt += `\n\nCurrent UI context (use it to resolve relative references such as "today" or the day the user is currently viewing):\n${JSON.stringify(uiContext)}`;
+    }
 
     // Clone inputs and prepend system message
     const activeMessages: ChatMessage[] = [
