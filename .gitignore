@@ -11,7 +11,6 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
-dist-electron
 exports
 .fallow/
 .idea

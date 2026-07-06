@@ -13,11 +13,8 @@
     "time": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && electron-builder"
+    "test": "vitest run"
   },
-  "main": "electron/main.js",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/ai": "^0.6.3",
@@ -53,8 +50,6 @@
     "@vitejs/plugin-react": "^5.1.4",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.10",
-    "electron": "^41.2.0",
-    "electron-builder": "^26.8.1",
     "fallow": "^2.86.0",
     "jsdom": "^28.1.0",
     "msw": "^2.12.10",
@@ -69,22 +64,5 @@
       "esbuild",
       "lightningcss"
     ]
-  },
-  "build": {
-    "appId": "com.tasktracker.app",
-    "productName": "Task Tracker",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "files": [
-      "package.json",
-      "electron/**/*",
-      ".output/**/*"
-    ],
-    "linux": {
-      "target": [
-        "AppImage"
-      ]
-    }
   }
 }

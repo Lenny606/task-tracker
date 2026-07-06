@@ -1,6 +1,6 @@
 # Task Tracker: Core Concepts & Flows
 
-A high-performance desktop application designed to bridge the gap between local development activity and official Jira worklogs. Built with the **TanStack Start** ecosystem and **Electron**.
+A high-performance web application designed to bridge the gap between local development activity and official Jira worklogs. Built with the **TanStack Start** ecosystem.
 
 ## 🏗️ Architecture Overview
 
@@ -8,7 +8,6 @@ The project follows a modular, offline-first architecture using a full-stack Rea
 
 - **Frontend**: React 19, TanStack Router/Query, Tailwind CSS v4.
 - **Backend**: TanStack Start Server Functions, Drizzle ORM, SQLite.
-- **Platform**: Electron for native desktop capabilities (filesystem access for Git, system tray, etc.).
 
 ---
 
@@ -68,7 +67,6 @@ Simplifies the overhead of corporate time tracking:
 | **ORM** | Drizzle ORM |
 | **API Clients** | Custom Jira & Tempo services (Axios/Fetch) |
 | **AI** | TanStack AI (Gemini / OpenAI) |
-| **Desktop** | Electron |
 
 ---
 
@@ -79,4 +77,3 @@ Simplifies the overhead of corporate time tracking:
 - `src/services/`: External API logic (Jira, Tempo, AI, Git).
 - `src/routes/`: Application pages and server functions.
 - `src/components/`: Reusable UI components (shadcn-like pattern).
-- `electron/`: Main process and IPC handlers.
