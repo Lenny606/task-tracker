@@ -2,9 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { collectCommits } from './gitCore'
 
 // This file is imported by client code, so it must only export server
-// functions (and types) — server-only logic lives in gitCore.ts.
-export type { GitCommit } from './gitCore'
-
+// functions — server-only logic lives in gitCore.ts.
 export const getServerCommits = createServerFn({
   method: 'GET',
 })

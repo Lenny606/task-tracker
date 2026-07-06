@@ -18,6 +18,52 @@ interface MigrationPayload {
   };
 }
 
+type DayData = NonNullable<MigrationPayload['history']>[string];
+
+async function migrateSettings(settings: NonNullable<MigrationPayload['settings']>) {
+  console.log('[Migration] Migrating settings...');
+  await settingsRepository.saveSettings({
+    aiModel: settings.aiModel,
+    jiraApiKey: settings.jiraApiKey,
+    jiraEmail: settings.jiraEmail,
+    jiraTempoApiKey: settings.jiraTempoApiKey,
+    jiraUrl: settings.jiraUrl,
+  });
+}
+
+async function migrateTask(date: string, dayMetricId: number | undefined, task: any) {
+  await historyTasksRepository.create({
+    id: task.id,
+    dayMetricId,
+    date,
+    name: task.name,
+    jiraKey: task.jiraKey || null,
+    jiraSummary: task.jiraSummary || null,
+    totalSeconds: task.totalSeconds || 0,
+    isRunning: task.isRunning || false,
+    isMarked: task.isMarked || false,
+    startTime: task.startTime ? new Date(task.startTime) : null,
+  });
+}
+
+async function migrateDay(date: string, dayData: DayData) {
+  // Create day metrics first so tasks can be linked to the resulting ID.
+  const metrics = await dayMetricsRepository.saveMetrics(date, {
+    aiSummary: dayData.aiSummary,
+    timerTotalSeconds: dayData.globalTimer?.totalSeconds || 0,
+    timerIsRunning: dayData.globalTimer?.isRunning || false,
+    timerStartTime: dayData.globalTimer?.startTime ? new Date(dayData.globalTimer.startTime) : null,
+  });
+
+  const dayMetricId = metrics?.id;
+
+  if (Array.isArray(dayData.tasks)) {
+    for (const task of dayData.tasks) {
+      await migrateTask(date, dayMetricId, task);
+    }
+  }
+}
+
 export const migrateLocalStorageFn = createServerFn({
   method: 'POST',
 }).handler(async ({ data }: { data: MigrationPayload }) => {
@@ -25,53 +71,14 @@ export const migrateLocalStorageFn = createServerFn({
 
   console.log('[Migration] Starting migration to SQLite...');
 
-  // 1. Migrate Settings
   if (data.settings) {
-    console.log('[Migration] Migrating settings...');
-    await settingsRepository.saveSettings({
-      aiModel: data.settings.aiModel,
-      jiraApiKey: data.settings.jiraApiKey,
-      jiraEmail: data.settings.jiraEmail,
-      jiraTempoApiKey: data.settings.jiraTempoApiKey,
-      jiraUrl: data.settings.jiraUrl,
-    });
+    await migrateSettings(data.settings);
   }
 
-  // 2. Migrate History
   if (data.history) {
     console.log('[Migration] Migrating history data...');
     for (const [date, dayData] of Object.entries(data.history)) {
-      // 2a. Migrate/Create Day Metrics first to get the ID
-      let dayMetricId: number | undefined;
-      
-      const metrics = await dayMetricsRepository.saveMetrics(date, {
-        aiSummary: dayData.aiSummary,
-        timerTotalSeconds: dayData.globalTimer?.totalSeconds || 0,
-        timerIsRunning: dayData.globalTimer?.isRunning || false,
-        timerStartTime: dayData.globalTimer?.startTime ? new Date(dayData.globalTimer.startTime) : null,
-      });
-
-      if (metrics) {
-        dayMetricId = metrics.id;
-      }
-
-      // 2b. Migrate Tasks linked to the metric ID
-      if (dayData.tasks && Array.isArray(dayData.tasks)) {
-        for (const task of dayData.tasks) {
-          await historyTasksRepository.create({
-            id: task.id,
-            dayMetricId: dayMetricId,
-            date: date,
-            name: task.name,
-            jiraKey: task.jiraKey || null,
-            jiraSummary: task.jiraSummary || null,
-            totalSeconds: task.totalSeconds || 0,
-            isRunning: task.isRunning || false,
-            isMarked: task.isMarked || false,
-            startTime: task.startTime ? new Date(task.startTime) : null,
-          });
-        }
-      }
+      await migrateDay(date, dayData);
     }
   }
 

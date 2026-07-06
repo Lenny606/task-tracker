@@ -49,7 +49,7 @@ export const getAiAdapter = (settings: AiSettings, model?: AiModel) => {
 /**
  * Simple client to send prompts to LLM
  */
-export async function generateText(prompt: string, model?: AiModel) {
+async function generateText(prompt: string, model?: AiModel) {
   const settings = await loadAiSettings()
   const resolvedModel = (model ?? settings.aiModel) as AiModel
 
