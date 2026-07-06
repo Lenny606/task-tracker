@@ -14,3 +14,5 @@ todos.json
 exports
 .fallow/
 .idea
+# Local SQLite database & backups — never commit (see data-loss incident 2026-07-06)
+.db/
