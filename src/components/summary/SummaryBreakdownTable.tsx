@@ -1,5 +1,5 @@
 import React from 'react'
-import { CheckCircle2, Circle, Database, Trash2, Plus } from 'lucide-react'
+import { CheckCircle2, Circle, Database, Trash2, Plus, Sparkles, Check } from 'lucide-react'
 import { Button } from '../Button'
 import { JiraIssueSelector } from '../JiraIssueSelector'
 import { ProjectSelector } from '../ProjectSelector'
@@ -13,6 +13,7 @@ interface TaskType {
   jiraKey?: string | null
   jiraSummary?: string | null
   trackerProjectId?: string | null
+  isAiSuggested?: boolean
 }
 
 interface SummaryBreakdownTableProps {
@@ -34,6 +35,7 @@ interface SummaryBreakdownTableProps {
     jiraSummary?: string | null
     trackerProjectId?: string | null
     totalSeconds?: number
+    isAiSuggested?: boolean
   }) => void
   onDeleteTask: (id: string) => void
   onAddTask: (e?: React.FormEvent) => void
@@ -118,23 +120,36 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                     </button>
                   </td>
                   <td className="px-6 py-4">
-                    <input
-                      type="text"
-                      defaultValue={task.name}
-                      onBlur={(e) => {
-                        if (e.target.value.trim() && e.target.value !== task.name) {
-                          onUpdateTask({ taskId: task.id, name: e.target.value.trim() })
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          ;(e.target as HTMLInputElement).blur()
-                        }
-                      }}
-                      className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        defaultValue={task.name}
+                        onBlur={(e) => {
+                          if (e.target.value.trim() && e.target.value !== task.name) {
+                            onUpdateTask({ taskId: task.id, name: e.target.value.trim() })
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            ;(e.target as HTMLInputElement).blur()
+                          }
+                        }}
+                        className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+                      />
+                      {task.isAiSuggested && (
+                        <button
+                          onClick={() => onUpdateTask({ taskId: task.id, isAiSuggested: false })}
+                          title="Návrh od agenta — kliknutím potvrdíte"
+                          className="group/sugg flex-shrink-0 flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
+                        >
+                          <Sparkles size={11} className="group-hover/sugg:hidden" />
+                          <Check size={11} className="hidden group-hover/sugg:block" />
+                          Návrh AI
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <JiraIssueSelector

@@ -19,6 +19,7 @@ export interface Task {
   totalSeconds: number
   isRunning: boolean
   isMarked?: boolean
+  isAiSuggested?: boolean
   startTime?: number
 }
 
@@ -365,17 +366,18 @@ export function useTasks(date: string = getTodayDate()) {
   })
 
   const updateTask = useMutation({
-    mutationFn: async ({ taskId, name, totalSeconds, jiraKey, jiraSummary, trackerProjectId }: { taskId: string; name?: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null; trackerProjectId?: string | null }) => {
+    mutationFn: async ({ taskId, name, totalSeconds, jiraKey, jiraSummary, trackerProjectId, isAiSuggested }: { taskId: string; name?: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null; trackerProjectId?: string | null; isAiSuggested?: boolean }) => {
       const t = tasks.find(task => task.id === taskId)
       if (!t) return
 
-      const updatedTask = { 
-        ...t, 
-        name: name ?? t.name, 
+      const updatedTask = {
+        ...t,
+        name: name ?? t.name,
         totalSeconds: totalSeconds ?? t.totalSeconds,
         jiraKey: jiraKey !== undefined ? jiraKey : t.jiraKey,
         jiraSummary: jiraSummary !== undefined ? jiraSummary : t.jiraSummary,
-        trackerProjectId: trackerProjectId !== undefined ? trackerProjectId : t.trackerProjectId
+        trackerProjectId: trackerProjectId !== undefined ? trackerProjectId : t.trackerProjectId,
+        isAiSuggested: isAiSuggested !== undefined ? isAiSuggested : t.isAiSuggested
       }
       await updateTaskFn({ data: { date, task: updatedTask } })
       return updatedTask
@@ -395,7 +397,8 @@ export function useTasks(date: string = getTodayDate()) {
               totalSeconds: variables.totalSeconds ?? t.totalSeconds,
               jiraKey: variables.jiraKey !== undefined ? variables.jiraKey : t.jiraKey,
               jiraSummary: variables.jiraSummary !== undefined ? variables.jiraSummary : t.jiraSummary,
-              trackerProjectId: variables.trackerProjectId !== undefined ? variables.trackerProjectId : t.trackerProjectId
+              trackerProjectId: variables.trackerProjectId !== undefined ? variables.trackerProjectId : t.trackerProjectId,
+              isAiSuggested: variables.isAiSuggested !== undefined ? variables.isAiSuggested : t.isAiSuggested
             }
           }
           return t

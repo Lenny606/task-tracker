@@ -30,10 +30,10 @@ interface ChatMessage {
 }
 
 const QUICK_SUGGESTIONS = [
+  { label: 'Prepare worklogs', text: "Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time." },
   { label: 'Summarize today', text: "Summarize today's tasks and time tracked." },
   { label: 'Show my tasks', text: 'Show all my local tasks for today.' },
   { label: 'Find JIRA issues', text: 'Search for active JIRA issues in my project.' },
-  { label: 'Log 1 hour to JIRA', text: 'Log 1 hour (3600 seconds) to a JIRA ticket.' },
 ];
 
 export function AgentCopilot() {
@@ -214,6 +214,9 @@ export function AgentCopilot() {
   // Humanize tool names for logs
   const formatToolName = (name: string) => {
     return name
+      .replace('prepare_worklog_context', 'Worklog: gather context')
+      .replace('task_link_jira', 'Tasks: link JIRA')
+      .replace('task_create_suggestion', 'Tasks: suggest task')
       .replace('tracker_', 'Local Tracker: ')
       .replace('task_', 'Tasks: ')
       .replace('jira_', 'JIRA: ')

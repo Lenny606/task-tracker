@@ -251,6 +251,73 @@ const tools: ToolDefinition[] = [
       required: []
     }
   },
+  // Worklog Preparation Tools
+  {
+    name: 'prepare_worklog_context',
+    description: "Gather everything needed to prepare JIRA work logs for a day in a single call: the developer's Git commits (with any JIRA keys extracted from their messages), the existing tracker tasks for that day, and the looked-up JIRA issue summaries for every referenced key. Use this first, then reconcile commits against existing tasks and apply changes with task_link_jira / task_create_suggestion.",
+    parameters: {
+      type: 'object',
+      properties: {
+        date: {
+          type: 'string',
+          description: 'Day to prepare in YYYY-MM-DD format. Defaults to today.'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'task_link_jira',
+    description: 'Attach a JIRA key (and optional summary) to an EXISTING tracker task. Only touches the JIRA fields — tracked time and timer state are never modified. Use this instead of task_create_or_update when linking JIRA to a task that already exists.',
+    parameters: {
+      type: 'object',
+      properties: {
+        taskId: {
+          type: 'string',
+          description: 'The UUID of the existing task to link'
+        },
+        jiraKey: {
+          type: 'string',
+          description: 'The JIRA issue key to attach (e.g., TS-45)'
+        },
+        jiraSummary: {
+          type: 'string',
+          description: 'Optional JIRA issue summary/title to store alongside the key'
+        },
+        clearSuggested: {
+          type: 'boolean',
+          description: 'Optional: set true to also clear the AI-suggested flag on the task (accept it as confirmed)'
+        }
+      },
+      required: ['taskId', 'jiraKey']
+    }
+  },
+  {
+    name: 'task_create_suggestion',
+    description: 'Create a NEW tracker task proposed by the agent, flagged as an AI suggestion so the user sees a visible marker to review it. Starts with zero tracked time and no running timer. Use for commits that do not correspond to any existing task.',
+    parameters: {
+      type: 'object',
+      properties: {
+        date: {
+          type: 'string',
+          description: 'The date for the task in YYYY-MM-DD format'
+        },
+        name: {
+          type: 'string',
+          description: 'Name / description of the task (e.g., the JIRA issue summary or the commit message)'
+        },
+        jiraKey: {
+          type: 'string',
+          description: 'Associated JIRA issue key (optional)'
+        },
+        jiraSummary: {
+          type: 'string',
+          description: 'Associated JIRA issue summary (optional)'
+        }
+      },
+      required: ['date', 'name']
+    }
+  },
   // External JIRA & Tempo Tools
   {
     name: 'jira_search_issues',
@@ -506,6 +573,73 @@ export const toolRegistry: Record<string, (args: any, creds: Partial<JiraCredent
     }
     const report = await analyzeCommitsForJira(commits);
     return { report, commitCount: commits.length };
+  },
+
+  // Worklog Preparation Operations
+  prepare_worklog_context: async (args, creds) => {
+    const date = args.date || new Date().toISOString().split('T')[0];
+
+    // 1. Commits for the day, restricted to the developer's own work.
+    const allCommits = await collectCommits(date);
+    const commits = allCommits
+      .filter((c) => c.authorName.toLowerCase().includes('tomas'))
+      .map((c) => {
+        const jiraKeys = Array.from(
+          new Set(c.message.match(/\b[A-Z][A-Z0-9]+-\d+\b/g) || [])
+        );
+        return { hash: c.hash, message: c.message, projectName: c.projectName, jiraKeys };
+      });
+
+    // 2. Existing tasks already on that day.
+    const existingTasks = (await historyTasksRepository.findByDate(date)).map((t) => ({
+      id: t.id,
+      name: t.name,
+      jiraKey: t.jiraKey,
+      jiraSummary: t.jiraSummary,
+      isAiSuggested: t.isAiSuggested,
+    }));
+
+    // 3. Resolve every referenced JIRA key (best-effort — never fail the whole tool).
+    const uniqueKeys = Array.from(new Set(commits.flatMap((c) => c.jiraKeys)));
+    const jiraConfigured = !!(creds.url && creds.email && creds.apiKey);
+    const jiraIssues: Array<{ key: string; summary: string | null; found: boolean; error?: string }> = [];
+    if (jiraConfigured) {
+      for (const key of uniqueKeys) {
+        try {
+          const issue = await jiraService.getIssue(creds as JiraCredentials, key);
+          jiraIssues.push({ key, summary: issue?.fields?.summary ?? null, found: true });
+        } catch (err: any) {
+          jiraIssues.push({ key, summary: null, found: false, error: err.message || String(err) });
+        }
+      }
+    } else {
+      for (const key of uniqueKeys) {
+        jiraIssues.push({ key, summary: null, found: false, error: 'Jira is not configured.' });
+      }
+    }
+
+    return { date, commits, existingTasks, jiraIssues, jiraConfigured };
+  },
+  task_link_jira: async (args) => {
+    const patch: Record<string, any> = { jiraKey: args.jiraKey };
+    if (args.jiraSummary !== undefined) patch.jiraSummary = args.jiraSummary;
+    if (args.clearSuggested) patch.isAiSuggested = false;
+    return await historyTasksRepository.update(args.taskId, patch);
+  },
+  task_create_suggestion: async (args) => {
+    return await historyTasksRepository.create({
+      id: randomUUID(),
+      date: args.date,
+      name: args.name,
+      jiraKey: args.jiraKey || null,
+      jiraSummary: args.jiraSummary || null,
+      trackerProjectId: null,
+      totalSeconds: 0,
+      isRunning: false,
+      isMarked: false,
+      isAiSuggested: true,
+      startTime: null,
+    });
   },
 
   // Jira Operations
@@ -976,7 +1110,15 @@ Guidelines:
 2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
 3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
 4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
-5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.`;
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.`;
 
     // Inject the user's current UI context so references like "today", "this day"
     // or "the task I'm looking at" resolve to what is actually on screen.
@@ -993,7 +1135,7 @@ Guidelines:
     agentLogger.logSessionStart(provider, model, inputMessages, systemPrompt);
 
     let loopCounter = 0;
-    const maxLoops = 5;
+    const maxLoops = 8;
 
     while (loopCounter < maxLoops) {
       loopCounter++;

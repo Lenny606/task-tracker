@@ -42,6 +42,7 @@ async function migrateTask(date: string, dayMetricId: number | undefined, task: 
     totalSeconds: task.totalSeconds || 0,
     isRunning: task.isRunning || false,
     isMarked: task.isMarked || false,
+    isAiSuggested: task.isAiSuggested || false,
     startTime: task.startTime ? new Date(task.startTime) : null,
   });
 }

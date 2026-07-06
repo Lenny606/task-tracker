@@ -50,6 +50,15 @@ vi.mock('../repositories/dayMetrics.repository', () => ({
   }
 }));
 
+// Mock git commit collection
+vi.mock('./gitCore', () => ({
+  collectCommits: async (_date?: string) => [
+    { hash: 'aaa111', authorName: 'Tomas Kravcik', authorEmail: 't@x', date: '2026-07-06T09:00:00Z', message: 'TS-45 fix login bug', projectName: 'task-tracker' },
+    { hash: 'bbb222', authorName: 'Tomas Kravcik', authorEmail: 't@x', date: '2026-07-06T10:00:00Z', message: 'refactor: cleanup helpers', projectName: 'task-tracker' },
+    { hash: 'ccc333', authorName: 'Someone Else', authorEmail: 's@x', date: '2026-07-06T11:00:00Z', message: 'TS-99 unrelated', projectName: 'other' },
+  ],
+}));
+
 // Mock JIRA service
 vi.mock('./jira', () => ({
   jiraService: {
@@ -165,6 +174,62 @@ describe('agentService Tool Registry Handlers', () => {
     expect(result.name).toBe('New task');
     expect(result.isRunning).toBe(true);
     expect(result.id).toBeDefined();
+  });
+
+  it('task_link_jira should update only JIRA fields, never tracked time', async () => {
+    const result = await toolRegistry.task_link_jira({
+      taskId: 'task-1',
+      jiraKey: 'TS-45',
+      jiraSummary: 'Fix login bug'
+    }, creds);
+    // The mock repository.update echoes back the patch it received.
+    expect(result.jiraKey).toBe('TS-45');
+    expect(result.jiraSummary).toBe('Fix login bug');
+    expect(result).not.toHaveProperty('totalSeconds');
+    expect(result).not.toHaveProperty('isRunning');
+  });
+
+  it('task_link_jira should clear the suggested flag when clearSuggested is set', async () => {
+    const result = await toolRegistry.task_link_jira({
+      taskId: 'task-1',
+      jiraKey: 'TS-45',
+      clearSuggested: true
+    }, creds);
+    expect(result.isAiSuggested).toBe(false);
+  });
+
+  it('task_create_suggestion should create an AI-flagged task with zero time', async () => {
+    const result = await toolRegistry.task_create_suggestion({
+      date: '2026-07-06',
+      name: 'Fix login bug',
+      jiraKey: 'TS-45',
+      jiraSummary: 'Fix login bug'
+    }, creds);
+    expect(result.name).toBe('Fix login bug');
+    expect(result.isAiSuggested).toBe(true);
+    expect(result.totalSeconds).toBe(0);
+    expect(result.isRunning).toBe(false);
+    expect(result.jiraKey).toBe('TS-45');
+    expect(result.id).toBeDefined();
+  });
+
+  it('prepare_worklog_context should extract JIRA keys, filter to the user, and resolve issues', async () => {
+    const result = await toolRegistry.prepare_worklog_context({ date: '2026-07-06' }, creds);
+
+    // Only Tomas's commits are kept (the "Someone Else" TS-99 commit is dropped).
+    expect(result.commits).toHaveLength(2);
+    const keyed = result.commits.find((c: any) => c.jiraKeys.length > 0);
+    expect(keyed.jiraKeys).toContain('TS-45');
+    const keyless = result.commits.find((c: any) => c.jiraKeys.length === 0);
+    expect(keyless.message).toContain('cleanup');
+
+    // Referenced key is resolved via JIRA; TS-99 (other author) is not looked up.
+    expect(result.jiraIssues).toHaveLength(1);
+    expect(result.jiraIssues[0].key).toBe('TS-45');
+    expect(result.jiraIssues[0].found).toBe(true);
+
+    expect(result.jiraConfigured).toBe(true);
+    expect(result.existingTasks[0].id).toBe('task-1');
   });
 
   it('jira_search_issues should search with mandatory Task filter', async () => {

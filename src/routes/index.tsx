@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Play, Pause, Plus, RotateCcw, Trash2, CheckCircle2, Circle, Database } from 'lucide-react'
+import { Play, Pause, Plus, RotateCcw, Trash2, CheckCircle2, Circle, Database, Sparkles, Check } from 'lucide-react'
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
@@ -130,6 +130,17 @@ function Dashboard() {
                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/10">
                     {task.jiraKey}
                   </span>
+                )}
+                {task.isAiSuggested && (
+                  <button
+                    onClick={() => updateTask.mutate({ taskId: task.id, isAiSuggested: false })}
+                    title="Návrh od agenta — kliknutím potvrdíte"
+                    className="group/sugg flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
+                  >
+                    <Sparkles size={11} className="group-hover/sugg:hidden" />
+                    <Check size={11} className="hidden group-hover/sugg:block" />
+                    Návrh AI
+                  </button>
                 )}
               </div>
             </div>

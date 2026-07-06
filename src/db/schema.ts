@@ -56,6 +56,7 @@ export const historyTasks = sqliteTable('history_tasks', {
   totalSeconds: integer('total_seconds').notNull().default(0),
   isRunning: integer('is_running', { mode: 'boolean' }).notNull().default(false),
   isMarked: integer('is_marked', { mode: 'boolean' }).notNull().default(false),
+  isAiSuggested: integer('is_ai_suggested', { mode: 'boolean' }).notNull().default(false),
   startTime: integer('start_time', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
 }, (table) => ({

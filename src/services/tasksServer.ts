@@ -89,6 +89,7 @@ export const getHistoryDataFn = createServerFn({
         totalSeconds: task.totalSeconds,
         isRunning: task.isRunning,
         isMarked: task.isMarked,
+        isAiSuggested: task.isAiSuggested,
         startTime: task.startTime?.getTime(),
       });
     });
@@ -125,6 +126,7 @@ export const updateTaskFn = createServerFn({
       totalSeconds: z.number().optional(),
       isRunning: z.boolean().optional(),
       isMarked: z.boolean().optional(),
+      isAiSuggested: z.boolean().optional(),
       startTime: z.number().nullable().optional(),
     })
   }).parse(data))
@@ -145,6 +147,9 @@ export const updateTaskFn = createServerFn({
         isRunning: task.isRunning || false,
         isMarked: task.isMarked || false,
         startTime: task.startTime ? new Date(task.startTime) : null,
+        // Only touch the AI-suggested flag when explicitly provided, so ordinary
+        // edits (rename, project change) never silently flip it.
+        ...(task.isAiSuggested !== undefined ? { isAiSuggested: task.isAiSuggested } : {}),
       };
 
       if (existing && task.id) {
