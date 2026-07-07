@@ -2315,3 +2315,265 @@ Result:
 [2026-07-06T20:55:31.124Z] 💬 [ASSISTANT RESPONSE]
 Done!
 ================================================================================
+
+================================================================================
+[2026-07-06T21:23:13.789Z] 🤖 AGENT SESSION START
+Provider: openai | Model: gpt-4o
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-06.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+Current UI context (use it to resolve relative references such as "today" or the day the user is currently viewing):
+{"currentDate":"2026-07-06","route":"/summary","viewedDate":"2026-07-03"}
+
+[Message History]:
+  #1 [USER]: list tasks z brezna
+  #2 [ASSISTANT]: There are no tasks recorded for May 31, 2026. If you need to add or update any tasks, feel free to let me know!
+  #3 [USER]: z celeho mesice brezba
+  #4 [ASSISTANT]: It seems there are no tasks recorded for the entire month of May 2026. If you need to add tasks or any other assistance, please let me know!
+  #5 [USER]: check 26. 3.
+  #6 [ASSISTANT]: On March 26, 2026, the following tasks were recorded:
+
+1. **ppl**
+   - Time spent: 3 hours, 31 minutes, and 40 seconds
+   - No JIRA association
+
+2. **testing on prod**
+   - Time spent: 3 hours, 43 minutes, and 56 seconds
+   - No JIRA association
+
+3. **AT fixes**
+   - Time spent: 18 minutes and 4 seconds
+   - No JIRA association
+
+4. **mailservice**
+   - Time spent: 14 minutes and 6 seconds
+   - No JIRA association
+
+If you need any further actions on these tasks, please let me know!
+  #7 [USER]: why did you not found in prev request?
+  #8 [ASSISTANT]: I apologize for the oversight. It seems there was an issue with comprehensively searching through the tasks for the entire month of May. When checking specific dates, I can retrieve precise details. If you would like me to search again for the entire month or any specific date, please let me know, and I'll make sure to gather the necessary information accurately.
+  #9 [USER]: list March
+  #10 [ASSISTANT]: It seems there are no recorded tasks for March 2026 in the database. If you need assistance adding or managing tasks, please feel free to ask!
+  #11 [USER]: try again ... 1 -31.3.
+  #12 [ASSISTANT]: Here are the recorded tasks for March 2026:
+
+### March 17, 2026
+1. **Division** - 7 minutes and 34 seconds
+2. **Cookies Eshop** - 2 hours, 30 minutes, and 29 seconds
+3. **Update Vratky** - 2 hours, 16 minutes, and 47 seconds
+4. **IT Multipack** - 1 hour and 58 minutes
+5. **Naceeni AT Returns** - 0 seconds
+6. **Transfers** - 0 seconds
+
+### March 18, 2026
+1. **Test Vlad Edits 20- min** - 0 seconds
+2. **Abra Orders Stautes by Instance** - 2 hours, 3 minutes, and 21 seconds
+3. **Eshop Kariera** - 6 minutes and 34 seconds
+4. **AT - Group ID** - 44 minutes and 31 seconds
+5. **Catering Dodaci Listy** - 1 hour, 34 minutes, and 31 seconds
+6. **AT - New Returns** - 1 hour, 21 minutes, and 17 seconds
+
+### March 19, 2026
+1. **Eshop Orders Debug** - 1 hour, 10 minutes, and 21 seconds
+2. **AT - Vratky** - 2 hours, 57 minutes, and 24 seconds
+3. **Eshop SSR** - 1 hour, 52 minutes, and 29 seconds
+4. **Zadni Acetering Kuba Task** - 0 seconds
+5. **Lipo Viktor 15m** - 0 seconds
+6. **User vs Instance** - 26 minutes and 49 seconds
+7. **Feature Implementation** - 3 seconds
+
+### March 20, 2026
+1. **Testing** - 34 minutes and 21 seconds
+2. **Vratky** - 1 hour, 28 minutes, and 50 seconds
+3. **Vratky** - 2 hours, 3 minutes, and 13 seconds
+4. **Testing** - 3 hours, 20 minutes, and 40 seconds
+
+### March 26, 2026
+1. **PPL** - 3 hours, 31 minutes, and 40 seconds
+2. **Testing on Prod** - 3 hours, 43 minutes, and 56 seconds
+3. **AT Fixes** - 18 minutes and 4 seconds
+4. **Mailservice** - 14 minutes and 6 seconds
+
+### March 27, 2026
+1. **PPL** - 3 hours, 26 minutes, and 55 seconds
+2. **WP Email Debug** - 0 seconds
+3. **B2C 42608341 Duplicita DE** - 0 seconds
+4. **AT** - 1 hour, 55 minutes, and 5 seconds
+5. **Debug 202621098 B2C AT 15min** - 0 seconds
+
+### March 30, 2026
+1. **Import B2C DE** - 0 seconds
+2. **PPL** - 4 hours, 8 minutes, and 43 seconds
+3. **42608567 Import** - 0 seconds
+4. **Naceneni Lipo** - 0 seconds
+
+If you need further details or actions on these tasks, feel free to let me know!
+  #13 [USER]: Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time.
+================================================================================
+
+[2026-07-06T21:23:16.256Z] 🔨 [TOOL CALL] prepare_worklog_context
+Arguments:
+{
+  "date": "2026-07-06"
+}
+--------------------------------------------------------------------------------
+
+================================================================================
+[2026-07-06T21:24:54.153Z] 🤖 AGENT SESSION START
+Provider: openai | Model: gpt-4o
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-06.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+Current UI context (use it to resolve relative references such as "today" or the day the user is currently viewing):
+{"currentDate":"2026-07-06","route":"/summary","viewedDate":"2026-07-03"}
+
+[Message History]:
+  #1 [USER]: priprav tasky pro 3-7-2026
+================================================================================
+
+[2026-07-06T21:24:55.307Z] 🔨 [TOOL CALL] prepare_worklog_context
+Arguments:
+{
+  "date": "2026-07-03"
+}
+--------------------------------------------------------------------------------
+[2026-07-06T21:27:37.895Z] 🟢 [TOOL RESULT] prepare_worklog_context (SUCCESS)
+Result:
+{
+  "date": "2026-07-03",
+  "commits": [],
+  "existingTasks": [
+    {
+      "id": "0cbf6eed-8e22-444d-a6f2-0aed428d5d1b",
+      "name": "status 1h",
+      "jiraKey": null,
+      "jiraSummary": null,
+      "isAiSuggested": false
+    },
+    {
+      "id": "ee7ab11e-4498-450f-80c2-7078455f5681",
+      "name": "doreseni agenta 1h",
+      "jiraKey": null,
+      "jiraSummary": null,
+      "isAiSuggested": false
+    },
+    {
+      "id": "027c5926-eae5-4870-888f-f272d08af4f0",
+      "name": "print agent - test for win service",
+      "jiraKey": null,
+      "jiraSummary": null,
+      "isAiSuggested": false
+    }
+  ],
+  "jiraIssues": [],
+  "jiraConfigured": true
+}
+--------------------------------------------------------------------------------
+[2026-07-06T21:27:37.906Z] 🟢 [TOOL RESULT] prepare_worklog_context (SUCCESS)
+Result:
+{
+  "date": "2026-07-06",
+  "commits": [],
+  "existingTasks": [],
+  "jiraIssues": [],
+  "jiraConfigured": true
+}
+--------------------------------------------------------------------------------
+[2026-07-06T21:27:39.216Z] 💬 [ASSISTANT RESPONSE]
+There are no Git commits and existing tasks recorded for today, July 6, 2026. Without any commits, there are no tasks to reconcile or suggestions to create. 
+
+If you have any other requests or need help with something else, feel free to let me know!
+================================================================================
+[2026-07-06T21:27:39.577Z] 💬 [ASSISTANT RESPONSE]
+Dne 3. července 2026 nebyly zaznamenány žádné Git commity a v současnosti nejsou k dispozici ani žádné JIRA issue detaily. Máme ale tyto existující úkoly:
+
+1. **Status 1h**  
+2. **Doreseni agenta 1h**  
+3. **Print agent - test for win service**
+
+Nejedná se o návrhy AI a žádný z těchto úkolů zatím není spojen s žádnými JIRA klíči nebo resumé. Pokud máte nějaké dodatečné pokyny pro tyto úkoly nebo zda máme provést další akci, dejte mi vědět!
+================================================================================
+
+================================================================================
+[2026-07-07T13:59:08.801Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-07.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-07-07T13:59:08.810Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-07-07T13:59:08.811Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-07-07T13:59:08.813Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================

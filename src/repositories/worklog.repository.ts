@@ -1,10 +1,26 @@
 import { worklogs } from '../db/schema';
 import { BaseRepository } from './base.repository';
-import { desc, and, gte, lte } from 'drizzle-orm';
+import { desc, and, gte, lte, sql } from 'drizzle-orm';
 
 class WorklogRepository extends BaseRepository<typeof worklogs> {
   constructor() {
     super(worklogs);
+  }
+
+  /**
+   * Get frequently logged tickets based on worklog counts
+   */
+  async getFrequent(limit = 10) {
+    return await this.db
+      .select({
+        key: this.table.jiraIssueKey,
+        summary: this.table.summary,
+      })
+      .from(this.table)
+      .groupBy(this.table.jiraIssueKey)
+      .orderBy(desc(sql<number>`count(${this.table.jiraIssueKey})`))
+      .limit(limit)
+      .all();
   }
 
   /**

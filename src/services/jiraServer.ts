@@ -51,6 +51,21 @@ export const getRecentTicketsFn = createServerFn({
 })
 
 /**
+ * Server function to get frequent unique tickets from database
+ */
+export const getFrequentTicketsFn = createServerFn({
+  method: 'GET',
+}).handler(async () => {
+  try {
+    return await worklogRepository.getFrequent(30)
+  } catch (error) {
+    console.error('[Server Function Error] getFrequentTicketsFn:', error);
+    throw error;
+  }
+})
+
+
+/**
  * Server function to search Jira issues
  */
 export const searchJiraIssuesFn = createServerFn({
