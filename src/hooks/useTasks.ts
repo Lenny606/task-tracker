@@ -7,7 +7,7 @@ import {
   updateDayMetricsFn, 
   deleteHistoryDayFn 
 } from '../services/tasksServer'
-import { getExtensionTokenFn } from '../services/settingsServer'
+import { getExtensionTokenFn } from '../services/extensionTokenServer'
 
 
 export interface Task {

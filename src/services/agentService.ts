@@ -776,7 +776,7 @@ export function mapMessagesToOpenAI(messages: ChatMessage[]): any[] {
       const openAiMsg: any = { role: 'assistant', content: msg.content || null };
       if (msg.tool_calls && msg.tool_calls.length > 0) {
         openAiMsg.tool_calls = msg.tool_calls.map(tc => ({
-          id: tc.id || `call_${randomUUID().replace(/-/g, '')}`,
+          id: tc.id || makeToolCallId(),
           type: 'function',
           function: {
             name: tc.name,
@@ -807,13 +807,129 @@ async function loadAgentSettings() {
   return settings;
 }
 
+interface StreamedTurn {
+  content: string;
+  toolCalls: any[];
+}
+
+function makeToolCallId(): string {
+  return `call_${randomUUID().replace(/-/g, '')}`;
+}
+
+async function assertResponseOk(response: Response, provider: string): Promise<void> {
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`${provider} API Error (${response.status}): ${errText}`);
+  }
+}
+
+// Reads an SSE response body and emits the payload of every `data:` line,
+// including a final line left in the buffer without a trailing newline.
+async function pumpSseStream(response: Response, onData: (dataStr: string) => void): Promise<void> {
+  if (!response.body) throw new Error('ReadableStream not supported on response.');
+
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  const streamReader = response.body.getReader();
+  while (true) {
+    const { done, value } = await streamReader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) emitSseData(line, onData);
+  }
+  emitSseData(buffer, onData);
+}
+
+function emitSseData(line: string, onData: (dataStr: string) => void): void {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('data:')) return;
+  const dataStr = trimmed.substring(5).trim();
+  if (dataStr) onData(dataStr);
+}
+
+function collectGeminiData(jsonStr: string, turn: StreamedTurn, onEvent: (event: any) => void): void {
+  try {
+    const data = JSON.parse(jsonStr);
+    const part = data.candidates?.[0]?.content?.parts?.[0];
+
+    if (part?.text) {
+      turn.content += part.text;
+      onEvent({ type: 'text', delta: part.text });
+    }
+
+    for (const fc of part?.functionCalls ?? []) {
+      turn.toolCalls.push({
+        id: makeToolCallId(),
+        name: fc.name,
+        arguments: fc.args
+      });
+    }
+  } catch (err) {
+    // Ignore partial parsing failures
+  }
+}
+
+// Partial tool call inputs streamed by OpenAI, keyed by tool call index
+type OpenAiToolCallBuffer = Record<number, { id?: string; name?: string; arguments: string }>;
+
+function collectOpenAIData(
+  dataStr: string,
+  turn: StreamedTurn,
+  toolCallsBuffer: OpenAiToolCallBuffer,
+  onEvent: (event: any) => void
+): void {
+  if (dataStr === '[DONE]') return;
+
+  try {
+    const parsed = JSON.parse(dataStr);
+    const delta = parsed.choices?.[0]?.delta;
+
+    if (delta?.content) {
+      turn.content += delta.content;
+      onEvent({ type: 'text', delta: delta.content });
+    }
+
+    for (const tc of delta?.tool_calls ?? []) {
+      const entry = (toolCallsBuffer[tc.index] ??= { arguments: '' });
+      if (tc.id) entry.id = tc.id;
+      if (tc.function?.name) entry.name = tc.function.name;
+      if (tc.function?.arguments) entry.arguments += tc.function.arguments;
+    }
+  } catch (err) {
+    // Ignore partial parsing failures
+  }
+}
+
+function finalizeOpenAIToolCalls(toolCallsBuffer: OpenAiToolCallBuffer): any[] {
+  const toolCalls: any[] = [];
+  for (const tc of Object.values(toolCallsBuffer)) {
+    if (!tc.name) continue;
+    let parsedArgs: any = tc.arguments;
+    try {
+      parsedArgs = JSON.parse(tc.arguments);
+    } catch (e) {
+      // Model emitted malformed JSON arguments; pass the raw string through
+    }
+    toolCalls.push({
+      id: tc.id || makeToolCallId(),
+      name: tc.name,
+      arguments: parsedArgs
+    });
+  }
+  return toolCalls;
+}
+
 async function streamGeminiResponse(
   apiKey: string,
   model: string,
   systemPrompt: string,
   activeMessages: ChatMessage[],
   onEvent: (event: any) => void
-): Promise<{ content: string; toolCalls: any[] }> {
+): Promise<StreamedTurn> {
   const geminiTools = tools.map(t => ({
     name: t.name,
     description: t.description,
@@ -842,82 +958,11 @@ async function streamGeminiResponse(
     }
   );
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API Error (${response.status}): ${errText}`);
-  }
+  await assertResponseOk(response, 'Gemini');
 
-  const reader = response.body;
-  if (!reader) throw new Error('ReadableStream not supported on response.');
-
-  // Decode the stream and split by line (SSE)
-  const decoder = new TextDecoder('utf-8');
-  let buffer = '';
-  let gatheredContent = '';
-  const toolCalls: any[] = [];
-
-  const streamReader = reader.getReader();
-  while (true) {
-    const { done, value } = await streamReader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data:')) continue;
-      const jsonStr = trimmed.substring(5).trim();
-      if (!jsonStr) continue;
-
-      try {
-        const data = JSON.parse(jsonStr);
-        const part = data.candidates?.[0]?.content?.parts?.[0];
-
-        if (part?.text) {
-          gatheredContent += part.text;
-          onEvent({ type: 'text', delta: part.text });
-        }
-
-        if (part?.functionCalls && part.functionCalls.length > 0) {
-          for (const fc of part.functionCalls) {
-            toolCalls.push({
-              id: `call_${randomUUID().replace(/-/g, '')}`,
-              name: fc.name,
-              arguments: fc.args
-            });
-          }
-        }
-      } catch (err) {
-        // Ignore partial parsing failures
-      }
-    }
-  }
-
-  // Handle any left-overs in buffer
-  if (buffer.trim().startsWith('data:')) {
-    try {
-      const jsonStr = buffer.trim().substring(5).trim();
-      const data = JSON.parse(jsonStr);
-      const part = data.candidates?.[0]?.content?.parts?.[0];
-      if (part?.text) {
-        gatheredContent += part.text;
-        onEvent({ type: 'text', delta: part.text });
-      }
-      if (part?.functionCalls) {
-        for (const fc of part.functionCalls) {
-          toolCalls.push({
-            id: `call_${randomUUID().replace(/-/g, '')}`,
-            name: fc.name,
-            arguments: fc.args
-          });
-        }
-      }
-    } catch (e) { }
-  }
-
-  return { content: gatheredContent, toolCalls };
+  const turn: StreamedTurn = { content: '', toolCalls: [] };
+  await pumpSseStream(response, (jsonStr) => collectGeminiData(jsonStr, turn, onEvent));
+  return turn;
 }
 
 async function streamOpenAIResponse(
@@ -925,7 +970,7 @@ async function streamOpenAIResponse(
   model: string,
   activeMessages: ChatMessage[],
   onEvent: (event: any) => void
-): Promise<{ content: string; toolCalls: any[] }> {
+): Promise<StreamedTurn> {
   const openAiTools = tools.map(t => ({
     type: 'function',
     function: {
@@ -951,79 +996,14 @@ async function streamOpenAIResponse(
     })
   });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenAI API Error (${response.status}): ${errText}`);
-  }
+  await assertResponseOk(response, 'OpenAI');
 
-  const reader = response.body;
-  if (!reader) throw new Error('ReadableStream not supported on response.');
+  const turn: StreamedTurn = { content: '', toolCalls: [] };
+  const toolCallsBuffer: OpenAiToolCallBuffer = {};
+  await pumpSseStream(response, (dataStr) => collectOpenAIData(dataStr, turn, toolCallsBuffer, onEvent));
 
-  const decoder = new TextDecoder('utf-8');
-  let buffer = '';
-  let gatheredContent = '';
-  const toolCalls: any[] = [];
-
-  // Collect partial tool call inputs streamed by OpenAI
-  const openAiToolCallsBuffer: Record<number, { id?: string; name?: string; arguments: string }> = {};
-
-  const streamReader = reader.getReader();
-  while (true) {
-    const { done, value } = await streamReader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith('data:')) continue;
-      const dataStr = trimmed.substring(5).trim();
-      if (dataStr === '[DONE]') continue;
-
-      try {
-        const parsed = JSON.parse(dataStr);
-        const delta = parsed.choices?.[0]?.delta;
-
-        if (delta?.content) {
-          gatheredContent += delta.content;
-          onEvent({ type: 'text', delta: delta.content });
-        }
-
-        if (delta?.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const idx = tc.index;
-            if (!openAiToolCallsBuffer[idx]) {
-              openAiToolCallsBuffer[idx] = { arguments: '' };
-            }
-            if (tc.id) openAiToolCallsBuffer[idx].id = tc.id;
-            if (tc.function?.name) openAiToolCallsBuffer[idx].name = tc.function.name;
-            if (tc.function?.arguments) openAiToolCallsBuffer[idx].arguments += tc.function.arguments;
-          }
-        }
-      } catch (err) { }
-    }
-  }
-
-  // Reconstruct tools from buffer
-  for (const [_, tc] of Object.entries(openAiToolCallsBuffer)) {
-    if (tc.name) {
-      let parsedArgs = {};
-      try {
-        parsedArgs = JSON.parse(tc.arguments);
-      } catch (e) {
-        parsedArgs = tc.arguments;
-      }
-      toolCalls.push({
-        id: tc.id || `call_${randomUUID().replace(/-/g, '')}`,
-        name: tc.name,
-        arguments: parsedArgs
-      });
-    }
-  }
-
-  return { content: gatheredContent, toolCalls };
+  turn.toolCalls = finalizeOpenAIToolCalls(toolCallsBuffer);
+  return turn;
 }
 
 async function executeToolCalls(

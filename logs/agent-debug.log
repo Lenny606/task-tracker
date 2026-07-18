@@ -2577,3 +2577,425 @@ Result:
 [2026-07-07T13:59:08.813Z] 💬 [ASSISTANT RESPONSE]
 Done!
 ================================================================================
+
+================================================================================
+[2026-07-09T14:36:39.683Z] 🤖 AGENT SESSION START
+Provider: openai | Model: gpt-4o
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-09.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+Current UI context (use it to resolve relative references such as "today" or the day the user is currently viewing):
+{"currentDate":"2026-07-09","route":"/summary","viewedDate":"2026-07-09"}
+
+[Message History]:
+  #1 [USER]: priprav tasky pro 3-7-2026
+  #2 [ASSISTANT]: Dne 3. července 2026 nebyly zaznamenány žádné Git commity a v současnosti nejsou k dispozici ani žádné JIRA issue detaily. Máme ale tyto existující úkoly:
+
+1. **Status 1h**  
+2. **Doreseni agenta 1h**  
+3. **Print agent - test for win service**
+
+Nejedná se o návrhy AI a žádný z těchto úkolů zatím není spojen s žádnými JIRA klíči nebo resumé. Pokud máte nějaké dodatečné pokyny pro tyto úkoly nebo zda máme provést další akci, dejte mi vědět!
+  #3 [USER]: Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time.
+================================================================================
+
+[2026-07-09T14:36:42.451Z] 🔨 [TOOL CALL] prepare_worklog_context
+Arguments:
+{
+  "date": "2026-07-09"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:10.133Z] 🟢 [TOOL RESULT] prepare_worklog_context (SUCCESS)
+Result:
+{
+  "date": "2026-07-09",
+  "commits": [
+    {
+      "hash": "3afe4ae1f1653a3fa0e200a670149785e6f65f17",
+      "message": "refactor: comment out unused Abra client calls in issued and received order repositories",
+      "projectName": "abratools-3.0",
+      "jiraKeys": []
+    },
+    {
+      "hash": "c9667de317a4d178e0f0bd68cb1fe560962ce14c",
+      "message": "comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder",
+      "projectName": "exact-api",
+      "jiraKeys": []
+    },
+    {
+      "hash": "f4271f224a82e32434f75c699ef6267940ab82cf",
+      "message": "comment out PmstateId initialization in AbraService",
+      "projectName": "exact-api",
+      "jiraKeys": []
+    }
+  ],
+  "existingTasks": [
+    {
+      "id": "21d14e9e-ce48-48cb-b83e-84cc455f300b",
+      "name": "lipo emails",
+      "jiraKey": "LIPO-1613",
+      "jiraSummary": "Dokončení",
+      "isAiSuggested": false
+    },
+    {
+      "id": "41115ed5-0416-4601-b778-13ded740a5c3",
+      "name": "abra issues",
+      "jiraKey": "LIPO-174",
+      "jiraSummary": "analyza foxentry implementace",
+      "isAiSuggested": false
+    },
+    {
+      "id": "bc3c873d-baf8-4c3f-86d0-dbdd77e86eca",
+      "name": "print agent",
+      "jiraKey": null,
+      "jiraSummary": null,
+      "isAiSuggested": false
+    }
+  ],
+  "jiraIssues": [],
+  "jiraConfigured": true
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.888Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "refactor: comment out unused Abra client calls in issued and received order repositories"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.890Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "34f5df9a-5a1f-4b3a-992d-c125db3d90f2",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "refactor: comment out unused Abra client calls in issued and received order repositories",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.890Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.891Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "981b3d0c-0a43-4f93-b18e-b54f9497d0b6",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.891Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "comment out PmstateId initialization in AbraService"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:15.892Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "95deea28-015a-43dd-b2d7-1099538dc989",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "comment out PmstateId initialization in AbraService",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:17.825Z] 💬 [ASSISTANT RESPONSE]
+I have created suggestions for the commits from today's work:
+
+1. **refactor: comment out unused Abra client calls in issued and received order repositories**
+2. **comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder**
+3. **comment out PmstateId initialization in AbraService**
+
+These suggestions are now available for review. If you need further modifications or want to link JIRA keys later, feel free to ask!
+================================================================================
+
+================================================================================
+[2026-07-09T14:37:55.990Z] 🤖 AGENT SESSION START
+Provider: openai | Model: gpt-4o
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-09.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+Current UI context (use it to resolve relative references such as "today" or the day the user is currently viewing):
+{"currentDate":"2026-07-09","route":"/summary","viewedDate":"2026-07-09"}
+
+[Message History]:
+  #1 [USER]: priprav tasky pro 3-7-2026
+  #2 [ASSISTANT]: Dne 3. července 2026 nebyly zaznamenány žádné Git commity a v současnosti nejsou k dispozici ani žádné JIRA issue detaily. Máme ale tyto existující úkoly:
+
+1. **Status 1h**  
+2. **Doreseni agenta 1h**  
+3. **Print agent - test for win service**
+
+Nejedná se o návrhy AI a žádný z těchto úkolů zatím není spojen s žádnými JIRA klíči nebo resumé. Pokud máte nějaké dodatečné pokyny pro tyto úkoly nebo zda máme provést další akci, dejte mi vědět!
+  #3 [USER]: Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time.
+  #4 [ASSISTANT]: I have gathered the necessary information for today's worklog, including the commits made and existing tasks. Here's a breakdown:
+
+### Commits:
+1. **refactor: comment out unused Abra client calls in issued and received order repositories**
+2. **comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder**
+3. **comment out PmstateId initialization in AbraService**
+
+### Existing Tasks:
+1. **lipo emails** (linked to JIRA: LIPO-1613)
+2. **abra issues** (linked to JIRA: LIPO-174)
+3. **print agent** (not linked to any JIRA key)
+
+### Actions:
+- The existing task **"print agent"** does not match any of the commit descriptions, but it can be linked to improve clarity. Since the task names and commit descriptions don't overlap semantically, I will create suggestions based on the commit messages.
+
+Let's create suggestions for the commits as tasks.I have created suggestions for the commits from today's work:
+
+1. **refactor: comment out unused Abra client calls in issued and received order repositories**
+2. **comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder**
+3. **comment out PmstateId initialization in AbraService**
+
+These suggestions are now available for review. If you need further modifications or want to link JIRA keys later, feel free to ask!
+  #5 [USER]: ok, do suggestions
+================================================================================
+
+[2026-07-09T14:37:57.867Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "refactor: comment out unused Abra client calls in issued and received order repositories"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:57.870Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "ffffaf8f-fd54-48d2-9941-e6e736da01bc",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "refactor: comment out unused Abra client calls in issued and received order repositories",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:57.871Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:57.875Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "581eead2-4aec-49ae-8f53-dfdfef98021d",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:57.876Z] 🔨 [TOOL CALL] task_create_suggestion
+Arguments:
+{
+  "date": "2026-07-09",
+  "name": "comment out PmstateId initialization in AbraService"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:57.879Z] 🟢 [TOOL RESULT] task_create_suggestion (SUCCESS)
+Result:
+{
+  "id": "7ebb2f2b-69d5-402e-a7c6-a7669c2596c4",
+  "dayMetricId": null,
+  "trackerProjectId": null,
+  "date": "2026-07-09",
+  "name": "comment out PmstateId initialization in AbraService",
+  "jiraKey": null,
+  "jiraSummary": null,
+  "totalSeconds": 0,
+  "isRunning": false,
+  "isMarked": false,
+  "isAiSuggested": true,
+  "startTime": null,
+  "createdAt": "2026-07-08T07:25:44.000Z"
+}
+--------------------------------------------------------------------------------
+[2026-07-09T14:37:59.875Z] 💬 [ASSISTANT RESPONSE]
+I have created the following tasks as AI-suggested entries based on today's commits:
+
+1. **refactor: comment out unused Abra client calls in issued and received order repositories**
+2. **comment out CountryId initialization in AbraService and add JsonIgnore to Receivedorder**
+3. **comment out PmstateId initialization in AbraService**
+
+These suggestions are now in your task tracker for today's date. If you need to link JIRA keys or perform additional actions, feel free to let me know!
+================================================================================
+
+================================================================================
+[2026-07-11T22:48:48.590Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-11.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-07-11T22:48:48.597Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-07-11T22:48:48.598Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-07-11T22:48:48.615Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-07-11T22:57:57.822Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-11.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-07-11T22:57:57.827Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-07-11T22:57:57.828Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-07-11T22:57:57.829Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================

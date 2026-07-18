@@ -1,6 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
 import { settingsRepository } from '../repositories/settings.repository';
-import { getOrCreateExtensionToken } from './extensionAuth';
 import { z } from 'zod';
 
 const SECRET_FIELDS = ['geminiApiKey', 'openaiApiKey', 'jiraApiKey', 'jiraTempoApiKey'] as const;
@@ -47,9 +46,3 @@ export const saveAppSettingsFn = createServerFn({
 
     return sanitizeSettings(await settingsRepository.saveSettings(patch));
   });
-
-export const getExtensionTokenFn = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return await getOrCreateExtensionToken();
-});

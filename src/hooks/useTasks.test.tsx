@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-vi.mock('../services/settingsServer', () => ({
+vi.mock('../services/extensionTokenServer', () => ({
   getExtensionTokenFn: vi.fn().mockResolvedValue('test-token')
 }))
 
