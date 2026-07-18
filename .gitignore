@@ -16,3 +16,5 @@ exports
 .idea
 # Local SQLite database & backups — never commit (see data-loss incident 2026-07-06)
 .db/
+# DB export/import dumps — contain live secrets, never commit
+spec/task-tracker-export.sql

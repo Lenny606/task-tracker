@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "@tanstack/ai": "^0.6.3",
     "@tanstack/ai-gemini": "^0.8.0",
     "@tanstack/ai-openai": "^0.6.0",
