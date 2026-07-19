@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Bot, Check, ChevronDown, Timer } from 'lucide-react'
+import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2 } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
 import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
@@ -9,6 +9,10 @@ import { PageHeader } from '../components/PageHeader'
 import { SectionCard } from '../components/SectionCard'
 import { CopyField } from '../components/CopyField'
 import { Input } from '../components/Input'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getTaskTemplatesFn, deleteTaskTemplateFn } from '../services/tasksServer'
+import { getProjectsFn } from '../services/projectsServer'
+import { toast } from '../store/toastStore'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -17,6 +21,36 @@ export const Route = createFileRoute('/settings')({
 function SettingsPage() {
   const { settings, saveSettings } = useSettings()
   const [extensionToken, setExtensionToken] = useState('')
+
+  const queryClient = useQueryClient()
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['taskTemplates'],
+    queryFn: () => getTaskTemplatesFn().then(res => res as any[]),
+  })
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => getProjectsFn(),
+  })
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await deleteTaskTemplateFn({ data: { id } })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taskTemplates'] })
+      toast.success('Šablona byla úspěšně smazána.')
+    },
+    onError: () => {
+      toast.error('Nepodařilo se smazat šablonu.')
+    }
+  })
+
+  const getProjectDetails = (projectId: string | null) => {
+    if (!projectId) return null
+    return projects.find((p: any) => p.id === projectId)
+  }
 
   useEffect(() => {
     getExtensionTokenFn().then(setExtensionToken)
@@ -215,6 +249,60 @@ function SettingsPage() {
                     <span className="block text-xs opacity-70 mt-0.5">Nikdy nezkrátit</span>
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        {/* Task Templates Configuration Card */}
+        <SectionCard
+          title="Šablony úkolů"
+          description="Spravujte své předdefinované šablony pro rychlé zakládání denních úkolů."
+          icon={LayoutTemplate}
+          iconBgColor="bg-violet-50 dark:bg-violet-900/30"
+          iconColor="text-violet-600 dark:text-violet-400"
+        >
+          <div className="space-y-4">
+            {templates.length === 0 ? (
+              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <p className="text-slate-500 text-sm">Zatím nemáte žádné šablony. Můžete je vytvořit přímo na Dashboardu kliknutím na ikonu šablony u libovolného úkolu.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
+                {templates.map((tpl: any) => {
+                  const project = getProjectDetails(tpl.trackerProjectId)
+                  return (
+                    <div key={tpl.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{tpl.name}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {project && (
+                            <span 
+                              className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border"
+                              style={{ color: project.color, borderColor: `${project.color}33`, backgroundColor: `${project.color}10` }}
+                            >
+                              {project.name}
+                            </span>
+                          )}
+                          {tpl.jiraKey && (
+                            <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 uppercase tracking-wider bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded border border-blue-500/10">
+                              {tpl.jiraKey}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => deleteTemplateMutation.mutate(tpl.id)}
+                        disabled={deleteTemplateMutation.isPending && deleteTemplateMutation.variables === tpl.id}
+                        className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer disabled:opacity-50"
+                        title="Smazat šablonu"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

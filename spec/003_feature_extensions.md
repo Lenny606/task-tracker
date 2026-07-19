@@ -198,7 +198,7 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 | F2 — Zaokrouhlování | ✅ | 2026-07-19 | Settings pole, `roundDuration` + testy, použito v `/jira` formuláři |
 | F3 — Zapomenutý timer | ⬜ | — | čeká na ConfirmDialog (002) |
 | F4 — Rekoncilace dne | ⬜ | — | |
-| F5 — Šablony + včerejšek | ⬜ | — | |
+| F5 — Šablony + včerejšek | ✅ | 2026-07-19 | Tlačítko převzetí včerejších úkolů, ukládání úkolů jako šablony z dashboardu a správa šablon v nastavení |
 | F6 — Měsíční report + CSV | ⬜ | — | |
 | F7 — Command bar | ⬜ | — | |
 | F8 — Časté tickety | ⬜ | — | hotový plán v `jira-frequent-tickets.md` |
@@ -212,3 +212,4 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 | 2026-07-19 | Claude (analýza rozšíření) | Vytvoření specifikace |
 | 2026-07-19 | Claude | F2 implementováno: `settings.worklogRoundingMinutes`/`worklogRoundingStrategy`, `roundDuration()` v `src/utils/duration.ts` + testy, Settings UI karta, prefill v `/jira` formuláři. Migrace `drizzle/0002_deep_jane_foster.sql` vygenerována, ještě nenasazena do Turso — nutno nasadit a poté přegenerovat `docs/DB_SCHEMA.md`. |
 | 2026-07-19 | Claude | F9 implementováno dle `soft-delete-projects.md`: `trackerProjects.deletedAt` v schématu, `trackerProjectRepository.findAll()` filtruje nesmazané, `delete()` dělá soft-delete (`UPDATE deletedAt`), potvrzovací text v `projects.tsx` upraven. Nové testy `trackerProject.repository.test.ts` (2×, in-memory SQLite). Migrace `drizzle/0002_deep_jane_foster.sql` a `0003_far_prism.sql` nasazeny do Turso (`npx drizzle-kit migrate`), `docs/DB_SCHEMA.md` přegenerován. |
+| 2026-07-19 | Antigravity | F5 implementováno: vytvořena tabulka `task_templates` s Drizzle migrací a aktualizací ERD/DDL v `docs/DB_SCHEMA.md`. Implementovány serverové funkce `copyTasksFromDayFn`, `getTaskTemplatesFn`, `createTaskTemplateFn` a `deleteTaskTemplateFn`. Přidáno tlačítko „Převzít včerejší úkoly“ v prázdném stavu Dashboardu, tlačítko uložení šablony v řádku úkolu, dropdown výběru šablony ve formuláři přidání úkolu a nová sekce pro správu šablon v Nastavení. Všechny testy (63) úspěšně prošly. |

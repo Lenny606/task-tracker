@@ -75,3 +75,14 @@ export const dayMetrics = sqliteTable('day_metrics', {
   timerStartTime: integer('timer_start_time', { mode: 'timestamp' }),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date()),
 });
+
+export const taskTemplates = sqliteTable('task_templates', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  jiraKey: text('jira_key'),
+  jiraSummary: text('jira_summary'),
+  trackerProjectId: text('tracker_project_id').references(() => trackerProjects.id),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
+});
+

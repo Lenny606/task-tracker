@@ -25,6 +25,7 @@ Regenerate with: `npm run db:schema:export`
 erDiagram
     tracker_projects ||--o{ history_tasks : "tracker_project_id (nullable)"
     tracker_projects ||--o{ worklogs : "tracker_project_id (nullable)"
+    tracker_projects ||--o{ task_templates : "tracker_project_id (nullable)"
     day_metrics ||--o{ history_tasks : "day_metric_id (nullable, ON DELETE CASCADE)"
 
     tracker_projects {
@@ -99,6 +100,16 @@ erDiagram
         text worklog_rounding_strategy "'nearest'|'up', default 'nearest'"
         integer updated_at "unix s"
     }
+
+    task_templates {
+        text id PK "UUID"
+        text name
+        text jira_key "nullable"
+        text jira_summary "nullable"
+        text tracker_project_id FK "nullable"
+        integer sort_order "default 0"
+        integer created_at "unix s"
+    }
 ```
 
 ## Tables
@@ -120,6 +131,9 @@ Read-only cache of Jira projects (currently empty). Distinct from `tracker_proje
 
 ### `settings` — single-row app settings
 PK is the literal `'app-settings'`. **Contains API secrets (Gemini, OpenAI, Jira, Tempo).** Must never be exposed to or synced into a mobile client.
+
+### `task_templates` — reusable templates for daily tasks
+Stores template tasks with their default project and Jira link. Can be quickly spawned on the dashboard.
 
 ## Live DDL (Turso, 2026-07-19)
 
@@ -201,13 +215,24 @@ CREATE TABLE `settings` (
 	`worklog_rounding_strategy` text DEFAULT 'nearest' NOT NULL,
 	`updated_at` integer NOT NULL
 );
+
+CREATE TABLE `task_templates` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`jira_key` text,
+	`jira_summary` text,
+	`tracker_project_id` text,
+	`sort_order` integer DEFAULT 0 NOT NULL,
+	`created_at` integer NOT NULL,
+	FOREIGN KEY (`tracker_project_id`) REFERENCES `tracker_projects`(`id`) ON UPDATE no action ON DELETE no action
+);
 ```
 
-> `worklog_rounding_minutes`/`worklog_rounding_strategy` (spec 003/F2) and `tracker_projects.deleted_at` (spec 003/F9) are deployed and live on Turso (migrations `0002_deep_jane_foster` + `0003_far_prism`, applied 2026-07-19).
+> `worklog_rounding_minutes`/`worklog_rounding_strategy` (spec 003/F2) and `tracker_projects.deleted_at` (spec 003/F9) are deployed and live on Turso (migrations `0002_deep_jane_foster` + `0003_far_prism`, applied 2026-07-19). `task_templates` (spec 003/F5) is deployed and live on local SQLite/Turso (migration `0004_left_whizzer`, applied 2026-07-19).
 
 ## Notes for the mobile app
 
-- **Relevant tables to start with:** `tracker_projects`, `day_metrics`, `history_tasks`, `worklogs`. Skip `projects` (empty Jira cache) and **exclude `settings` entirely** — it holds API secrets.
+- **Relevant tables to start with:** `tracker_projects`, `day_metrics`, `history_tasks`, `worklogs`, `task_templates`. Skip `projects` (empty Jira cache) and **exclude `settings` entirely** — it holds API secrets.
 - **Shared data:** the DB lives in Turso, so the mobile app can share it either
   1. via the libSQL mobile SDKs (Swift / Kotlin / React Native / Flutter) with **embedded replicas + offline sync** talking straight to the same Turso DB, or
   2. via an API layer in this app (TanStack Start server routes) — safer if secrets/auth logic should stay server-side.

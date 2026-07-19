@@ -5,7 +5,8 @@ import {
   updateTaskFn, 
   deleteTaskFn, 
   updateDayMetricsFn, 
-  deleteHistoryDayFn 
+  deleteHistoryDayFn,
+  copyTasksFromDayFn
 } from '../services/tasksServer'
 import { getExtensionTokenFn } from '../services/extensionTokenServer'
 
@@ -88,7 +89,7 @@ export function useTasks(date: string = getTodayDate()) {
   const aiSummary = dayData.aiSummary
 
   const addTask = useMutation({
-    mutationFn: async ({ id, name, totalSeconds = 0 }: { id?: string; name: string; totalSeconds?: number }) => {
+    mutationFn: async ({ id, name, totalSeconds = 0, jiraKey, jiraSummary, trackerProjectId }: { id?: string; name: string; totalSeconds?: number; jiraKey?: string | null; jiraSummary?: string | null; trackerProjectId?: string | null }) => {
       const now = Date.now()
       // Stop other running tasks first
       for (const task of tasks) {
@@ -111,9 +112,9 @@ export function useTasks(date: string = getTodayDate()) {
         totalSeconds, 
         isRunning: true, 
         isMarked: false,
-        jiraKey: pendingJiraTicket?.key,
-        jiraSummary: pendingJiraTicket?.summary,
-        trackerProjectId: null, // New tasks start with no project by default
+        jiraKey: jiraKey !== undefined ? jiraKey : pendingJiraTicket?.key,
+        jiraSummary: jiraSummary !== undefined ? jiraSummary : pendingJiraTicket?.summary,
+        trackerProjectId: trackerProjectId !== undefined ? trackerProjectId : null,
         startTime: now
       }
       await updateTaskFn({ data: { date, task } })
@@ -147,9 +148,9 @@ export function useTasks(date: string = getTodayDate()) {
           totalSeconds: variables.totalSeconds || 0,
           isRunning: true,
           isMarked: false,
-          jiraKey: pendingJiraTicket?.key,
-          jiraSummary: pendingJiraTicket?.summary,
-          trackerProjectId: null,
+          jiraKey: variables.jiraKey !== undefined ? variables.jiraKey : pendingJiraTicket?.key,
+          jiraSummary: variables.jiraSummary !== undefined ? variables.jiraSummary : pendingJiraTicket?.summary,
+          trackerProjectId: variables.trackerProjectId !== undefined ? variables.trackerProjectId : null,
           startTime: nowTime
         }
 
@@ -832,6 +833,17 @@ export function useTasks(date: string = getTodayDate()) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['history'] }),
   })
 
+  const copyTasksFromDay = useMutation({
+    mutationFn: async () => {
+      const res = await copyTasksFromDayFn({ data: { targetDate: date } })
+      return res
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['history'] })
+    }
+  })
+
+
   return {
     tasks,
     globalTimer,
@@ -863,6 +875,7 @@ export function useTasks(date: string = getTodayDate()) {
     },
     getDisplayTime,
     getDisplayGlobalTime,
+    copyTasksFromDay,
   }
 }
 

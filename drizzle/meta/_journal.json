@@ -29,6 +29,13 @@
       "when": 1784495989829,
       "tag": "0003_far_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1784497759661,
+      "tag": "0004_left_whizzer",
+      "breakpoints": true
     }
   ]
 }

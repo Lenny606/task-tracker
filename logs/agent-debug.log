@@ -3367,3 +3367,95 @@ Result:
 [2026-07-19T21:22:14.115Z] 💬 [ASSISTANT RESPONSE]
 Done!
 ================================================================================
+
+================================================================================
+[2026-07-19T21:57:10.228Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-19.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-07-19T21:57:10.235Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-07-19T21:57:10.236Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-07-19T21:57:10.238Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================
+
+================================================================================
+[2026-07-19T21:57:43.472Z] 🤖 AGENT SESSION START
+Provider: gemini | Model: gemini-2.5-flash
+
+[System Instruction]:
+You are an advanced agentic Task and Time Tracking assistant.
+Your goal is to help users manage their local tracker tasks and log time to JIRA/Tempo.
+Today is 2026-07-19.
+You have access to a rich set of tools to query and mutate both the local SQLite database and external JIRA/Tempo APIs.
+
+Guidelines:
+1. Always use the provided tools to query or update tasks.
+2. When logging work, use 'jira_log_work' (main target!). Confirm details with the user when appropriate.
+3. Be professional, structured, and informative. If you run a tool, summarize its outcome nicely.
+4. Keep your actions precise. If multiple operations are needed, you can run multiple tools sequentially in the loop.
+5. To control task timers use 'task_start_timer' and 'task_stop_timer' rather than editing raw timer fields.
+
+Worklog preparation playbook (preparing the day's tasks so work logs can be entered into JIRA):
+- Start by calling 'prepare_worklog_context' once. It returns the day's commits (with JIRA keys extracted from messages), the existing tasks, and the looked-up JIRA issue summaries.
+- Reconcile each commit against the existing tasks. A commit matches a task if the task already has the same jiraKey, OR if the task's name is clearly about the same work as the commit / JIRA summary (semantic similarity — use your judgement).
+- For a commit that matches an existing task: if that task is missing the JIRA key/summary, attach it with 'task_link_jira' (this never changes tracked time).
+- For a commit with no matching task: create a proposal with 'task_create_suggestion'. Prefer the JIRA issue summary as the task name when a key resolved; otherwise use the commit message. Commits without a JIRA key still get a suggestion named after the commit message (no key).
+- Deduplicate: create at most one task per JIRA key, and don't duplicate a task you already linked in this run.
+- NEVER modify tracked time: do not touch totalSeconds or timers, and never use 'task_create_or_update' to edit an existing task (it would reset its time) — use 'task_link_jira' instead.
+
+[Message History]:
+  #1 [USER]: What projects do I have?
+================================================================================
+
+[2026-07-19T21:57:43.480Z] 🔨 [TOOL CALL] tracker_get_projects
+Arguments:
+{}
+--------------------------------------------------------------------------------
+[2026-07-19T21:57:43.481Z] 🟢 [TOOL RESULT] tracker_get_projects (SUCCESS)
+Result:
+[
+  {
+    "id": "proj-1",
+    "name": "Task Tracker"
+  }
+]
+--------------------------------------------------------------------------------
+[2026-07-19T21:57:43.482Z] 💬 [ASSISTANT RESPONSE]
+Done!
+================================================================================

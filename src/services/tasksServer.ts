@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { historyTasksRepository } from '../repositories/historyTasks.repository';
 import { dayMetricsRepository } from '../repositories/dayMetrics.repository';
+import { taskTemplatesRepository } from '../repositories/taskTemplates.repository';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
@@ -223,3 +224,112 @@ export const deleteHistoryDayFn = createServerFn({
       throw error;
     }
   });
+
+export const copyTasksFromDayFn = createServerFn({
+  method: 'POST',
+})
+  .inputValidator((data: unknown) => z.object({
+    targetDate: z.string(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      const { targetDate } = data;
+      // Get all tasks to find the last day that has tasks
+      const allTasks = await historyTasksRepository.findAll();
+      const olderTasks = allTasks.filter((t) => t.date < targetDate);
+      if (olderTasks.length === 0) {
+        return { copiedCount: 0 };
+      }
+
+      // Find the most recent date among older tasks
+      const dates = olderTasks.map((t) => t.date);
+      const lastDate = dates.reduce((a, b) => (a > b ? a : b));
+
+      const sourceTasks = olderTasks.filter((t) => t.date === lastDate);
+      let copiedCount = 0;
+
+      // Find day metrics for the target date if they exist, to link the tasks
+      const dayMetrics = await dayMetricsRepository.findAll();
+      const targetMetric = dayMetrics.find((m) => m.date === targetDate);
+      const dayMetricId = targetMetric?.id || null;
+
+      for (const task of sourceTasks) {
+        await historyTasksRepository.create({
+          id: randomUUID(),
+          dayMetricId,
+          date: targetDate,
+          name: task.name,
+          jiraKey: task.jiraKey || null,
+          jiraSummary: task.jiraSummary || null,
+          trackerProjectId: task.trackerProjectId || null,
+          totalSeconds: 0,
+          isRunning: false,
+          isMarked: false,
+          isAiSuggested: false,
+          startTime: null,
+        });
+        copiedCount++;
+      }
+
+      return { copiedCount };
+    } catch (error) {
+      console.error('[Server Function Error] copyTasksFromDayFn:', error);
+      throw error;
+    }
+  });
+
+export const getTaskTemplatesFn = createServerFn({
+  method: 'GET',
+}).handler(async () => {
+  try {
+    return await taskTemplatesRepository.findAllOrdered();
+  } catch (error) {
+    console.error('[Server Function Error] getTaskTemplatesFn:', error);
+    throw error;
+  }
+});
+
+export const createTaskTemplateFn = createServerFn({
+  method: 'POST',
+})
+  .inputValidator((data: unknown) => z.object({
+    name: z.string(),
+    jiraKey: z.string().nullable().optional(),
+    jiraSummary: z.string().nullable().optional(),
+    trackerProjectId: z.string().nullable().optional(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      const templates = await taskTemplatesRepository.findAllOrdered();
+      const maxSortOrder = templates.length > 0 ? Math.max(...templates.map(t => t.sortOrder)) : 0;
+
+      return await taskTemplatesRepository.create({
+        id: randomUUID(),
+        name: data.name,
+        jiraKey: data.jiraKey || null,
+        jiraSummary: data.jiraSummary || null,
+        trackerProjectId: data.trackerProjectId || null,
+        sortOrder: maxSortOrder + 1,
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      console.error('[Server Function Error] createTaskTemplateFn:', error);
+      throw error;
+    }
+  });
+
+export const deleteTaskTemplateFn = createServerFn({
+  method: 'POST',
+})
+  .inputValidator((data: unknown) => z.object({
+    id: z.string(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    try {
+      return await taskTemplatesRepository.delete(data.id);
+    } catch (error) {
+      console.error('[Server Function Error] deleteTaskTemplateFn:', error);
+      throw error;
+    }
+  });
+
