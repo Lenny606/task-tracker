@@ -13,6 +13,7 @@
     "time": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
+    "db:schema:export": "node --env-file=.env scripts/export-db-schema.mjs",
     "test": "vitest run"
   },
   "dependencies": {
