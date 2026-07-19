@@ -23,7 +23,7 @@ export function Sidebar() {
 
   const handleEditTimer = () => {
     const currentVal = formatTime(getDisplayGlobalTime(globalTimer))
-    const input = prompt('Enter new global timer value (HH:MM:SS, MM:SS, or total seconds):', currentVal)
+    const input = prompt('Zadejte novou hodnotu globálního časovače (HH:MM:SS, MM:SS nebo počet sekund):', currentVal)
     if (input === null) return
 
     let totalSeconds = 0
@@ -33,7 +33,7 @@ export function Sidebar() {
       if (!isNaN(val) && val >= 0) {
         totalSeconds = val
       } else {
-        alert('Invalid time format. Please use HH:MM:SS, MM:SS, or raw seconds.')
+        alert('Neplatný formát času. Použijte HH:MM:SS, MM:SS nebo počet sekund.')
         return
       }
     } else {
@@ -44,7 +44,7 @@ export function Sidebar() {
       } else if (parts.length === 1) {
         totalSeconds = parts[0]
       } else {
-        alert('Invalid time format. Please use HH:MM:SS, MM:SS, or raw seconds.')
+        alert('Neplatný formát času. Použijte HH:MM:SS, MM:SS nebo počet sekund.')
         return
       }
     }
@@ -70,7 +70,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Dashboard</span>
+          <span className="font-semibold tracking-wide">Přehled</span>
         </Link>
 
         <Link
@@ -79,7 +79,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Today's Summary</span>
+          <span className="font-semibold tracking-wide">Denní souhrn</span>
         </Link>
 
         <Link
@@ -88,7 +88,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Calendar</span>
+          <span className="font-semibold tracking-wide">Kalendář</span>
         </Link>
 
         <Link
@@ -97,13 +97,13 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Projects</span>
+          <span className="font-semibold tracking-wide">Projekty</span>
         </Link>
 
         <div className="py-2 px-2">
           <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Global Timer</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Globální časovač</span>
               {globalTimer.isRunning && (
                 <span className="flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
@@ -114,6 +114,7 @@ export function Sidebar() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => toggleGlobalTimer.mutate()}
+                aria-label={globalTimer.isRunning ? 'Pozastavit globální časovač' : 'Spustit globální časovač'}
                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${globalTimer.isRunning
                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
                     : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
@@ -124,8 +125,9 @@ export function Sidebar() {
               <div className="flex-1">
                 <button
                   onClick={handleEditTimer}
-                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded transition-colors ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}
-                  title="Click to edit timer"
+                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded ring-1 ring-transparent hover:ring-slate-700 transition-all ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}
+                  title="Kliknutím upravíte časovač"
+                  aria-label="Upravit hodnotu globálního časovače"
                 >
                   {formatTime(getDisplayGlobalTime(globalTimer))}
                 </button>
@@ -133,12 +135,13 @@ export function Sidebar() {
               {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
                 <button
                   onClick={() => {
-                    if (confirm('Reset global timer?')) {
+                    if (confirm('Resetovat globální časovač?')) {
                       resetGlobalTimer.mutate()
                     }
                   }}
                   className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
-                  title="Reset Timer"
+                  title="Resetovat časovač"
+                  aria-label="Resetovat globální časovač"
                 >
                   <RefreshCw size={14} />
                 </button>
@@ -155,7 +158,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <GitCommit className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Commits</span>
+          <span className="font-semibold tracking-wide">Commity</span>
         </Link>
 
         <Link
@@ -173,7 +176,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <LayoutGrid className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">Tempo Calendar</span>
+          <span className="font-semibold tracking-wide">Tempo kalendář</span>
         </Link>
 
         <Link
@@ -182,7 +185,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <History className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          <span className="font-semibold tracking-wide">History</span>
+          <span className="font-semibold tracking-wide">Historie</span>
         </Link>
 
         <Link
@@ -202,7 +205,7 @@ export function Sidebar() {
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-          <span className="font-medium">Settings</span>
+          <span className="font-medium">Nastavení</span>
         </Link>
       </div>
 
@@ -223,7 +226,7 @@ function SyncExtensionButton({ isSyncing, onSync }: { isSyncing: boolean, onSync
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
       </div>
-      <span className="font-medium">{isSyncing ? 'Syncing...' : 'Sync Extension'}</span>
+      <span className="font-medium">{isSyncing ? 'Synchronizuji…' : 'Synchronizovat rozšíření'}</span>
     </button>
   )
 }

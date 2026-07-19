@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useHistoryOverview } from '../hooks/useHistoryOverview'
 import { Calendar, ChevronRight, Clock, Timer, Trash2, BarChart3, ListFilter } from 'lucide-react'
+import { czechPlural } from '../utils/plural'
 import { useState } from 'react'
 import { useIsMounted } from '../hooks/useIsMounted'
 
@@ -33,10 +34,10 @@ function HistoryPage() {
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <header className="mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-          History
+          Historie
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-lg mb-8">
-          Review your past productivity and achievements.
+          Prohlédněte si svou dřívější produktivitu a výsledky.
         </p>
 
         <div className="flex items-center gap-3 p-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
@@ -49,7 +50,7 @@ function HistoryPage() {
             }`}
           >
             <Calendar className="w-4 h-4" />
-            This Month
+            Tento měsíc
           </button>
           <button 
             onClick={() => setFilter('all')}
@@ -60,7 +61,7 @@ function HistoryPage() {
             }`}
           >
             <ListFilter className="w-4 h-4" />
-            All History
+            Celá historie
           </button>
         </div>
       </header>
@@ -70,7 +71,7 @@ function HistoryPage() {
           <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500">
-              {!isMounted ? 'Loading history...' : 'No history found for the selected period.'}
+              {!isMounted ? 'Načítání historie…' : 'Pro zvolené období nebyla nalezena žádná historie.'}
             </p>
           </div>
         ) : (
@@ -95,7 +96,7 @@ function HistoryPage() {
                     
                     <div>
                       <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-                        {new Date(date).toLocaleDateString(undefined, { 
+                        {new Date(date).toLocaleDateString('cs-CZ', {
                           weekday: 'long', 
                           year: 'numeric', 
                           month: 'long', 
@@ -103,23 +104,23 @@ function HistoryPage() {
                         })}
                       </h3>
                       <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400 font-medium">
-                        <span className="flex items-center gap-1.5" title="Tasks time">
+                        <span className="flex items-center gap-1.5" title="Čas úkolů">
                           <Timer className="w-4 h-4" />
                           {formatTime(totalSeconds)}
                         </span>
                         {dayData?.globalTimer && (
                           <>
                             <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
-                            <span className="flex items-center gap-1.5 text-indigo-500 dark:text-indigo-400" title="Global time">
+                            <span className="flex items-center gap-1.5 text-indigo-500 dark:text-indigo-400" title="Globální čas">
                               <Clock className="w-4 h-4" />
                               {formatTime(dayData.globalTimer.totalSeconds)}
                             </span>
                           </>
                         )}
                         <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
-                        <span className="flex items-center gap-1.5" title="Task count">
+                        <span className="flex items-center gap-1.5" title="Počet úkolů">
                           <BarChart3 className="w-4 h-4" />
-                          {taskCount} {taskCount === 1 ? 'task' : 'tasks'}
+                          {taskCount} {czechPlural(taskCount, 'úkol', 'úkoly', 'úkolů')}
                         </span>
                       </div>
                     </div>
@@ -130,12 +131,13 @@ function HistoryPage() {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        if (confirm(`Are you sure you want to delete the history for ${date}?`)) {
+                        if (confirm(`Opravdu chcete smazat historii pro ${date}?`)) {
                           deleteHistoryDay.mutate(date)
                         }
                       }}
                       className="w-12 h-12 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all z-10 relative"
-                      title="Delete day"
+                      title="Smazat den"
+                      aria-label={`Smazat historii pro ${date}`}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

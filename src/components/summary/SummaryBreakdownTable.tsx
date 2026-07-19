@@ -75,26 +75,26 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Detailed Breakdown</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Podrobný rozpis</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50">
               <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-12"></th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Task Name</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-40">Jira Ticket</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Project</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Duration</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Percentage</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Actions</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Název úkolu</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-40">Jira ticket</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Projekt</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Doba</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">Podíl</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400 w-32 text-right">Akce</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {liveTasks.length === 0 && !newTaskName && (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                  No data available for {displayDate}. Use the input below to add tasks retrospectively.
+                  Pro {displayDate} nejsou žádná data. Úkoly můžete doplnit zpětně pomocí pole níže.
                 </td>
               </tr>
             )}
@@ -112,6 +112,9 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                   <td className="px-6 py-4">
                     <button
                       onClick={() => onToggleMarked(task.id)}
+                      aria-pressed={task.isMarked}
+                      aria-label={task.isMarked ? 'Zrušit označení úkolu jako vykázaného' : 'Označit úkol jako vykázaný'}
+                      title={task.isMarked ? 'Vykázáno — kliknutím zrušíte označení' : 'Označit jako vykázaný (zapsaný do Jiry)'}
                       className={`transition-all active:scale-95 ${
                         task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
                       }`}
@@ -136,7 +139,9 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                             ;(e.target as HTMLInputElement).blur()
                           }
                         }}
-                        className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full"
+                        title="Kliknutím upravíte název úkolu"
+                        aria-label="Název úkolu"
+                        className="font-medium text-slate-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-full cursor-text hover:bg-slate-100/70 dark:hover:bg-slate-800/50"
                       />
                       {task.isAiSuggested && (
                         <button
@@ -188,7 +193,8 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                             ;(e.target as HTMLInputElement).blur()
                           }
                         }}
-                        title="Manual duration edit (e.g. 1h 30m, 01:30:00, or 90)"
+                        title="Ruční úprava doby (např. 1h 30m, 01:30:00 nebo 90)"
+                        aria-label="Doba trvání úkolu"
                         className="font-mono text-slate-600 dark:text-slate-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500/30 rounded-lg px-2 -ml-2 transition-all w-24 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-edit"
                       />
                     </div>
@@ -210,14 +216,16 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                         variant="icon"
                         onClick={() => onLogToJira(task)}
                         className="p-2 text-blue-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
-                        title="Log to Jira"
+                        title="Zapsat do Jiry"
+                        aria-label={`Zapsat úkol ${task.name} do Jiry`}
                         icon={Database}
                       />
                       <Button
                         variant="icon"
                         onClick={() => onDeleteTask(task.id)}
                         className="p-2 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                        title="Delete task"
+                        title="Smazat úkol"
+                        aria-label={`Smazat úkol ${task.name}`}
                         icon={Trash2}
                       />
                     </div>
@@ -237,7 +245,8 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                 <form onSubmit={handleFormSubmit} className="flex items-center gap-4">
                   <input
                     type="text"
-                    placeholder="Add task retrospectively..."
+                    placeholder="Přidat úkol zpětně…"
+                    aria-label="Název nového úkolu"
                     value={newTaskName}
                     onChange={(e) => setNewTaskName(e.target.value)}
                     className="flex-1 bg-transparent border-none outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium py-1"
@@ -248,7 +257,7 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                       variant="primary"
                       size="sm"
                     >
-                      Add Task
+                      Přidat úkol
                     </Button>
                   )}
                 </form>
@@ -270,7 +279,7 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
             {globalSeconds > 0 && (
               <tr className="bg-indigo-50/30 dark:bg-indigo-900/10 font-bold border-t border-indigo-500/20">
                 <td className="px-6 py-6"></td>
-                <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400 text-sm tracking-wide font-black">GLOBAL TRACKED TIME</td>
+                <td className="px-6 py-6 text-indigo-600 dark:text-indigo-400 text-sm tracking-wide font-black">GLOBÁLNÍ ČAS</td>
                 <td className="px-6 py-6">
                   <span className="px-2.5 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 ring-1 ring-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-wider">
                     PCSD-24
@@ -280,8 +289,8 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                 <td className="px-6 py-6 font-mono text-indigo-600 dark:text-indigo-400">{formatFullTime(globalSeconds)}</td>
                 <td className="px-6 py-6">
                   <div className="flex flex-col gap-1 text-indigo-600 dark:text-indigo-400">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60">Independent of tasks</span>
-                    <span className="text-xs font-bold">{isGoalReached ? 'Goal Reached!' : `${formatTime(remainingSeconds)} remaining to 8h`}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500/60">Nezávislé na úkolech</span>
+                    <span className="text-xs font-bold">{isGoalReached ? 'Cíl splněn!' : `do 8 h zbývá ${formatTime(remainingSeconds)}`}</span>
                   </div>
                 </td>
                 <td className="px-6 py-6 text-right">
@@ -291,7 +300,8 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                         variant="icon"
                         onClick={onLogGlobalToJira}
                         className="p-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg inline-flex"
-                        title="Log Global Tracked Time to Jira (PCSD-24)"
+                        title="Zapsat globální čas do Jiry (PCSD-24)"
+                        aria-label="Zapsat globální čas do Jiry"
                         icon={Database}
                       />
                     </div>

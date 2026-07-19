@@ -54,10 +54,10 @@ function Dashboard() {
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <header className="mb-12">
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
-          Daily Tasks
+          Dnešní úkoly
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-lg">
-          Track your time and stay productive.
+          Sledujte svůj čas a zůstaňte produktivní.
         </p>
       </header>
 
@@ -65,11 +65,11 @@ function Dashboard() {
       <div className="space-y-4">
         {!isMounted ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl opacity-50">
-            <p className="text-slate-500">Loading tasks...</p>
+            <p className="text-slate-500">Načítání úkolů…</p>
           </div>
         ) : tasks.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
-            <p className="text-slate-500">No tasks for today yet. Add one below!</p>
+            <p className="text-slate-500">Zatím žádné úkoly pro dnešek. Přidejte první níže!</p>
           </div>
         ) : tasks.map((task) => (
           <div
@@ -86,6 +86,9 @@ function Dashboard() {
           >
             <button
               onClick={() => toggleMarked.mutate(task.id)}
+              aria-pressed={task.isMarked}
+              aria-label={task.isMarked ? 'Zrušit označení úkolu jako vykázaného' : 'Označit úkol jako vykázaný'}
+              title={task.isMarked ? 'Vykázáno — kliknutím zrušíte označení' : 'Označit jako vykázaný (zapsaný do Jiry)'}
               className={`mr-4 transition-all active:scale-95 ${
                 task.isMarked ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-700 hover:text-slate-400'
               }`}
@@ -109,14 +112,16 @@ function Dashboard() {
                     ;(e.target as HTMLInputElement).blur()
                   }
                 }}
-                className={`font-semibold text-xl px-2 -ml-2 transition-all w-full outline-none border-none shadow-none ring-0 focus:ring-2 focus:ring-indigo-500/30 rounded-lg ${
+                title="Kliknutím upravíte název úkolu"
+                aria-label="Název úkolu"
+                className={`font-semibold text-xl px-2 -ml-2 transition-all w-full outline-none border-none shadow-none ring-0 focus:ring-2 focus:ring-indigo-500/30 rounded-lg cursor-text hover:bg-slate-100/70 dark:hover:bg-slate-800/50 ${
                   task.isRunning ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
                 }`}
               />
               {task.isRunning && (
                 <span className="text-xs font-bold text-indigo-500 animate-pulse-soft uppercase tracking-wider mt-1 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                  Currently Tracking...
+                  Právě běží…
                 </span>
               )}
               
@@ -153,7 +158,8 @@ function Dashboard() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleTask.mutate(task.id)}
-                  title={task.isRunning ? 'Pause' : 'Start'}
+                  title={task.isRunning ? 'Pozastavit' : 'Spustit'}
+                  aria-label={task.isRunning ? `Pozastavit měření úkolu ${task.name}` : `Spustit měření úkolu ${task.name}`}
                   className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 cursor-pointer select-none ${
                     task.isRunning
                       ? 'bg-amber-100 hover:bg-amber-200 text-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-400'
@@ -171,7 +177,8 @@ function Dashboard() {
                 <Button
                   variant="icon"
                   onClick={() => resetTask.mutate(task.id)}
-                  title="Reset"
+                  title="Resetovat"
+                  aria-label={`Resetovat čas úkolu ${task.name}`}
                   icon={RotateCcw}
                   className="w-12 h-12"
                 />
@@ -179,7 +186,8 @@ function Dashboard() {
                 <Button
                   variant="icon"
                   onClick={() => deleteTask.mutate(task.id)}
-                  title="Delete"
+                  title="Smazat"
+                  aria-label={`Smazat úkol ${task.name}`}
                   icon={Trash2}
                   className="w-12 h-12 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                 />
@@ -188,7 +196,8 @@ function Dashboard() {
 
                 <button
                   onClick={() => handleLogToJira(task)}
-                  title="Log to Jira"
+                  title="Zapsat do Jiry"
+                  aria-label={`Zapsat úkol ${task.name} do Jiry`}
                   className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 active:scale-95 cursor-pointer select-none bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400"
                 >
                   <Database className="w-5 h-5" />
@@ -213,7 +222,8 @@ function Dashboard() {
               variant="ghost"
               value={newTaskName}
               onChange={(e) => setNewTaskName(e.target.value)}
-              placeholder="What are you working on next?"
+              placeholder="Na čem budete pracovat?"
+              aria-label="Název nového úkolu"
               className="flex-1 text-xl font-semibold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 border-none bg-transparent shadow-none ring-0 focus:ring-0"
             />
           </div>
@@ -224,7 +234,7 @@ function Dashboard() {
               variant="primary"
               size="sm"
             >
-              Add Task
+              Přidat úkol
             </Button>
           )}
         </form>

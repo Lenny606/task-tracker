@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { GitCommit as GitCommitIcon, Clock, User, Hash, Folder, Calendar, Sparkles, Copy, Check } from 'lucide-react'
 import { getServerCommits } from '../services/git'
+import { czechPlural } from '../utils/plural'
 import { analyzeCommitsForJiraFn } from '../services/aiServer'
 import { useState } from 'react'
 import { Button } from '../components/Button'
@@ -76,7 +77,7 @@ function CommitsComponent() {
       setAnalysisResult(result)
     } catch (error) {
       console.error('Analysis failed:', error)
-      alert('Failed to analyze commits. Make sure your AI API key is set in Settings.')
+      alert('Analýza commitů se nezdařila. Zkontrolujte, že máte v Nastavení uložený AI API klíč.')
     } finally {
       setIsAnalyzing(false)
     }
@@ -108,10 +109,10 @@ function CommitsComponent() {
             <div className="p-3 bg-violet-500/10 rounded-2xl ring-1 ring-violet-500/20">
               <GitCommitIcon className="w-8 h-8 text-violet-600 dark:text-violet-400" />
             </div>
-            Commit History
+            Historie commitů
           </h1>
           <p className="mt-4 text-lg text-slate-600 dark:text-slate-400 max-w-2xl font-medium">
-            Review the latest changes from all your projects.
+            Projděte si poslední změny ze všech vašich projektů.
           </p>
         </div>
 
@@ -128,7 +129,7 @@ function CommitsComponent() {
           <div className="hidden lg:flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700">
             <Hash className="w-5 h-5 text-slate-400" />
             <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-              {commits.length} Commits
+              {commits.length} {czechPlural(commits.length, 'commit', 'commity', 'commitů')}
             </span>
           </div>
 
@@ -140,7 +141,7 @@ function CommitsComponent() {
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20 shadow-sm border-none px-6 py-2.5 rounded-xl font-bold"
             icon={Sparkles}
           >
-            Analyze with AI
+            Analyzovat pomocí AI
           </Button>
         </div>
       </div>
@@ -153,7 +154,7 @@ function CommitsComponent() {
                 <div className="p-2 bg-violet-100 dark:bg-violet-900/40 rounded-lg">
                   <Sparkles className="w-6 h-6 text-violet-600 dark:text-violet-400" />
                 </div>
-                JIRA Task Description
+                Popis úkolu pro Jiru
               </h2>
               <Button
                 variant="ghost"
@@ -162,7 +163,7 @@ function CommitsComponent() {
                 icon={copied ? Check : Copy}
                 iconClassName={copied ? 'text-green-500' : ''}
               >
-                {copied ? 'Copied!' : 'Copy to Clipboard'}
+                {copied ? 'Zkopírováno!' : 'Kopírovat'}
               </Button>
             </div>
             <div className="prose-slate dark:prose-invert max-w-none">
@@ -225,7 +226,7 @@ function CommitsComponent() {
 
         {commits.length === 0 && (
           <div className="pl-8 text-slate-500 dark:text-slate-400 font-medium bg-slate-100/50 dark:bg-slate-900/50 p-6 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 border border-transparent border-dashed">
-            No commits found across any projects for {currentDateValue}.
+            Pro {currentDateValue} nebyly v žádném projektu nalezeny commity.
           </div>
         )}
       </div>

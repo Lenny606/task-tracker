@@ -145,7 +145,7 @@ export function SummaryPage() {
       saveAiSummary.mutate(summary)
     } catch (err) {
       console.error('Failed to generate summary:', err)
-      setError('Failed to generate AI summary. Please try again.')
+      setError('Nepodařilo se vygenerovat AI souhrn. Zkuste to prosím znovu.')
     } finally {
       setIsGenerating(false)
     }
@@ -173,18 +173,18 @@ export function SummaryPage() {
   return (
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
-        title={!isMounted ? 'Summary' : displayDate === new Date().toISOString().split('T')[0] ? 'Daily Summary' : `Summary: ${displayDate}`}
-        description={!isMounted ? 'Loading summary data...' : displayDate === new Date().toISOString().split('T')[0] ? 'Overview of your productivity today.' : `Reviewing activity from ${displayDate}.`}
+        title={!isMounted ? 'Souhrn' : displayDate === new Date().toISOString().split('T')[0] ? 'Denní souhrn' : `Souhrn: ${displayDate}`}
+        description={!isMounted ? 'Načítání dat souhrnu…' : displayDate === new Date().toISOString().split('T')[0] ? 'Přehled vaší dnešní produktivity.' : `Prohlížíte aktivitu ze dne ${displayDate}.`}
         rightContent={
           <div className="flex flex-col items-end gap-2">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Day Progress</div>
+            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Denní průběh</div>
             <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
               <div
                 className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
                 style={{ width: `${totalProgress}%` }}
               />
             </div>
-            <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)}% of 8h goal</div>
+            <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)} % z cíle 8 h</div>
           </div>
         }
       />

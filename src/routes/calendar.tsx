@@ -64,7 +64,7 @@ function CalendarPage() {
     const first = new Date(weekDates[0])
     const last = new Date(weekDates[4])
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
-    return `${first.toLocaleDateString(undefined, options)} - ${last.toLocaleDateString(undefined, options)}, ${last.getFullYear()}`
+    return `${first.toLocaleDateString('cs-CZ', options)} – ${last.toLocaleDateString('cs-CZ', options)}, ${last.getFullYear()}`
   }, [weekDates])
 
   if (!isMounted) return null
@@ -78,11 +78,11 @@ function CalendarPage() {
               <CalendarIcon className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-gradient">
-              Weekly Calendar
+              Týdenní kalendář
             </h1>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-             Focus on your work week and track your progress across days.
+             Soustřeďte se na pracovní týden a sledujte svůj pokrok napříč dny.
           </p>
         </div>
 
@@ -91,7 +91,8 @@ function CalendarPage() {
             variant="icon"
             onClick={() => navigateWeek(-1)}
             icon={ChevronLeft}
-            title="Previous Week"
+            title="Předchozí týden"
+            aria-label="Předchozí týden"
           />
           
           <div className="px-4 py-1 text-center min-w-[200px]">
@@ -104,7 +105,8 @@ function CalendarPage() {
             variant="icon"
             onClick={() => navigateWeek(1)}
             icon={ChevronRight}
-            title="Next Week"
+            title="Další týden"
+            aria-label="Další týden"
           />
 
           <div className="h-6 w-px bg-slate-200 dark:border-slate-800 mx-1" />
@@ -114,7 +116,7 @@ function CalendarPage() {
             onClick={resetToToday}
             className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm border-none"
           >
-            Today
+            Dnes
           </Button>
         </div>
       </header>
@@ -145,10 +147,10 @@ function CalendarPage() {
               }`}>
                 <div>
                   <h3 className={`font-bold text-xl ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-white'}`}>
-                    {date.toLocaleDateString(undefined, { weekday: 'long' })}
+                    {date.toLocaleDateString('cs-CZ', { weekday: 'long' })}
                   </h3>
                   <span className="text-sm font-medium text-slate-500">
-                    {date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    {date.toLocaleDateString('cs-CZ', { month: 'short', day: 'numeric' })}
                   </span>
                 </div>
                 {totalSeconds > 0 && (
@@ -165,7 +167,7 @@ function CalendarPage() {
                 {tasks.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40 group-hover:opacity-100 transition-opacity">
                     <Timer className="w-8 h-8 text-slate-300 dark:text-slate-700 mb-2" />
-                    <p className="text-sm text-slate-500">No tasks recorded</p>
+                    <p className="text-sm text-slate-500">Žádné zaznamenané úkoly</p>
                   </div>
                 ) : (
                   tasks.map((task) => (
@@ -199,7 +201,7 @@ function CalendarPage() {
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-500 hover:text-indigo-600 hover:border-indigo-500/50 hover:bg-white dark:hover:bg-slate-800 transition-all opacity-0 group-hover:opacity-100"
                 >
                   <LayoutGrid size={16} />
-                  View Day Details
+                  Zobrazit detail dne
                 </Link>
               </div>
             </div>

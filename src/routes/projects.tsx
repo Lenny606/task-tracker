@@ -29,7 +29,7 @@ function ProjectsPage() {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setIsModalOpen(false)
       setEditingProject(null)
-      toast.success('Project saved successfully')
+      toast.success('Projekt byl uložen')
     },
   })
 
@@ -37,7 +37,7 @@ function ProjectsPage() {
     mutationFn: deleteProjectFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
-      toast.success('Project deleted')
+      toast.success('Projekt byl smazán')
     },
   })
 
@@ -47,7 +47,7 @@ function ProjectsPage() {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this project? Tasks will lose their association.')) {
+    if (confirm('Opravdu chcete smazat tento projekt? Úkoly ztratí své přiřazení.')) {
       deleteMutation.mutate({ data: { id } })
     }
   }
@@ -55,8 +55,8 @@ function ProjectsPage() {
   return (
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
-        title="Projects"
-        description="Manage project budgets and track time consumption."
+        title="Projekty"
+        description="Spravujte rozpočty projektů a sledujte čerpání času."
         icon={LayoutGrid}
         rightContent={
           <Button
@@ -66,7 +66,7 @@ function ProjectsPage() {
             }}
             icon={Plus}
           >
-            New Project
+            Nový projekt
           </Button>
         }
       />
@@ -78,8 +78,8 @@ function ProjectsPage() {
       ) : projects.length === 0 ? (
         <div className="text-center py-32 glass-panel rounded-[40px] border-dashed border-2 border-slate-200 dark:border-slate-800">
           <Briefcase className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-slate-400">No projects yet</h2>
-          <p className="text-slate-500 mt-2">Create your first project to start tracking budgets.</p>
+          <h2 className="text-2xl font-bold text-slate-400">Zatím žádné projekty</h2>
+          <p className="text-slate-500 mt-2">Vytvořte svůj první projekt a začněte sledovat rozpočty.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,23 +144,23 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
         </div>
         
         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button onClick={onEdit} variant="icon" icon={Edit2} />
-          <Button onClick={onDelete} variant="icon" icon={Trash2} />
+          <Button onClick={onEdit} variant="icon" icon={Edit2} title="Upravit projekt" aria-label={`Upravit projekt ${project.name}`} />
+          <Button onClick={onDelete} variant="icon" icon={Trash2} title="Smazat projekt" aria-label={`Smazat projekt ${project.name}`} />
         </div>
       </div>
 
       <div className="space-y-4 flex-1">
         <div className="flex justify-between items-end">
           <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vyčerpáno</span>
             <div className={`text-2xl font-mono font-bold ${isOverBudget ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
               {formatSecondsToDuration(project.totalSpentSeconds)}
             </div>
           </div>
           <div className="text-right space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Budget</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rozpočet</span>
             <div className="text-lg font-mono font-bold text-slate-500">
-              {project.timeBudgetSeconds > 0 ? formatSecondsToDuration(project.timeBudgetSeconds) : 'No Budget'}
+              {project.timeBudgetSeconds > 0 ? formatSecondsToDuration(project.timeBudgetSeconds) : 'Bez rozpočtu'}
             </div>
           </div>
         </div>
@@ -182,18 +182,18 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
           {isOverBudget ? (
             <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-wider animate-pulse">
               <AlertTriangle size={14} />
-              Budget Overflow
+              Rozpočet překročen
             </div>
           ) : (
             <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-wider">
               <CheckCircle2 size={14} />
-              Within Budget ({Math.round(progress)}%)
+              V rámci rozpočtu ({Math.round(progress)} %)
             </div>
           )}
           
           <div className="text-xs font-bold text-slate-400 flex items-center gap-1">
             <Clock size={12} />
-            {Math.round(project.totalSpentSeconds / 3600)}h tracked
+            celkem {Math.round(project.totalSpentSeconds / 3600)} h
           </div>
         </div>
       </div>
@@ -206,7 +206,7 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
             className="flex items-center justify-between w-full text-slate-500 hover:text-indigo-500 transition-colors"
           >
             <span className="text-xs font-black uppercase tracking-widest">
-              Related Tasks ({project.relatedTasks.length})
+              Související úkoly ({project.relatedTasks.length})
             </span>
             <ChevronRight 
               size={16} 
@@ -276,9 +276,9 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
       <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
           <h2 className="text-3xl font-black text-slate-800 dark:text-white">
-            {project ? 'Edit Project' : 'New Project'}
+            {project ? 'Upravit projekt' : 'Nový projekt'}
           </h2>
-          <Button variant="icon" onClick={onClose} icon={X} />
+          <Button variant="icon" onClick={onClose} icon={X} title="Zavřít" aria-label="Zavřít dialog" />
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
@@ -286,27 +286,28 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
             required
             variant="filled"
             size="lg"
-            label="Project Name"
+            label="Název projektu"
             value={name}
             onChange={e => setName(e.target.value)}
             className="px-5 py-4 text-lg font-semibold"
-            placeholder="e.g. Website Redesign"
+            placeholder="např. Redesign webu"
           />
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Description</label>
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Popis</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="w-full bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-2xl px-5 py-4 outline-none transition-all font-medium resize-none"
-              placeholder="What is this project about?"
+              placeholder="O čem tento projekt je?"
+              aria-label="Popis projektu"
               rows={2}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Budget Value</label>
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Rozpočet</label>
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -321,15 +322,16 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
                   value={budgetType}
                   onChange={e => setBudgetType(e.target.value)}
                   className="w-24 bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 rounded-2xl px-3 outline-none font-bold text-xs uppercase tracking-tighter"
+                  aria-label="Jednotka rozpočtu"
                 >
-                  <option value="hours">Hours</option>
-                  <option value="md">MD (8h)</option>
+                  <option value="hours">Hodiny</option>
+                  <option value="md">MD (8 h)</option>
                 </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Theme Color</label>
+              <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Barva</label>
               <div className="flex items-center gap-4 h-[60px] px-4 bg-slate-50 dark:bg-slate-800/50 ring-1 ring-slate-200 dark:ring-slate-700 rounded-2xl">
                 <Input
                   type="color"
@@ -349,7 +351,7 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
               onClick={onClose}
               className="flex-1 py-4 rounded-2xl font-bold"
             >
-              Cancel
+              Zrušit
             </Button>
             <Button
               type="submit"
@@ -357,7 +359,7 @@ function ProjectModal({ project, onClose, onSave, isSubmitting }: any) {
               disabled={!name}
               className="flex-[2] py-4 rounded-2xl font-bold text-lg"
             >
-              Save Project
+              Uložit projekt
             </Button>
           </div>
         </form>

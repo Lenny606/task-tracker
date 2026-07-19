@@ -28,12 +28,12 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-indigo-500" />
-            AI Commits Summary
+            AI souhrn commitů
           </h2>
           <CollapseChevron
             isCollapsed={isSummaryCollapsed}
             onToggle={onToggleCollapse}
-            title={isSummaryCollapsed ? "Show AI Summary" : "Hide AI Summary"}
+            title={isSummaryCollapsed ? 'Zobrazit AI souhrn' : 'Skrýt AI souhrn'}
           />
         </div>
         <div className="flex items-center gap-3">
@@ -43,7 +43,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
             icon={GitBranch}
             className="px-6 py-2 rounded-xl"
           >
-            View Commits
+            Zobrazit commity
           </Button>
           {!aiSummary && !isGenerating && (
             <Button
@@ -52,7 +52,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
               icon={Sparkles}
               className="px-6 py-2 rounded-xl"
             >
-              Generate JIRA Summary
+              Vygenerovat souhrn pro Jiru
             </Button>
           )}
         </div>
@@ -64,7 +64,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
         {isGenerating ? (
           <div className="glass-panel p-12 rounded-3xl text-center border-dashed border-indigo-200 dark:border-indigo-900">
             <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">Analyzing your commits and generating a professional summary...</p>
+            <p className="text-slate-500 font-medium">Analyzuji vaše commity a generuji profesionální souhrn…</p>
           </div>
         ) : aiSummary ? (
           <div className="glass-panel p-8 rounded-3xl border-indigo-500/20 bg-indigo-50/10 dark:bg-indigo-900/10 relative group">
@@ -84,7 +84,8 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
               variant="icon"
               onClick={onGenerateSummary}
               className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 hover:text-indigo-500"
-              title="Regenerate Summary"
+              title="Vygenerovat souhrn znovu"
+              aria-label="Vygenerovat souhrn znovu"
               icon={RotateCcw}
             />
           </div>
@@ -97,12 +98,12 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
               className="px-4 py-2 bg-red-600 text-white hover:bg-red-500"
               size="sm"
             >
-              Try Again
+              Zkusit znovu
             </Button>
           </div>
         ) : (
           <div className="glass-panel p-10 rounded-3xl text-center border-dashed border-slate-200 dark:border-slate-800">
-            <p className="text-slate-400">Generate a professional JIRA summary based on your git activity for this day.</p>
+            <p className="text-slate-400">Vygenerujte profesionální souhrn pro Jiru na základě vaší git aktivity v tomto dni.</p>
           </div>
         )}
       </div>

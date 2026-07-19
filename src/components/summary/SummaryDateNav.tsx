@@ -28,7 +28,8 @@ export const SummaryDateNav: React.FC<SummaryDateNavProps> = ({
           variant="ghost"
           onClick={() => onNavigateDay(-1)}
           className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
-          title="Previous Day"
+          title="Předchozí den"
+          aria-label="Předchozí den"
         >
           <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
         </Button>
@@ -37,7 +38,8 @@ export const SummaryDateNav: React.FC<SummaryDateNavProps> = ({
           variant="ghost"
           onClick={() => onNavigateDay(1)}
           className="p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800"
-          title="Next Day"
+          title="Další den"
+          aria-label="Další den"
         >
           <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
         </Button>
@@ -69,11 +71,12 @@ export const SummaryDateNav: React.FC<SummaryDateNavProps> = ({
                 }
               }}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              title="Select Date"
+              title="Vybrat datum"
+              aria-label="Vybrat datum"
             />
           </>
         ) : (
-          <span className="text-slate-400">Načítání data...</span>
+          <span className="text-slate-400">Načítání data…</span>
         )}
       </div>
     </div>

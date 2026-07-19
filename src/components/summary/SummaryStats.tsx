@@ -43,7 +43,7 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
       <StatCard
-        title="Global Tracked Time"
+        title="Globální čas"
         value={formatFullTime(globalSeconds)}
         icon={Clock}
         variant="indigo"
@@ -57,7 +57,8 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
                 onLogGlobalToJira()
               }}
               className="p-2 text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/30 rounded-xl transition-all active:scale-95 cursor-pointer border-none bg-transparent"
-              title="Log Global Timer to Jira (PCSD-24)"
+              title="Zapsat globální čas do Jiry (PCSD-24)"
+              aria-label="Zapsat globální čas do Jiry"
             >
               <Database className="w-5 h-5" />
             </button>
@@ -66,28 +67,28 @@ export const SummaryStats: React.FC<SummaryStatsProps> = ({
       />
 
       <StatCard
-        title="Tasks Time Sum"
+        title="Součet času úkolů"
         value={formatTime(totalSeconds)}
         icon={Timer}
         variant="slate"
       />
 
       <StatCard
-        title="Tasks Worked On"
+        title="Počet úkolů"
         value={tasksCount}
         icon={CheckCircle2}
         variant="emerald"
       />
 
       <StatCard
-        title="Average per Task"
+        title="Průměr na úkol"
         value={tasksCount > 0 ? formatTime(Math.floor(totalSeconds / tasksCount)) : '0h 0m'}
         icon={BarChart3}
         variant="amber"
       />
 
       <StatCard
-        title={isGoalReached ? 'Goal Reached!' : 'Remaining to 8h'}
+        title={isGoalReached ? 'Cíl splněn!' : 'Zbývá do 8 h'}
         value={isGoalReached ? '+ ' + formatTime(totalSeconds - WORK_GOAL_SECONDS) : formatTime(remainingSeconds)}
         icon={Clock}
         variant={isGoalReached ? 'emerald' : 'slate'}

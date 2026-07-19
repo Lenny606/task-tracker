@@ -25,16 +25,16 @@ function SettingsPage() {
   return (
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <PageHeader
-        title="Settings"
-        description="Configure your workspace preferences."
+        title="Nastavení"
+        description="Nakonfigurujte předvolby svého pracovního prostředí."
         icon={Settings}
       />
 
       <div className="space-y-6">
         {/* AI Configuration Card */}
         <SectionCard
-          title="AI Configuration"
-          description="Choose the active AI provider and model used for commit analysis and JIRA summaries"
+          title="Nastavení AI"
+          description="Zvolte aktivního AI poskytovatele a model pro analýzu commitů a souhrny pro Jiru"
           icon={Bot}
           iconBgColor="bg-indigo-50 dark:bg-indigo-900/30"
           iconColor="text-indigo-600 dark:text-indigo-400"
@@ -43,7 +43,7 @@ function SettingsPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
-                AI Provider
+                Poskytovatel AI
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -59,7 +59,7 @@ function SettingsPage() {
                   }`}
                 >
                   <span className="font-bold text-base">Google Gemini</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">High-speed reasoning models</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Rychlé reasoning modely</span>
                 </button>
 
                 <button
@@ -75,7 +75,7 @@ function SettingsPage() {
                   }`}
                 >
                   <span className="font-bold text-base">OpenAI GPT</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Industry standard models</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Standardní modely v oboru</span>
                 </button>
               </div>
             </div>
@@ -93,15 +93,15 @@ function SettingsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
               <SecretKeyInput
-                label="Gemini API Key"
-                placeholder="Google Studio API Key"
+                label="Gemini API klíč"
+                placeholder="Google Studio API klíč"
                 isSet={settings.hasGeminiApiKey}
                 onSave={(value) => saveSettings({ geminiApiKey: value })}
               />
 
               <SecretKeyInput
-                label="OpenAI API Key"
-                placeholder="OpenAI Platform API Key"
+                label="OpenAI API klíč"
+                placeholder="OpenAI Platform API klíč"
                 isSet={settings.hasOpenaiApiKey}
                 onSave={(value) => saveSettings({ openaiApiKey: value })}
               />
@@ -111,8 +111,8 @@ function SettingsPage() {
 
         {/* Jira Configuration Card */}
         <SectionCard
-          title="Jira Configuration"
-          description="Set up your Jira and Tempo API credentials for integration."
+          title="Nastavení Jira"
+          description="Nastavte přihlašovací údaje k Jira a Tempo API pro integraci."
           icon={Settings}
           iconBgColor="bg-blue-50 dark:bg-blue-900/30"
           iconColor="text-blue-600 dark:text-blue-400"
@@ -130,23 +130,23 @@ function SettingsPage() {
 
             <Input
               type="email"
-              label="Email"
-              placeholder="your-email@example.com"
+              label="E-mail"
+              placeholder="vas-email@priklad.cz"
               className="py-3"
               value={settings.jiraEmail}
               onChange={(e) => saveSettings({ jiraEmail: e.target.value })}
             />
 
             <SecretKeyInput
-              label="Jira API Key"
-              placeholder="Paste your Jira API Token"
+              label="Jira API klíč"
+              placeholder="Vložte svůj Jira API token"
               isSet={settings.hasJiraApiKey}
               onSave={(value) => saveSettings({ jiraApiKey: value })}
             />
 
             <SecretKeyInput
-              label="Tempo API Key"
-              placeholder="Paste your Tempo API Token"
+              label="Tempo API klíč"
+              placeholder="Vložte svůj Tempo API token"
               isSet={settings.hasJiraTempoApiKey}
               onSave={(value) => saveSettings({ jiraTempoApiKey: value })}
             />
@@ -155,8 +155,8 @@ function SettingsPage() {
 
         {/* Browser Extension Security Card */}
         <SectionCard
-          title="Browser Extension Security"
-          description="Authenticate requests coming from the Chrome Clipper extension."
+          title="Zabezpečení rozšíření prohlížeče"
+          description="Ověřování požadavků přicházejících z rozšíření Chrome Clipper."
           icon={() => (
             <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -168,7 +168,7 @@ function SettingsPage() {
         >
           <div className="bg-slate-50 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/80">
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              To prevent malicious websites from reading or writing your tasks, the local extension endpoint requires authentication. Copy this pre-shared key and paste it inside the extension settings (click the gear icon in the Clipper popup).
+              Aby škodlivé weby nemohly číst ani zapisovat vaše úkoly, vyžaduje lokální endpoint rozšíření ověření. Zkopírujte tento sdílený klíč a vložte jej do nastavení rozšíření (ikona ozubeného kola v popupu Clipperu).
             </p>
             <CopyField value={extensionToken} />
           </div>
@@ -202,7 +202,7 @@ function SecretKeyInput({
     <Input
       type="password"
       label={label}
-      placeholder={isSet ? '•••••••• (saved — type to replace)' : placeholder}
+      placeholder={isSet ? '•••••••• (uloženo — pište pro nahrazení)' : placeholder}
       className="py-3"
       value={value}
       onChange={(e) => setValue(e.target.value)}
@@ -241,11 +241,14 @@ function ModelSelector({
   const selected = AI_MODEL_LABELS[activeValue]
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}>
       {/* Trigger */}
       <button
         id="ai-model-selector"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label="Vybrat AI model"
         className="w-full flex items-center justify-between px-5 py-4 bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all shadow-sm group"
       >
         <div className="text-left">

@@ -40,7 +40,7 @@ export function CopyField({
         className={`shrink-0 ${buttonClassName}`}
         icon={copied ? Check : undefined}
       >
-        {copied ? 'Copied!' : 'Copy Key'}
+        {copied ? 'Zkopírováno!' : 'Kopírovat klíč'}
       </Button>
     </div>
   )

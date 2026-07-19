@@ -65,7 +65,7 @@ function TempoCalendarPage() {
         setWorklogsByDate(grouped)
       } catch (error) {
         console.error('Failed to fetch Tempo worklogs:', error)
-        toast.error('Failed to fetch Tempo worklogs')
+        toast.error('Nepodařilo se načíst worklogy z Tempo')
       } finally {
         setIsLoading(false)
       }
@@ -100,7 +100,7 @@ function TempoCalendarPage() {
     const first = new Date(weekDates[0])
     const last = new Date(weekDates[4])
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
-    return `${first.toLocaleDateString(undefined, options)} - ${last.toLocaleDateString(undefined, options)}, ${last.getFullYear()}`
+    return `${first.toLocaleDateString('cs-CZ', options)} – ${last.toLocaleDateString('cs-CZ', options)}, ${last.getFullYear()}`
   }, [weekDates])
 
   // Calculate total week time (Filtered for PCSD-24 as requested)
@@ -123,15 +123,15 @@ function TempoCalendarPage() {
             </div>
             <div>
               <h1 className="text-4xl font-extrabold tracking-tight text-gradient">
-                Tempo Calendar
+                Tempo kalendář
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs font-black text-blue-500 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md border border-blue-500/20">
-                  Jira Worklogs
+                  Jira worklogy
                 </span>
                 {totalWeekSeconds > 0 && (
                   <span className="text-xs font-black text-slate-500 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
-                    Week Total (PCSD-24): {formatTime(totalWeekSeconds)}
+                    Součet za týden (PCSD-24): {formatTime(totalWeekSeconds)}
                   </span>
                 )}
               </div>
@@ -144,7 +144,8 @@ function TempoCalendarPage() {
             variant="icon"
             onClick={() => navigateWeek(-1)}
             icon={ChevronLeft}
-            title="Previous Week"
+            title="Předchozí týden"
+            aria-label="Předchozí týden"
           />
           
           <div className="px-4 py-1 text-center min-w-[200px]">
@@ -157,7 +158,8 @@ function TempoCalendarPage() {
             variant="icon"
             onClick={() => navigateWeek(1)}
             icon={ChevronRight}
-            title="Next Week"
+            title="Další týden"
+            aria-label="Další týden"
           />
 
           <div className="h-6 w-px bg-slate-200 dark:border-slate-800 mx-1" />
@@ -167,7 +169,7 @@ function TempoCalendarPage() {
             onClick={resetToToday}
             className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all text-sm border-none"
           >
-            Today
+            Dnes
           </Button>
         </div>
       </header>
@@ -175,7 +177,7 @@ function TempoCalendarPage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-40 bg-white/50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
           <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-          <p className="text-slate-500 font-bold text-lg">Fetching worklogs from Tempo...</p>
+          <p className="text-slate-500 font-bold text-lg">Načítání worklogů z Tempo…</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -203,10 +205,10 @@ function TempoCalendarPage() {
                 }`}>
                   <div>
                     <h3 className={`font-bold text-xl ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
-                      {date.toLocaleDateString(undefined, { weekday: 'long' })}
+                      {date.toLocaleDateString('cs-CZ', { weekday: 'long' })}
                     </h3>
                     <span className="text-sm font-medium text-slate-500">
-                      {date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                      {date.toLocaleDateString('cs-CZ', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                   {dailyTotal > 0 && (
@@ -223,7 +225,7 @@ function TempoCalendarPage() {
                   {dayWorklogs.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40 group-hover:opacity-100 transition-opacity">
                       <Timer className="w-8 h-8 text-slate-300 dark:text-slate-700 mb-2" />
-                      <p className="text-sm text-slate-500">No worklogs found</p>
+                      <p className="text-sm text-slate-500">Žádné worklogy</p>
                     </div>
                   ) : (
                     dayWorklogs.map((log) => (
@@ -241,7 +243,7 @@ function TempoCalendarPage() {
                           </span>
                         </div>
                         <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 mb-3 line-clamp-3 leading-snug">
-                          {log.description || <span className="italic opacity-50 font-medium">No description</span>}
+                          {log.description || <span className="italic opacity-50 font-medium">Bez popisu</span>}
                         </h4>
                         <div className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white font-mono">
@@ -253,7 +255,8 @@ function TempoCalendarPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-300 hover:text-blue-500 rounded-lg transition-all"
-                              title="Open in Jira"
+                              title="Otevřít v Jiře"
+                              aria-label={`Otevřít ${log.issue.key} v Jiře`}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <ExternalLink size={14} />
@@ -272,7 +275,7 @@ function TempoCalendarPage() {
                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-500 hover:text-blue-600 hover:border-blue-500/50 hover:bg-white dark:hover:bg-slate-800 transition-all opacity-0 group-hover:opacity-100"
                   >
                     <LayoutGrid size={16} />
-                    View Jira List
+                    Zobrazit Jira seznam
                   </Link>
                 </div>
               </div>

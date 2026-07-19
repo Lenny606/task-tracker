@@ -12,13 +12,13 @@ export function NotFound() {
           <h1 className="display-title text-8xl md:text-9xl font-bold text-gradient select-none">
             404
           </h1>
-          <p className="island-kicker tracking-widest text-lg">Page Not Found</p>
+          <p className="island-kicker tracking-widest text-lg">Stránka nenalezena</p>
         </div>
 
         <div className="space-y-4 relative z-10">
           <p className="text-sea-ink-soft text-lg leading-relaxed">
-            The path you're looking for seems to have vanished into the digital void. 
-            Don't worry, even the best trackers lose the trail sometimes.
+            Cesta, kterou hledáte, se zřejmě ztratila v digitální prázdnotě.
+            Nebojte, i ti nejlepší trackeři občas ztratí stopu.
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export function NotFound() {
             className="island-shell inline-flex items-center px-8 py-3.5 rounded-2xl text-sea-ink font-semibold hover:scale-105 active:scale-95 group"
           >
             <span className="mr-2 group-hover:-translate-x-1 transition-transform">←</span>
-            Back to Safety
+            Zpět do bezpečí
           </Link>
         </div>
       </div>
