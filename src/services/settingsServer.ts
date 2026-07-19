@@ -10,6 +10,8 @@ function sanitizeSettings(row: Awaited<ReturnType<typeof settingsRepository.getS
     aiModel: row?.aiModel || 'gemini-2.5-flash',
     jiraEmail: row?.jiraEmail || '',
     jiraUrl: row?.jiraUrl || '',
+    worklogRoundingMinutes: row?.worklogRoundingMinutes ?? 0,
+    worklogRoundingStrategy: (row?.worklogRoundingStrategy as 'nearest' | 'up') || 'nearest',
     hasGeminiApiKey: !!row?.geminiApiKey,
     hasOpenaiApiKey: !!row?.openaiApiKey,
     hasJiraApiKey: !!row?.jiraApiKey,
@@ -35,11 +37,13 @@ export const saveAppSettingsFn = createServerFn({
     jiraEmail: z.string().optional(),
     jiraTempoApiKey: z.string().optional(),
     jiraUrl: z.string().optional(),
+    worklogRoundingMinutes: z.number().int().min(0).optional(),
+    worklogRoundingStrategy: z.enum(['nearest', 'up']).optional(),
   }).parse(data))
   .handler(async ({ data }) => {
     // Empty secret fields mean "leave unchanged" so the client never has to
     // round-trip stored keys just to update other settings.
-    const patch: Record<string, string> = { ...data } as Record<string, string>;
+    const patch: Record<string, string | number> = { ...data } as Record<string, string | number>;
     for (const field of SECRET_FIELDS) {
       if (!patch[field]) delete patch[field];
     }

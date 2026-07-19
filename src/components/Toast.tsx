@@ -68,6 +68,7 @@ export function Toast({ id, message, type, duration = 4000 }: ToastType) {
     <div
       onMouseEnter={clearTimer}
       onMouseLeave={startTimer}
+      role={type === 'error' || type === 'warning' ? 'alert' : 'status'}
       className={`flex items-center gap-4 p-5 rounded-2xl border backdrop-blur-md shadow-xl transition-all duration-300 transform ${
         isVisible && !isExiting ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'
       } ${toastStyles[type]}`}
@@ -76,6 +77,7 @@ export function Toast({ id, message, type, duration = 4000 }: ToastType) {
       <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{message}</p>
       <button
         onClick={handleDismiss}
+        aria-label="Zavřít oznámení"
         className="ml-auto p-1.5 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50 text-slate-400 transition-colors pointer-events-auto"
       >
         <X className="w-5 h-5" />

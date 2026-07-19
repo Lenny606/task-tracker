@@ -64,12 +64,12 @@ Tento dokument specifikuje plán UX vylepšení aplikace **TimeTrack** na zákla
 
 **Cíl:** Aplikace je ovladatelná klávesnicí a čitelná pro čtečky obrazovky.
 
-- [ ] 4.1 `aria-label` na všechna icon-only tlačítka (Play/Pause, Reset, Delete, Log to Jira na Dashboardu; reset a play v Sidebaru; dismiss v Toastu)
-- [ ] 4.2 `ProjectSelector.tsx`: klávesnicová navigace — Escape zavře, šipky posouvají, Enter vybere; `aria-expanded`, `aria-haspopup`, `role="listbox"`/`option`; fokus se po zavření vrací na trigger
-- [ ] 4.3 Toggle „marked" (`index.tsx:87-94`): doplnit `aria-pressed` a `aria-label`
-- [ ] 4.4 `JiraIssueSelector.tsx`: stejná klávesnicová pravidla jako 4.2
-- [ ] 4.5 Kontrast: projít texty `text-slate-400/500` a mikropopisky `text-[10px]` proti WCAG AA (nástroj: skill `a11y-debugging` / Lighthouse); ztmavit kde nevyhoví
-- [ ] 4.6 Toasty: `role="status"` (info/success) a `role="alert"` (error) na kontejneru
+- [x] 4.1 `aria-label` na všechna icon-only tlačítka (Play/Pause, Reset, Delete, Log to Jira na Dashboardu; reset a play v Sidebaru; dismiss v Toastu; dále Projects, Jira worklogy, kalendáře, Copilot)
+- [x] 4.2 `ProjectSelector.tsx`: klávesnicová navigace — Escape zavře, šipky posouvají, Enter/mezerník vybere; `aria-expanded`, `aria-haspopup`, `role="listbox"`/`option`; fokus se po zavření vrací na trigger
+- [x] 4.3 Toggle „marked" (`index.tsx` i `SummaryBreakdownTable.tsx`): doplněno `aria-pressed`, `aria-label` a vysvětlující `title`
+- [x] 4.4 `JiraIssueSelector.tsx`: `role="combobox"`, Escape/šipky/Enter, `role="listbox"`/`option`; navíc Escape + `aria-expanded` u `ModelSelector` v Nastavení
+- [ ] 4.5 Kontrast: projít texty `text-slate-400/500` a mikropopisky `text-[10px]` proti WCAG AA (nástroj: skill `a11y-debugging` / Lighthouse); ztmavit kde nevyhoví — **vyžaduje audit v běžící aplikaci**
+- [x] 4.6 Toasty: `role="status"` (info/success) a `role="alert"` (error/warning) na toastu
 
 **Akceptační kritéria:**
 - Celý flow „přidat úkol → spustit → zastavit → smazat → undo" projde jen klávesnicí.
@@ -92,10 +92,10 @@ Tento dokument specifikuje plán UX vylepšení aplikace **TimeTrack** na zákla
 
 ## 6. Fáze 5 — Jazyk a afordance (P5, P8)
 
-- [ ] 6.1 Rozhodnout cílový jazyk UI (doporučení: **angličtina** všude, formáty datumů mohou zůstat `cs-CZ`) a sjednotit texty („Návrh AI", tooltip „Návrh od agenta…")
-- [ ] 6.2 Inline editace názvu úkolu: afordance na hover (ikona tužky nebo podtržení + `cursor: text`)
-- [ ] 6.3 Editace globálního timeru: vizuální náznak klikatelnosti (hover ring — část řeší 3.1)
-- [ ] 6.4 Vysvětlit význam „marked" toggle (tooltip + aria-label, např. „Mark as done/billed")
+- [x] 6.1 Cílový jazyk UI: **čeština** (rozhodnutí uživatele 19. 7. 2026, technické názvy — Jira, Tempo, commit, worklog, API klíč, MD — zůstávají). Přeloženy všechny stránky a komponenty, data formátována `cs-CZ`, doplněn `czechPlural` helper (`src/utils/plural.ts`), `<html lang="cs">`. Výjimky: `/test` (dev stránka, bude skryta ve Fázi 4), `/about` (šablonová stránka), prompty pro AI agenta v Copilotu (instrukce pro model, ne UI).
+- [x] 6.2 Inline editace názvu úkolu: hover pozadí + `cursor-text` + `title` nápověda (Dashboard i tabulka souhrnu)
+- [x] 6.3 Editace globálního timeru: hover ring + český `title` („Kliknutím upravíte časovač")
+- [x] 6.4 Význam „marked" toggle vysvětlen: `title` „Označit jako vykázaný (zapsaný do Jiry)" + `aria-label`/`aria-pressed`
 
 ---
 
@@ -125,7 +125,7 @@ Tento dokument specifikuje plán UX vylepšení aplikace **TimeTrack** na zákla
 
 **Otevřená rozhodnutí (nutno potvrdit před realizací):**
 1. Undo toast vs. confirm dialog pro mazání (spec předpokládá undo).
-2. Cílový jazyk UI (spec doporučuje angličtinu).
+2. ~~Cílový jazyk UI~~ — **rozhodnuto 19. 7. 2026: čeština** (vše kromě technických názvů).
 3. Rozsah responzivity — stačí sbalitelný sidebar, nebo plný mobile layout? (Pozn.: mobilní použití má řešit samostatná mobilní aplikace nad sdílenou Turso DB — viz paměť projektu; plný mobile web layout je proto pravděpodobně zbytečný.)
 
 ---
@@ -137,10 +137,10 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 | Fáze | Stav | Dokončeno úkolů | Poslední změna | Poznámka |
 |------|------|-----------------|----------------|----------|
 | 1 — Ochrana dat | ⬜ | 0/4 | — | |
-| 2 — Nativní dialogy | ⬜ | 0/4 | — | |
-| 3 — Přístupnost | ⬜ | 0/6 | — | |
+| 2 — Nativní dialogy | ⬜ | 0/4 | — | nativní dialogy zatím jen přeloženy do CZ |
+| 3 — Přístupnost | 🟡 | 5/6 | 2026-07-19 | zbývá 4.5 — kontrastní audit v běžící appce (Lighthouse) |
 | 4 — Navigace a ikony | ⬜ | 0/6 | — | |
-| 5 — Jazyk a afordance | ⬜ | 0/4 | — | čeká na rozhodnutí o jazyce |
+| 5 — Jazyk a afordance | ✅ | 4/4 | 2026-07-19 | jazyk = čeština; testy aktualizovány, 53/53 prochází |
 | 6 — Úklid | ⬜ | 0/8 | — | |
 
 ### Log změn
@@ -148,3 +148,4 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 | Datum | Kdo | Změna |
 |-------|-----|-------|
 | 2026-07-19 | Claude (UX audit) | Vytvoření specifikace |
+| 2026-07-19 | Claude | Fáze 5 hotová: kompletní překlad UI do češtiny (vč. `cs-CZ` formátů datumů, `czechPlural` helperu, `lang="cs"`), afordance inline editací, vysvětlení „marked" togglu. Fáze 3 z 5/6: aria-labely na icon tlačítka, klávesnicová navigace ProjectSelector/JiraIssueSelector/ModelSelector, aria-pressed, role na toastech. Testy 53/53, žádné nové TS chyby. |

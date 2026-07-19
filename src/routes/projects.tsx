@@ -47,7 +47,7 @@ function ProjectsPage() {
   }
 
   const handleDelete = (id: string) => {
-    if (confirm('Opravdu chcete smazat tento projekt? Úkoly ztratí své přiřazení.')) {
+    if (confirm('Opravdu chcete smazat tento projekt? Projekt bude skryt, ale úkoly a worklogy si zachovají svou vazbu (název, barva).')) {
       deleteMutation.mutate({ data: { id } })
     }
   }
@@ -152,14 +152,14 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
       <div className="space-y-4 flex-1">
         <div className="flex justify-between items-end">
           <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vyčerpáno</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Vyčerpáno</span>
             <div className={`text-2xl font-mono font-bold ${isOverBudget ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
               {formatSecondsToDuration(project.totalSpentSeconds)}
             </div>
           </div>
           <div className="text-right space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rozpočet</span>
-            <div className="text-lg font-mono font-bold text-slate-500">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Rozpočet</span>
+            <div className="text-lg font-mono font-bold text-slate-600 dark:text-slate-400">
               {project.timeBudgetSeconds > 0 ? formatSecondsToDuration(project.timeBudgetSeconds) : 'Bez rozpočtu'}
             </div>
           </div>
@@ -180,18 +180,18 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
 
         <div className="flex justify-between items-center pt-2">
           {isOverBudget ? (
-            <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-wider animate-pulse">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-bold text-xs uppercase tracking-wider animate-pulse">
               <AlertTriangle size={14} />
               Rozpočet překročen
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
               <CheckCircle2 size={14} />
               V rámci rozpočtu ({Math.round(progress)} %)
             </div>
           )}
           
-          <div className="text-xs font-bold text-slate-400 flex items-center gap-1">
+          <div className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
             <Clock size={12} />
             celkem {Math.round(project.totalSpentSeconds / 3600)} h
           </div>
@@ -203,7 +203,7 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
         <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
           <button 
             onClick={() => setShowTasks(!showTasks)}
-            className="flex items-center justify-between w-full text-slate-500 hover:text-indigo-500 transition-colors"
+            className="flex items-center justify-between w-full text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <span className="text-xs font-black uppercase tracking-widest">
               Související úkoly ({project.relatedTasks.length})
@@ -224,11 +224,11 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
                       {task.name}
                     </span>
-                    <span className="text-[11px] font-mono font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md shrink-0">
+                    <span className="text-[11px] font-mono font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md shrink-0">
                       {formatSecondsToDuration(task.seconds)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
                     <Clock size={10} />
                     <span>{task.date}</span>
                   </div>

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Bot, Check, ChevronDown } from 'lucide-react'
+import { Settings, Bot, Check, ChevronDown, Timer } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
 import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
@@ -150,6 +150,73 @@ function SettingsPage() {
               isSet={settings.hasJiraTempoApiKey}
               onSave={(value) => saveSettings({ jiraTempoApiKey: value })}
             />
+          </div>
+        </SectionCard>
+
+        {/* Worklog Rounding Card */}
+        <SectionCard
+          title="Zaokrouhlování vykazování"
+          description="Nastavte, jak se trackovaný čas zaokrouhluje při vykazování do Tempo."
+          icon={Timer}
+          iconBgColor="bg-amber-50 dark:bg-amber-900/30"
+          iconColor="text-amber-600 dark:text-amber-400"
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                Krok zaokrouhlení
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                {[0, 5, 10, 15, 30].map((minutes) => (
+                  <button
+                    key={minutes}
+                    type="button"
+                    onClick={() => saveSettings({ worklogRoundingMinutes: minutes })}
+                    className={`px-4 py-3 rounded-2xl border-2 transition-all text-center font-bold text-sm ${
+                      (settings.worklogRoundingMinutes ?? 0) === minutes
+                        ? 'border-amber-500 bg-amber-50/55 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 shadow-sm'
+                        : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {minutes === 0 ? 'Vypnuto' : `${minutes} min`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(settings.worklogRoundingMinutes ?? 0) > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+                  Strategie
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => saveSettings({ worklogRoundingStrategy: 'nearest' })}
+                    className={`px-4 py-3 rounded-2xl border-2 transition-all text-center ${
+                      (settings.worklogRoundingStrategy || 'nearest') === 'nearest'
+                        ? 'border-amber-500 bg-amber-50/55 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 shadow-sm'
+                        : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">Na nejbližší</span>
+                    <span className="block text-xs opacity-70 mt-0.5">Nahoru i dolů</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => saveSettings({ worklogRoundingStrategy: 'up' })}
+                    className={`px-4 py-3 rounded-2xl border-2 transition-all text-center ${
+                      settings.worklogRoundingStrategy === 'up'
+                        ? 'border-amber-500 bg-amber-50/55 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 shadow-sm'
+                        : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <span className="font-bold text-sm">Vždy nahoru</span>
+                    <span className="block text-xs opacity-70 mt-0.5">Nikdy nezkrátit</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </SectionCard>
 

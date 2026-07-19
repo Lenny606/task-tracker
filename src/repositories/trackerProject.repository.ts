@@ -1,10 +1,37 @@
 import { trackerProjects, historyTasks, worklogs } from '../db/schema';
 import { BaseRepository } from './base.repository';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, isNull } from 'drizzle-orm';
 
 class TrackerProjectRepository extends BaseRepository<typeof trackerProjects> {
   constructor() {
     super(trackerProjects);
+  }
+
+  override async findAll() {
+    try {
+      return await this.db
+        .select()
+        .from(trackerProjects)
+        .where(isNull(trackerProjects.deletedAt))
+        .all();
+    } catch (error) {
+      console.error(`[DB Error] Failed to fetch all from ${this.tableName}:`, error);
+      throw new Error(`Database error: Could not retrieve data.`);
+    }
+  }
+
+  override async delete(id: string) {
+    try {
+      return await this.db
+        .update(trackerProjects)
+        .set({ deletedAt: new Date() })
+        .where(eq(trackerProjects.id, id))
+        .returning()
+        .get();
+    } catch (error) {
+      console.error(`[DB Error] Failed to soft delete ${this.tableName} ID ${id}:`, error);
+      throw error;
+    }
   }
 
   async findAllWithStats() {

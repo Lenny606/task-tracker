@@ -2,6 +2,12 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Tailwind v4 defaults the `dark:` variant to prefers-color-scheme. The theme
+   switcher toggles a `dark` class on <html>, so bind the variant to that class —
+   without this every `dark:*` utility is inert and dark mode renders light-mode
+   text on the dark page background. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 }

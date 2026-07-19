@@ -93,7 +93,7 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {liveTasks.length === 0 && !newTaskName && (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-slate-600 dark:text-slate-400">
                   Pro {displayDate} nejsou žádná data. Úkoly můžete doplnit zpětně pomocí pole níže.
                 </td>
               </tr>
@@ -147,7 +147,7 @@ export const SummaryBreakdownTable: React.FC<SummaryBreakdownTableProps> = ({
                         <button
                           onClick={() => onUpdateTask({ taskId: task.id, isAiSuggested: false })}
                           title="Návrh od agenta — kliknutím potvrdíte"
-                          className="group/sugg flex-shrink-0 flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
+                          className="group/sugg flex-shrink-0 flex items-center gap-1 text-[10px] font-black text-violet-700 dark:text-violet-300 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
                         >
                           <Sparkles size={11} className="group-hover/sugg:hidden" />
                           <Check size={11} className="hidden group-hover/sugg:block" />

@@ -14,6 +14,7 @@ export function JiraIssueSelector({ onSelect, currentSelection, compact = false 
   const [frequentTickets, setFrequentTickets] = useState<{ key: string; summary: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Load frequent tickets on mount
@@ -89,14 +90,48 @@ export function JiraIssueSelector({ onSelect, currentSelection, compact = false 
       .map(t => ({ key: t.key, summary: t.fields.summary, id: t.id, isFrequent: false }))
   ]
 
+  const selectItem = (item: { key: string; summary: string }) => {
+    onSelect({ key: item.key, fields: { summary: item.summary } })
+    setQuery(item.key)
+    setIsOpen(false)
+    setActiveIndex(-1)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (isOpen) {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsOpen(false)
+        setActiveIndex(-1)
+      }
+      return
+    }
+    if (!isOpen || displayedResults.length === 0) return
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      const delta = e.key === 'ArrowDown' ? 1 : -1
+      setActiveIndex((prev) => (prev + delta + displayedResults.length) % displayedResults.length)
+      return
+    }
+    if (e.key === 'Enter' && activeIndex >= 0 && activeIndex < displayedResults.length) {
+      e.preventDefault()
+      selectItem(displayedResults[activeIndex])
+    }
+  }
+
   return (
-    <div className={`relative ${compact ? 'w-36' : 'w-full'}`} ref={dropdownRef}>
+    <div className={`relative ${compact ? 'w-36' : 'w-full'}`} ref={dropdownRef} onKeyDown={handleKeyDown}>
       <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsOpen(true)}
-        placeholder={compact ? "Ticket..." : "Search ticket (key or summary)..."}
+        role="combobox"
+        aria-expanded={isOpen && displayedResults.length > 0}
+        aria-autocomplete="list"
+        aria-label="Vyhledat Jira ticket"
+        placeholder={compact ? 'Ticket…' : 'Hledat ticket (klíč nebo název)…'}
         icon={Search}
         isLoading={isLoading}
         size={compact ? 'sm' : 'lg'}
@@ -105,17 +140,17 @@ export function JiraIssueSelector({ onSelect, currentSelection, compact = false 
       />
 
       {isOpen && displayedResults.length > 0 && (
-        <div className={`absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-72 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-opacity-95 ${compact ? 'w-64' : ''}`}>
-          {displayedResults.map((item) => (
+        <div role="listbox" aria-label="Výsledky hledání ticketů" className={`absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-72 overflow-y-auto overflow-x-hidden backdrop-blur-xl bg-opacity-95 ${compact ? 'w-64' : ''}`}>
+          {displayedResults.map((item, index) => (
             <button
               key={item.id}
               type="button"
-              onClick={() => {
-                onSelect({ key: item.key, fields: { summary: item.summary } })
-                setQuery(item.key)
-                setIsOpen(false)
-              }}
-              className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col gap-1 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
+              role="option"
+              aria-selected={item.key === currentSelection}
+              onClick={() => selectItem(item)}
+              className={`w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col gap-1 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 ${
+                index === activeIndex ? 'bg-indigo-50 dark:bg-indigo-900/20 ring-2 ring-inset ring-indigo-500/40' : ''
+              }`}
             >
               <div className="flex items-center justify-between w-full">
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
@@ -123,7 +158,7 @@ export function JiraIssueSelector({ onSelect, currentSelection, compact = false 
                 </span>
                 {item.isFrequent && (
                   <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded border border-emerald-500/10">
-                    Frequent
+                    Časté
                   </span>
                 )}
               </div>

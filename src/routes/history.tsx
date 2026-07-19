@@ -36,7 +36,7 @@ function HistoryPage() {
         <h1 className="text-5xl font-extrabold tracking-tight mb-2 text-gradient">
           Historie
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-lg mb-8">
+        <p className="text-slate-600 dark:text-slate-400 text-lg mb-8">
           Prohlédněte si svou dřívější produktivitu a výsledky.
         </p>
 
@@ -46,7 +46,7 @@ function HistoryPage() {
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
               filter === 'current' 
                 ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -57,7 +57,7 @@ function HistoryPage() {
             className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold transition-all ${
               filter === 'all' 
                 ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <ListFilter className="w-4 h-4" />
@@ -103,7 +103,7 @@ function HistoryPage() {
                           day: 'numeric' 
                         })}
                       </h3>
-                      <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400 font-medium">
+                      <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400 font-medium">
                         <span className="flex items-center gap-1.5" title="Čas úkolů">
                           <Timer className="w-4 h-4" />
                           {formatTime(totalSeconds)}
@@ -111,7 +111,7 @@ function HistoryPage() {
                         {dayData?.globalTimer && (
                           <>
                             <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
-                            <span className="flex items-center gap-1.5 text-indigo-500 dark:text-indigo-400" title="Globální čas">
+                            <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400" title="Globální čas">
                               <Clock className="w-4 h-4" />
                               {formatTime(dayData.globalTimer.totalSeconds)}
                             </span>

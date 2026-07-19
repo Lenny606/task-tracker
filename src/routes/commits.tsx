@@ -225,7 +225,7 @@ function CommitsComponent() {
         })}
 
         {commits.length === 0 && (
-          <div className="pl-8 text-slate-500 dark:text-slate-400 font-medium bg-slate-100/50 dark:bg-slate-900/50 p-6 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 border border-transparent border-dashed">
+          <div className="pl-8 text-slate-600 dark:text-slate-400 font-medium bg-slate-100/50 dark:bg-slate-900/50 p-6 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-800 border border-transparent border-dashed">
             Pro {currentDateValue} nebyly v žádném projektu nalezeny commity.
           </div>
         )}

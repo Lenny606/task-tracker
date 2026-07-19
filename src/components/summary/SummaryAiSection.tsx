@@ -103,7 +103,7 @@ export const SummaryAiSection: React.FC<SummaryAiSectionProps> = ({
           </div>
         ) : (
           <div className="glass-panel p-10 rounded-3xl text-center border-dashed border-slate-200 dark:border-slate-800">
-            <p className="text-slate-400">Vygenerujte profesionální souhrn pro Jiru na základě vaší git aktivity v tomto dni.</p>
+            <p className="text-slate-600 dark:text-slate-400">Vygenerujte profesionální souhrn pro Jiru na základě vaší git aktivity v tomto dni.</p>
           </div>
         )}
       </div>

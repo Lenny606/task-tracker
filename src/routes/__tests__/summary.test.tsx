@@ -125,7 +125,7 @@ describe('SummaryPage Component', () => {
     render(<SummaryPage />)
 
     // Check header and date
-    expect(screen.getByText('Summary: 2026-06-02')).toBeInTheDocument()
+    expect(screen.getByText('Souhrn: 2026-06-02')).toBeInTheDocument()
 
     // Check stats (3 hours tasks, 3 hours global, 2 tasks)
     expect(screen.getByText('3h 0m')).toBeInTheDocument() // tasks sum: 3600 + 7200 = 10800
@@ -141,14 +141,14 @@ describe('SummaryPage Component', () => {
   it('renders "No data available" when task list is empty', () => {
     mockTasksState.tasks = []
     render(<SummaryPage />)
-    expect(screen.getByText(/No data available for/)).toBeInTheDocument()
+    expect(screen.getByText(/nejsou žádná data/)).toBeInTheDocument()
   })
 
   it('handles date navigation - previous and next day clicks', () => {
     render(<SummaryPage />)
 
     // Previous day navigation
-    const prevBtn = screen.getByTitle('Previous Day')
+    const prevBtn = screen.getByTitle('Předchozí den')
     fireEvent.click(prevBtn)
     expect(mockNavigate).toHaveBeenCalledWith({
       search: expect.any(Function)
@@ -184,7 +184,7 @@ describe('SummaryPage Component', () => {
   it('handles task deletion', () => {
     render(<SummaryPage />)
 
-    const deleteButtons = screen.getAllByTitle('Delete task')
+    const deleteButtons = screen.getAllByTitle('Smazat úkol')
     fireEvent.click(deleteButtons[0])
     expect(mockTasksState.deleteTask.mutate).toHaveBeenCalledWith('task-1')
   })
@@ -192,11 +192,8 @@ describe('SummaryPage Component', () => {
   it('handles task toggleMarked action', () => {
     render(<SummaryPage />)
 
-    // Clicking checkbox/circle button to toggle marked state
-    const toggleButtons = screen.getAllByRole('button', { name: '' }).filter(
-      btn => btn.querySelector('svg')
-    )
-    // The first one is the checkbox toggle button
+    // Clicking checkbox/circle button to toggle marked state (task-1 is unmarked)
+    const toggleButtons = screen.getAllByLabelText('Označit úkol jako vykázaný')
     fireEvent.click(toggleButtons[0])
     expect(mockTasksState.toggleMarked.mutate).toHaveBeenCalledWith('task-1')
   })
@@ -204,7 +201,7 @@ describe('SummaryPage Component', () => {
   it('handles Log to Jira action and navigates to JIRA route', () => {
     render(<SummaryPage />)
 
-    const logJiraButtons = screen.getAllByTitle('Log to Jira')
+    const logJiraButtons = screen.getAllByTitle('Zapsat do Jiry')
     fireEvent.click(logJiraButtons[0])
 
     expect(mockNavigate).toHaveBeenCalledWith({
@@ -226,7 +223,7 @@ describe('SummaryPage Component', () => {
 
     render(<SummaryPage />)
 
-    const generateBtn = screen.getByText('Generate JIRA Summary')
+    const generateBtn = screen.getByText('Vygenerovat souhrn pro Jiru')
     fireEvent.click(generateBtn)
 
     await waitFor(() => {

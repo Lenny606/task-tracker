@@ -7,6 +7,8 @@ interface AppSettings {
   aiModel: AiModel
   jiraEmail: string
   jiraUrl: string
+  worklogRoundingMinutes: number
+  worklogRoundingStrategy: 'nearest' | 'up'
   // Secret keys are stored server-side only; the client just knows whether they are set.
   hasGeminiApiKey: boolean
   hasOpenaiApiKey: boolean
@@ -27,6 +29,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   aiModel: 'gemini-2.5-flash' as AiModel,
   jiraEmail: import.meta.env.VITE_JIRA_EMAIL || '',
   jiraUrl: import.meta.env.VITE_JIRA_URL || '',
+  worklogRoundingMinutes: 0,
+  worklogRoundingStrategy: 'nearest',
   hasGeminiApiKey: false,
   hasOpenaiApiKey: false,
   hasJiraApiKey: false,

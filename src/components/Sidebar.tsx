@@ -1,28 +1,23 @@
-import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database, Calendar, LayoutGrid, Sparkles } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Clock, Settings, History, GitCommit, Play, Pause, RefreshCw, Database, Calendar, LayoutGrid, Sparkles, Menu, X } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useTasks } from '../hooks/useTasks'
-import React, { useState } from 'react'
+import { useState } from 'react'
+import { formatFullTime } from '../utils/duration'
 
 export function Sidebar() {
-  const { 
-    globalTimer, 
-    toggleGlobalTimer, 
-    resetGlobalTimer, 
+  const {
+    globalTimer,
+    toggleGlobalTimer,
+    resetGlobalTimer,
     updateGlobalTimer,
     getDisplayGlobalTime,
     isSyncingExtension,
     syncExtension
   } = useTasks()
-
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   const handleEditTimer = () => {
-    const currentVal = formatTime(getDisplayGlobalTime(globalTimer))
+    const currentVal = formatFullTime(getDisplayGlobalTime(globalTimer))
     const input = prompt('Zadejte novou hodnotu globálního časovače (HH:MM:SS, MM:SS nebo počet sekund):', currentVal)
     if (input === null) return
 
@@ -53,7 +48,25 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-950 text-slate-300 border-r border-slate-900 flex flex-col z-50 shadow-2xl">
+    <>
+    <button
+      onClick={() => setIsMobileOpen(!isMobileOpen)}
+      aria-label={isMobileOpen ? 'Zavřít navigaci' : 'Otevřít navigaci'}
+      aria-expanded={isMobileOpen}
+      className="lg:hidden fixed top-4 left-4 z-[70] w-11 h-11 rounded-xl bg-slate-950 text-slate-300 shadow-lg flex items-center justify-center active:scale-95 transition-all"
+    >
+      {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+    </button>
+
+    {isMobileOpen && (
+      <div
+        className="lg:hidden fixed inset-0 bg-black/50 z-40"
+        aria-hidden="true"
+        onClick={() => setIsMobileOpen(false)}
+      />
+    )}
+
+    <aside className={`fixed left-0 top-0 h-screen w-64 bg-slate-950 text-slate-300 border-r border-slate-900 flex flex-col z-50 shadow-2xl transform transition-transform duration-300 lg:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="p-8 border-b border-slate-900 flex items-center gap-3">
         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
           <Clock className="w-6 h-6 text-white" />
@@ -63,7 +76,7 @@ export function Sidebar() {
         </h1>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 p-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setIsMobileOpen(false) }}>
         <Link
           to="/"
           className="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white group"
@@ -103,7 +116,7 @@ export function Sidebar() {
         <div className="py-2 px-2">
           <div className="bg-slate-900/50 rounded-2xl p-4 border border-slate-800/50">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Globální časovač</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Globální časovač</span>
               {globalTimer.isRunning && (
                 <span className="flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-indigo-400 opacity-75"></span>
@@ -125,11 +138,11 @@ export function Sidebar() {
               <div className="flex-1">
                 <button
                   onClick={handleEditTimer}
-                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded ring-1 ring-transparent hover:ring-slate-700 transition-all ${globalTimer.isRunning ? 'text-white' : 'text-slate-500'}`}
+                  className={`font-mono text-xl tabular-nums text-left w-full hover:bg-slate-800/80 px-2 py-0.5 rounded ring-1 ring-transparent hover:ring-slate-700 transition-all ${globalTimer.isRunning ? 'text-white' : 'text-slate-400'}`}
                   title="Kliknutím upravíte časovač"
                   aria-label="Upravit hodnotu globálního časovače"
                 >
-                  {formatTime(getDisplayGlobalTime(globalTimer))}
+                  {formatFullTime(getDisplayGlobalTime(globalTimer))}
                 </button>
               </div>
               {(globalTimer.totalSeconds > 0 || globalTimer.isRunning) && (
@@ -139,7 +152,7 @@ export function Sidebar() {
                       resetGlobalTimer.mutate()
                     }
                   }}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300 transition-all active:scale-90"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all active:scale-90"
                   title="Resetovat časovač"
                   aria-label="Resetovat globální časovač"
                 >
@@ -201,7 +214,7 @@ export function Sidebar() {
       <div className="p-6 border-t border-slate-900 space-y-1">
         <Link
           to="/settings"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-500 group"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
@@ -211,7 +224,7 @@ export function Sidebar() {
 
 
     </aside>
-
+    </>
   )
 }
 function SyncExtensionButton({ isSyncing, onSync }: { isSyncing: boolean, onSync: () => Promise<void> }) {
@@ -219,7 +232,7 @@ function SyncExtensionButton({ isSyncing, onSync }: { isSyncing: boolean, onSync
     <button 
       onClick={onSync}
       disabled={isSyncing}
-      className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-indigo-900/20 hover:text-indigo-400 text-slate-500 group ${isSyncing ? 'animate-pulse' : ''}`}
+      className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all hover:bg-indigo-900/20 hover:text-indigo-400 text-slate-400 group ${isSyncing ? 'animate-pulse' : ''}`}
     >
       <div className={`w-5 h-5 flex items-center justify-center ${isSyncing ? 'animate-spin' : ''}`}>
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { useState, useEffect } from 'react'
 import { logTempoWorkloadFn, getRecentTicketsFn, getTempoWorklogsFn, deleteTempoWorklogFn } from '../services/jiraServer'
 import { useSettings } from '../store/settingsStore'
-import { parseDurationToSeconds } from '../utils/duration'
+import { parseDurationToSeconds, formatSecondsToDuration, roundDuration } from '../utils/duration'
 import { unescapeHtml } from '../utils/sanitize'
 import { toast } from '../store/toastStore'
 import { PageHeader } from '../components/PageHeader'
@@ -77,6 +77,7 @@ function WorklogForm() {
   
   const [selectedIssue, setSelectedIssue] = useState<any>(null)
   const [duration, setDuration] = useState(search.duration || '')
+  const [trackedSeconds, setTrackedSeconds] = useState(0)
   const [date, setDate] = useState(search.date || new Date().toISOString().split('T')[0])
   const [time, setTime] = useState(new Date().toTimeString().split(' ')[0])
   const [description, setDescription] = useState(search.description ? unescapeHtml(search.description) : '')
@@ -87,6 +88,7 @@ function WorklogForm() {
   const handleReset = () => {
     setSelectedIssue(null)
     setDuration('')
+    setTrackedSeconds(0)
     setDescription('')
     navigate({
       search: { view: 'create' }
@@ -95,7 +97,12 @@ function WorklogForm() {
 
   // Sync state if search params change
   useEffect(() => {
-    if (search.duration) setDuration(search.duration)
+    if (search.duration) {
+      const tracked = parseDurationToSeconds(search.duration)
+      setTrackedSeconds(tracked)
+      const rounded = roundDuration(tracked, settings.worklogRoundingMinutes, settings.worklogRoundingStrategy)
+      setDuration(formatSecondsToDuration(rounded))
+    }
     if (search.description) setDescription(unescapeHtml(search.description))
     if (search.date) setDate(search.date)
     if (search.issueKey && !selectedIssue) {
@@ -104,7 +111,7 @@ function WorklogForm() {
         fields: { summary: search.issueSummary ? unescapeHtml(search.issueSummary) : '' }
       })
     }
-  }, [search.duration, search.description, search.date, search.issueKey, search.issueSummary])
+  }, [search.duration, search.description, search.date, search.issueKey, search.issueSummary, settings.worklogRoundingMinutes, settings.worklogRoundingStrategy])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -139,6 +146,7 @@ function WorklogForm() {
       // Reset form
       setSelectedIssue(null)
       setDuration('')
+      setTrackedSeconds(0)
       setDescription('')
     } catch (error) {
       console.error('Submission failed:', error)
@@ -233,6 +241,11 @@ function WorklogForm() {
             placeholder="1h 20m"
             variant="filled"
           />
+          {settings.worklogRoundingMinutes > 0 && trackedSeconds > 0 && (
+            <p className="mt-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">
+              Trackováno: {formatSecondsToDuration(trackedSeconds)}
+            </p>
+          )}
         </div>
 
         <div className="flex-1 md:max-w-md space-y-1.5 text-left">

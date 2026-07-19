@@ -61,7 +61,7 @@ export function StatCard({
         </div>
         {action}
       </div>
-      <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+      <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
         {title}
       </div>
       <div className={`text-3xl font-bold text-slate-900 dark:text-white ${valueClassName}`}>

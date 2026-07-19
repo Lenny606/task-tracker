@@ -30,10 +30,10 @@ interface ChatMessage {
 }
 
 const QUICK_SUGGESTIONS = [
-  { label: 'Prepare worklogs', text: "Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time." },
-  { label: 'Summarize today', text: "Summarize today's tasks and time tracked." },
-  { label: 'Show my tasks', text: 'Show all my local tasks for today.' },
-  { label: 'Find JIRA issues', text: 'Search for active JIRA issues in my project.' },
+  { label: 'Připravit worklogy', text: "Prepare my tasks for today's worklog from my git commits: link JIRA issues to matching tasks and create suggestions for the rest. Don't change any tracked time." },
+  { label: 'Shrnout dnešek', text: "Summarize today's tasks and time tracked." },
+  { label: 'Zobrazit mé úkoly', text: 'Show all my local tasks for today.' },
+  { label: 'Najít Jira tickety', text: 'Search for active JIRA issues in my project.' },
 ];
 
 export function AgentCopilot() {
@@ -84,7 +84,7 @@ export function AgentCopilot() {
 
   // Clear communication history
   const handleClearHistory = () => {
-    if (window.confirm('Are you sure you want to clear your Copilot chat history?')) {
+    if (window.confirm('Opravdu chcete smazat historii chatu s Copilotem?')) {
       saveMessages([]);
       setStreamingText('');
       setActiveTools([]);
@@ -201,7 +201,7 @@ export function AgentCopilot() {
       console.error('[Copilot Stream Error]:', err);
       const errMsg: ChatMessage = { 
         role: 'assistant', 
-        content: `Error: ${err.message || 'Failed to communicate with Copilot. Please check settings/API key.'}`,
+        content: `Chyba: ${err.message || 'Komunikace s Copilotem selhala. Zkontrolujte nastavení/API klíč.'}`,
         isError: true
       };
       saveMessages([...updatedMessages, errMsg]);
@@ -214,14 +214,14 @@ export function AgentCopilot() {
   // Humanize tool names for logs
   const formatToolName = (name: string) => {
     return name
-      .replace('prepare_worklog_context', 'Worklog: gather context')
-      .replace('task_link_jira', 'Tasks: link JIRA')
-      .replace('task_create_suggestion', 'Tasks: suggest task')
-      .replace('tracker_', 'Local Tracker: ')
-      .replace('task_', 'Tasks: ')
-      .replace('jira_', 'JIRA: ')
+      .replace('prepare_worklog_context', 'Worklog: sběr kontextu')
+      .replace('task_link_jira', 'Úkoly: propojit Jira')
+      .replace('task_create_suggestion', 'Úkoly: návrh úkolu')
+      .replace('tracker_', 'Tracker: ')
+      .replace('task_', 'Úkoly: ')
+      .replace('jira_', 'Jira: ')
       .replace('git_', 'Git: ')
-      .replace('generate_daily_report', 'AI: daily report')
+      .replace('generate_daily_report', 'AI: denní report')
       .replace(/_/g, ' ');
   };
 
@@ -235,7 +235,8 @@ export function AgentCopilot() {
             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 rotate-90' 
             : 'bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white'
         }`}
-        aria-label="Toggle Copilot Chat"
+        aria-label={isOpen ? 'Zavřít chat s Copilotem' : 'Otevřít chat s Copilotem'}
+        aria-expanded={isOpen}
       >
         {isOpen ? (
           <X size={22} className="transition-transform duration-200" />
@@ -264,7 +265,7 @@ export function AgentCopilot() {
                 </h3>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Agentic Active
+                  Agent aktivní
                 </span>
               </div>
             </div>
@@ -274,13 +275,15 @@ export function AgentCopilot() {
                 <button
                   onClick={handleClearHistory}
                   className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all"
-                  title="Clear history"
+                  title="Smazat historii"
+                  aria-label="Smazat historii chatu"
                 >
                   <Trash2 size={16} />
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
+                aria-label="Zavřít chat"
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
               >
                 <X size={16} />
@@ -299,10 +302,10 @@ export function AgentCopilot() {
                   <MessageSquare size={20} />
                 </div>
                 <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
-                  How can I help you today?
+                  Jak vám mohu dnes pomoci?
                 </h4>
                 <p className="text-[11px] text-slate-400 max-w-[200px] mb-4">
-                  Ask me to summarize tasks, search issues, or log work to JIRA.
+                  Požádejte mě o shrnutí úkolů, hledání ticketů nebo zápis práce do Jiry.
                 </p>
 
                 <div className="w-full space-y-1.5">
@@ -334,8 +337,8 @@ export function AgentCopilot() {
                     <span className="truncate">
                       {formatToolName(msg.name || '')}
                     </span>
-                    {isErr && <span className="text-rose-400 font-medium">Failed</span>}
-                    {!isErr && <span className="text-emerald-400 font-medium">Success</span>}
+                    {isErr && <span className="text-rose-400 font-medium">Chyba</span>}
+                    {!isErr && <span className="text-emerald-400 font-medium">Hotovo</span>}
                   </div>
                 );
               }
@@ -369,7 +372,7 @@ export function AgentCopilot() {
               >
                 <Loader2 size={12} className="animate-spin flex-shrink-0" />
                 <span className="truncate flex-1">
-                  Executing: {formatToolName(t.name)}
+                  Provádím: {formatToolName(t.name)}
                 </span>
                 <Database size={12} className="opacity-60" />
               </div>
@@ -425,12 +428,14 @@ export function AgentCopilot() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
-                placeholder={isLoading ? 'Copilot is running...' : 'Ask Copilot...'}
+                placeholder={isLoading ? 'Copilot pracuje…' : 'Zeptejte se Copilota…'}
+                aria-label="Zpráva pro Copilota"
                 className="w-full pl-4 pr-11 py-2.5 text-xs rounded-2xl bg-slate-100 dark:bg-slate-800 border-none ring-1 ring-slate-200/50 dark:ring-slate-700/50 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-500 outline-none text-slate-800 dark:text-white transition-all placeholder-slate-400 disabled:opacity-60"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
+                aria-label="Odeslat zprávu"
                 className="absolute right-1.5 p-2 rounded-xl bg-indigo-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white disabled:text-slate-400 transition-all hover:scale-105 active:scale-95 disabled:scale-100 shadow-sm"
               >
                 {isLoading ? (

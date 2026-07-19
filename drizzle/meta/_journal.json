@@ -15,6 +15,20 @@
       "when": 1783371068858,
       "tag": "0001_low_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784495194578,
+      "tag": "0002_deep_jane_foster",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1784495989829,
+      "tag": "0003_far_prism",
+      "breakpoints": true
     }
   ]
 }

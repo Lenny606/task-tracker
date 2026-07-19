@@ -177,14 +177,14 @@ export function SummaryPage() {
         description={!isMounted ? 'Načítání dat souhrnu…' : displayDate === new Date().toISOString().split('T')[0] ? 'Přehled vaší dnešní produktivity.' : `Prohlížíte aktivitu ze dne ${displayDate}.`}
         rightContent={
           <div className="flex flex-col items-end gap-2">
-            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Denní průběh</div>
+            <div className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Denní průběh</div>
             <div className="w-64 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
               <div
                 className={`h-full transition-all duration-1000 ${isGoalReached ? 'bg-emerald-500' : 'bg-indigo-600'}`}
                 style={{ width: `${totalProgress}%` }}
               />
             </div>
-            <div className="text-xs font-medium text-slate-500">{Math.round(totalProgress)} % z cíle 8 h</div>
+            <div className="text-xs font-medium text-slate-600 dark:text-slate-400">{Math.round(totalProgress)} % z cíle 8 h</div>
           </div>
         }
       />

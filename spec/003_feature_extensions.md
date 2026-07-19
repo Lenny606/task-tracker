@@ -202,7 +202,7 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 | F6 — Měsíční report + CSV | ⬜ | — | |
 | F7 — Command bar | ⬜ | — | |
 | F8 — Časté tickety | ⬜ | — | hotový plán v `jira-frequent-tickets.md` |
-| F9 — Soft delete projektů | ⬜ | — | hotový plán v `soft-delete-projects.md` |
+| F9 — Soft delete projektů | ✅ | 2026-07-19 | `deletedAt` v schématu, repository override (`findAll`/`delete`), UI text; migrace vygenerována, čeká na nasazení do Turso |
 | F10 — Potvrzování agenta | ⬜ | — | |
 
 ### Log změn
@@ -211,3 +211,4 @@ Legenda: ⬜ nezahájeno · 🟡 rozpracováno · ✅ hotovo · ⏸️ blokován
 |-------|-----|-------|
 | 2026-07-19 | Claude (analýza rozšíření) | Vytvoření specifikace |
 | 2026-07-19 | Claude | F2 implementováno: `settings.worklogRoundingMinutes`/`worklogRoundingStrategy`, `roundDuration()` v `src/utils/duration.ts` + testy, Settings UI karta, prefill v `/jira` formuláři. Migrace `drizzle/0002_deep_jane_foster.sql` vygenerována, ještě nenasazena do Turso — nutno nasadit a poté přegenerovat `docs/DB_SCHEMA.md`. |
+| 2026-07-19 | Claude | F9 implementováno dle `soft-delete-projects.md`: `trackerProjects.deletedAt` v schématu, `trackerProjectRepository.findAll()` filtruje nesmazané, `delete()` dělá soft-delete (`UPDATE deletedAt`), potvrzovací text v `projects.tsx` upraven. Nové testy `trackerProject.repository.test.ts` (2×, in-memory SQLite). Migrace `drizzle/0002_deep_jane_foster.sql` a `0003_far_prism.sql` nasazeny do Turso (`npx drizzle-kit migrate`), `docs/DB_SCHEMA.md` přegenerován. |

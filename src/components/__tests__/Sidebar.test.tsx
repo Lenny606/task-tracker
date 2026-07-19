@@ -37,9 +37,9 @@ describe('Sidebar Component', () => {
     )
 
     expect(screen.getByText('TimeTrack')).toBeInTheDocument()
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText("Today's Summary")).toBeInTheDocument()
-    expect(screen.getByText('History')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByText('Přehled')).toBeInTheDocument()
+    expect(screen.getByText('Denní souhrn')).toBeInTheDocument()
+    expect(screen.getByText('Historie')).toBeInTheDocument()
+    expect(screen.getByText('Nastavení')).toBeInTheDocument()
   })
 })

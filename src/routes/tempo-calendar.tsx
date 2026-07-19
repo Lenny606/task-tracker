@@ -126,7 +126,7 @@ function TempoCalendarPage() {
                 Tempo kalendář
               </h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-black text-blue-500 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md border border-blue-500/20">
+                <span className="text-xs font-black text-blue-700 dark:text-blue-300 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md border border-blue-500/20">
                   Jira worklogy
                 </span>
                 {totalWeekSeconds > 0 && (

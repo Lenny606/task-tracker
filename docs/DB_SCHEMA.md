@@ -1,6 +1,6 @@
 # Task Tracker — Database Schema Export
 
-Generated: 2026-07-19 from the **live Turso database** (matches `src/db/schema.ts`).
+Generated: 2026-07-19 (updated after migrations `0002`+`0003`) from the **live Turso database** (matches `src/db/schema.ts`).
 Regenerate with: `npm run db:schema:export`
 
 - Engine: SQLite (Turso / libSQL), managed by Drizzle ORM + drizzle-kit migrations (`drizzle/`)
@@ -35,6 +35,7 @@ erDiagram
         text color "nullable"
         integer created_at "unix s"
         integer updated_at "unix s"
+        integer deleted_at "unix s, nullable — soft delete"
     }
 
     day_metrics {
@@ -94,6 +95,8 @@ erDiagram
         text jira_email
         text jira_tempo_api_key "SECRET"
         text jira_url
+        integer worklog_rounding_minutes "default 0 (0=off, else 5/10/15/30)"
+        text worklog_rounding_strategy "'nearest'|'up', default 'nearest'"
         integer updated_at "unix s"
     }
 ```
@@ -101,7 +104,7 @@ erDiagram
 ## Tables
 
 ### `tracker_projects` — internal projects with time budgets
-The app's own project entity (not Jira). Used to group tasks/worklogs and track a time budget.
+The app's own project entity (not Jira). Used to group tasks/worklogs and track a time budget. Deletion is **soft**: `deleted_at` is set instead of removing the row, so historical `history_tasks`/`worklogs` keep their project name/color. Clients should filter `WHERE deleted_at IS NULL` for active-project lists.
 
 ### `day_metrics` — one row per calendar day
 Day-level timer state and AI-generated day summary. `date` is unique — natural key for a day. `timer_*` columns hold the global day timer (running flag + start time + accumulated seconds).
@@ -128,7 +131,8 @@ CREATE TABLE "tracker_projects" (
 	`time_budget_seconds` integer DEFAULT 0 NOT NULL,
 	`color` text,
 	`created_at` integer NOT NULL,   -- unix seconds (DDL default is a Drizzle artifact, see above)
-	`updated_at` integer NOT NULL
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer   -- nullable; set on soft delete, see notes above
 );
 
 CREATE TABLE "day_metrics" (
@@ -193,9 +197,13 @@ CREATE TABLE `settings` (
 	`jira_email` text DEFAULT '' NOT NULL,
 	`jira_tempo_api_key` text DEFAULT '' NOT NULL,
 	`jira_url` text DEFAULT '' NOT NULL,
+	`worklog_rounding_minutes` integer DEFAULT 0 NOT NULL,
+	`worklog_rounding_strategy` text DEFAULT 'nearest' NOT NULL,
 	`updated_at` integer NOT NULL
 );
 ```
+
+> `worklog_rounding_minutes`/`worklog_rounding_strategy` (spec 003/F2) and `tracker_projects.deleted_at` (spec 003/F9) are deployed and live on Turso (migrations `0002_deep_jane_foster` + `0003_far_prism`, applied 2026-07-19).
 
 ## Notes for the mobile app
 

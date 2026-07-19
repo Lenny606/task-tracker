@@ -74,3 +74,20 @@ export function formatFullTime(seconds: number): string {
   const s = seconds % 60
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
+
+export type RoundingStrategy = 'nearest' | 'up'
+
+/**
+ * Rounds a duration (in seconds) to the nearest multiple of `minutes`.
+ * `minutes` of 0 disables rounding and returns the input unchanged.
+ */
+export function roundDuration(seconds: number, minutes: number, strategy: RoundingStrategy): number {
+  if (!minutes || minutes <= 0) return seconds
+  const stepSeconds = minutes * 60
+
+  if (strategy === 'up') {
+    return Math.ceil(seconds / stepSeconds) * stepSeconds
+  }
+
+  return Math.round(seconds / stepSeconds) * stepSeconds
+}

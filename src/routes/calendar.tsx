@@ -81,7 +81,7 @@ function CalendarPage() {
               Týdenní kalendář
             </h1>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
              Soustřeďte se na pracovní týden a sledujte svůj pokrok napříč dny.
           </p>
         </div>

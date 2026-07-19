@@ -4,7 +4,7 @@ import { Play, Pause, Plus, RotateCcw, Trash2, CheckCircle2, Circle, Database, S
 import { useTasks } from '../hooks/useTasks'
 import { useTaskMonitor } from '../hooks/useTaskMonitor'
 import { useIsMounted } from '../hooks/useIsMounted'
-import { formatSecondsToDuration } from '../utils/duration'
+import { formatSecondsToDuration, formatFullTime } from '../utils/duration'
 import { ProjectSelector } from '../components/ProjectSelector'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
@@ -43,13 +43,6 @@ function Dashboard() {
     setNewTaskName('')
   }
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600)
-    const m = Math.floor((seconds % 3600) / 60)
-    const s = seconds % 60
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-  }
-
   return (
     <div className="p-8 max-w-[1400px] mx-auto min-h-screen">
       <header className="mb-12">
@@ -74,7 +67,7 @@ function Dashboard() {
         ) : tasks.map((task) => (
           <div
             key={task.id}
-            className={`group flex items-center justify-between p-5 transition-all duration-300 rounded-2xl glass-panel relative hover:z-50 focus-within:z-50 ${
+            className={`group flex flex-wrap items-center justify-between gap-y-4 p-5 transition-all duration-300 rounded-2xl glass-panel relative hover:z-50 focus-within:z-50 ${
               task.isMarked 
                 ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-500/20 shadow-sm shadow-emerald-500/5' 
                 : ''
@@ -132,7 +125,7 @@ function Dashboard() {
                   onSelect={(projectId) => updateTask.mutate({ taskId: task.id, trackerProjectId: projectId })}
                 />
                 {task.jiraKey && (
-                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/10">
+                  <span className="text-[10px] font-black text-blue-700 dark:text-blue-300 uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md border border-blue-500/10">
                     {task.jiraKey}
                   </span>
                 )}
@@ -140,7 +133,7 @@ function Dashboard() {
                   <button
                     onClick={() => updateTask.mutate({ taskId: task.id, isAiSuggested: false })}
                     title="Návrh od agenta — kliknutím potvrdíte"
-                    className="group/sugg flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
+                    className="group/sugg flex items-center gap-1 text-[10px] font-black text-violet-700 dark:text-violet-300 uppercase tracking-widest bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md border border-violet-500/20 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-all"
                   >
                     <Sparkles size={11} className="group-hover/sugg:hidden" />
                     <Check size={11} className="hidden group-hover/sugg:block" />
@@ -150,9 +143,9 @@ function Dashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-6 ml-auto">
               <div className={`font-mono text-3xl tabular-nums ${task.isRunning ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-500'}`}>
-                {formatTime(getDisplayTime(task))}
+                {formatFullTime(getDisplayTime(task))}
               </div>
 
               <div className="flex items-center gap-2">

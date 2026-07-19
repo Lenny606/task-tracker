@@ -8,6 +8,7 @@ export const trackerProjects = sqliteTable('tracker_projects', {
   color: text('color'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
 });
 
 export const settings = sqliteTable('settings', {
@@ -20,6 +21,8 @@ export const settings = sqliteTable('settings', {
   jiraEmail: text('jira_email').notNull().default(''),
   jiraTempoApiKey: text('jira_tempo_api_key').notNull().default(''),
   jiraUrl: text('jira_url').notNull().default(''),
+  worklogRoundingMinutes: integer('worklog_rounding_minutes').notNull().default(0),
+  worklogRoundingStrategy: text('worklog_rounding_strategy').notNull().default('nearest'),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date(0)),
 });
 
