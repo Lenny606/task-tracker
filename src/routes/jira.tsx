@@ -52,18 +52,18 @@ function RecentIssuesSelector({ onSelect }: { onSelect: (ticket: { key: string; 
   return (
     <div className="space-y-3">
       <label className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 px-1">
-        <Hash className="w-4 h-4" /> Nedávné tickety
+        <Hash className="w-4 h-4 text-blue-500" /> Nedávné tickety
       </label>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {recent.map((ticket) => (
           <button
             key={ticket.key}
             type="button"
             onClick={() => onSelect(ticket)}
-            className="group relative px-4 py-3 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-2 hover:ring-blue-500 rounded-2xl transition-all active:scale-95 shadow-sm text-left flex flex-col"
+            className="group relative px-4 py-2.5 bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 hover:ring-2 hover:ring-blue-500 rounded-xl transition-all active:scale-[0.98] shadow-sm text-left flex flex-col gap-0.5 hover:shadow-md"
           >
-            <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase">{ticket.key}</span>
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 line-clamp-1 max-w-[120px]">{ticket.summary}</span>
+            <span className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wide">{ticket.key}</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 line-clamp-1 max-w-[160px] group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{ticket.summary}</span>
           </button>
         ))}
       </div>
@@ -164,13 +164,13 @@ function WorklogForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative p-8 space-y-8 max-w-4xl mx-auto">
-      <div className="absolute top-8 right-8 flex items-center gap-3">
+    <form onSubmit={handleSubmit} className="p-8 space-y-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/60">
         <Button
           variant="ghost"
           onClick={() => navigate({ to: '/summary', search: { date } })}
           icon={ArrowLeft}
-          className="px-4 py-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl ring-1 ring-transparent hover:ring-blue-500/20 border-none bg-transparent"
+          className="px-3 py-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors border-none bg-transparent"
           title="Zpět na denní souhrn"
         >
           Zpět na souhrn
@@ -179,7 +179,7 @@ function WorklogForm() {
           variant="ghost"
           onClick={handleReset}
           icon={RotateCcw}
-          className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl ring-1 ring-transparent hover:ring-red-500/20 border-none bg-transparent"
+          className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border-none bg-transparent"
           title="Vymazat formulář"
         >
           Vymazat
