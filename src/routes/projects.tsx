@@ -123,11 +123,11 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
     }`}>
       {/* Background Accent */}
       <div 
-        className="absolute top-0 right-0 w-32 h-32 opacity-5 blur-3xl rounded-full -mr-10 -mt-10"
+        className="absolute top-0 right-0 w-32 h-32 opacity-5 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none"
         style={{ backgroundColor: project.color || '#6366f1' }}
       />
 
-      <div className="flex justify-between items-start mb-6">
+      <div className="flex justify-between items-start mb-6 relative z-10">
         <div className="flex items-center gap-3">
           <div 
             className="w-3 h-10 rounded-full"
@@ -143,9 +143,9 @@ function ProjectCard({ project, onEdit, onDelete }: { project: any; onEdit: () =
           </div>
         </div>
         
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button onClick={onEdit} variant="icon" icon={Edit2} title="Upravit projekt" aria-label={`Upravit projekt ${project.name}`} />
-          <Button onClick={onDelete} variant="icon" icon={Trash2} title="Smazat projekt" aria-label={`Smazat projekt ${project.name}`} />
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity relative z-10">
+          <Button onClick={(e) => { e.stopPropagation(); onEdit(); }} variant="icon" icon={Edit2} title="Upravit projekt" aria-label={`Upravit projekt ${project.name}`} className="cursor-pointer" />
+          <Button onClick={(e) => { e.stopPropagation(); onDelete(); }} variant="icon" icon={Trash2} title="Smazat projekt" aria-label={`Smazat projekt ${project.name}`} className="cursor-pointer hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30" />
         </div>
       </div>
 
