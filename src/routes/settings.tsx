@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2, Bell, BellOff, Shield } from 'lucide-react'
+import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2, Plus, X } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
 import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
@@ -9,8 +9,10 @@ import { PageHeader } from '../components/PageHeader'
 import { SectionCard } from '../components/SectionCard'
 import { CopyField } from '../components/CopyField'
 import { Input } from '../components/Input'
+import { Button } from '../components/Button'
+import { ProjectSelector } from '../components/ProjectSelector'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getTaskTemplatesFn, deleteTaskTemplateFn } from '../services/tasksServer'
+import { getTaskTemplatesFn, deleteTaskTemplateFn, createTaskTemplateFn } from '../services/tasksServer'
 import { getProjectsFn } from '../services/projectsServer'
 import { toast } from '../store/toastStore'
 
@@ -30,7 +32,10 @@ const SECTIONS = [
 function SettingsPage() {
   const { settings, saveSettings } = useSettings()
   const [extensionToken, setExtensionToken] = useState('')
-  const [activeSection, setActiveSection] = useState('notifications')
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
+  const [newTplName, setNewTplName] = useState('')
+  const [newTplJiraKey, setNewTplJiraKey] = useState('')
+  const [newTplProjectId, setNewTplProjectId] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -42,6 +47,29 @@ function SettingsPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => getProjectsFn(),
+  })
+
+  const createTemplateMutation = useMutation({
+    mutationFn: async () => {
+      return await createTaskTemplateFn({
+        data: {
+          name: newTplName.trim(),
+          jiraKey: newTplJiraKey.trim() || null,
+          trackerProjectId: newTplProjectId || null,
+        }
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taskTemplates'] })
+      setIsCreatingTemplate(false)
+      setNewTplName('')
+      setNewTplJiraKey('')
+      setNewTplProjectId(null)
+      toast.success('Šablona byla úspěšně vytvořena.')
+    },
+    onError: () => {
+      toast.error('Nepodařilo se vytvořit šablonu.')
+    }
   })
 
   const deleteTemplateMutation = useMutation({
@@ -292,15 +320,85 @@ function SettingsPage() {
         {/* Task Templates Configuration Card */}
         <SectionCard
           title="Šablony úkolů"
-          description="Spravujte své předdefinované šablony pro rychlé zakládání denních úkolů."
+          description="Spravujte své předdefinované šablony s přiřazeným projektem a Jira ticketem."
           icon={LayoutTemplate}
           iconBgColor="bg-violet-50 dark:bg-violet-900/30"
           iconColor="text-violet-600 dark:text-violet-400"
+          headerActions={
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Plus}
+              onClick={() => setIsCreatingTemplate(!isCreatingTemplate)}
+            >
+              Nová šablona
+            </Button>
+          }
         >
           <div className="space-y-4">
-            {templates.length === 0 ? (
+            {isCreatingTemplate && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (newTplName.trim()) {
+                    createTemplateMutation.mutate()
+                  }
+                }}
+                className="p-5 mb-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4 animate-in fade-in duration-200"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Vytvořit novou šablonu</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingTemplate(false)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+                    aria-label="Zavřít formulář"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Název šablony</label>
+                    <Input
+                      required
+                      placeholder="např. Code Review"
+                      value={newTplName}
+                      onChange={(e) => setNewTplName(e.target.value)}
+                      className="py-2.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Projekt</label>
+                    <ProjectSelector
+                      selectedProjectId={newTplProjectId}
+                      onSelect={(id) => setNewTplProjectId(id)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Jira Ticket</label>
+                    <Input
+                      placeholder="např. TS-123"
+                      value={newTplJiraKey}
+                      onChange={(e) => setNewTplJiraKey(e.target.value)}
+                      className="py-2.5 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setIsCreatingTemplate(false)}>
+                    Zrušit
+                  </Button>
+                  <Button type="submit" variant="primary" size="sm" isLoading={createTemplateMutation.isPending} disabled={!newTplName.trim()}>
+                    Uložit šablonu
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {templates.length === 0 && !isCreatingTemplate ? (
               <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                <p className="text-slate-500 text-sm">Zatím nemáte žádné šablony. Můžete je vytvořit přímo na Dashboardu kliknutím na ikonu šablony u libovolného úkolu.</p>
+                <p className="text-slate-500 text-sm">Zatím nemáte žádné šablony. Můžete je vytvořit tlačítkem výše nebo přímo na Dashboardu kliknutím na ikonu šablony u libovolného úkolu.</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">

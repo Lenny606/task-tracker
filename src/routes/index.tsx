@@ -10,6 +10,7 @@ import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createTaskTemplateFn, getTaskTemplatesFn } from '../services/tasksServer'
+import { getProjectsFn } from '../services/projectsServer'
 import { toast } from '../store/toastStore'
 
 
@@ -30,6 +31,11 @@ function Dashboard() {
   const { data: templates = [] } = useQuery({
     queryKey: ['taskTemplates'],
     queryFn: () => getTaskTemplatesFn().then(res => res as any[]),
+  })
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => getProjectsFn(),
   })
 
   const saveAsTemplateMutation = useMutation({
@@ -324,21 +330,34 @@ function Dashboard() {
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1">
                       Šablony úkolů
                     </div>
-                    {templates.map((tpl: any) => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        onClick={() => handleApplyTemplate(tpl)}
-                        className="w-full text-left px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-lg transition-all flex flex-col gap-0.5"
-                      >
-                        <span>{tpl.name}</span>
-                        {tpl.jiraKey && (
-                          <span className="text-[9px] font-black text-blue-600 uppercase tracking-wider">
-                            {tpl.jiraKey}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                    {templates.map((tpl: any) => {
+                      const project = projects.find((p: any) => p.id === tpl.trackerProjectId)
+                      return (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => handleApplyTemplate(tpl)}
+                          className="w-full text-left px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-lg transition-all flex flex-col gap-1 cursor-pointer"
+                        >
+                          <span>{tpl.name}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {project && (
+                              <span 
+                                className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border"
+                                style={{ color: project.color, borderColor: `${project.color}33`, backgroundColor: `${project.color}10` }}
+                              >
+                                {project.name}
+                              </span>
+                            )}
+                            {tpl.jiraKey && (
+                              <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded border border-blue-500/10">
+                                {tpl.jiraKey}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
