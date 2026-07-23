@@ -23,6 +23,7 @@ export const settings = sqliteTable('settings', {
   jiraUrl: text('jira_url').notNull().default(''),
   worklogRoundingMinutes: integer('worklog_rounding_minutes').notNull().default(0),
   worklogRoundingStrategy: text('worklog_rounding_strategy').notNull().default('nearest'),
+  notificationsEnabled: integer('notifications_enabled', { mode: 'boolean' }).notNull().default(true),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(new Date(0)),
 });
 

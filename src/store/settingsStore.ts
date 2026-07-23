@@ -9,6 +9,7 @@ interface AppSettings {
   jiraUrl: string
   worklogRoundingMinutes: number
   worklogRoundingStrategy: 'nearest' | 'up'
+  notificationsEnabled: boolean
   // Secret keys are stored server-side only; the client just knows whether they are set.
   hasGeminiApiKey: boolean
   hasOpenaiApiKey: boolean
@@ -31,6 +32,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   jiraUrl: import.meta.env.VITE_JIRA_URL || '',
   worklogRoundingMinutes: 0,
   worklogRoundingStrategy: 'nearest',
+  notificationsEnabled: true,
   hasGeminiApiKey: false,
   hasOpenaiApiKey: false,
   hasJiraApiKey: false,
@@ -55,7 +57,7 @@ const loadSettings = async (): Promise<AppSettings> => {
   return settingsCache
 }
 
-const getSettings = (): AppSettings => {
+export const getSettings = (): AppSettings => {
   return settingsCache
 }
 

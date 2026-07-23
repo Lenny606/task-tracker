@@ -12,6 +12,7 @@ function sanitizeSettings(row: Awaited<ReturnType<typeof settingsRepository.getS
     jiraUrl: row?.jiraUrl || '',
     worklogRoundingMinutes: row?.worklogRoundingMinutes ?? 0,
     worklogRoundingStrategy: (row?.worklogRoundingStrategy as 'nearest' | 'up') || 'nearest',
+    notificationsEnabled: row?.notificationsEnabled ?? true,
     hasGeminiApiKey: !!row?.geminiApiKey,
     hasOpenaiApiKey: !!row?.openaiApiKey,
     hasJiraApiKey: !!row?.jiraApiKey,
@@ -39,6 +40,7 @@ export const saveAppSettingsFn = createServerFn({
     jiraUrl: z.string().optional(),
     worklogRoundingMinutes: z.number().int().min(0).optional(),
     worklogRoundingStrategy: z.enum(['nearest', 'up']).optional(),
+    notificationsEnabled: z.boolean().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
     // Empty secret fields mean "leave unchanged" so the client never has to

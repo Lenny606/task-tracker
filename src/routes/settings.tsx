@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2 } from 'lucide-react'
+import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2, Bell, BellOff } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
 import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
@@ -65,6 +65,53 @@ function SettingsPage() {
       />
 
       <div className="space-y-6">
+        {/* Notifications Configuration Card */}
+        <SectionCard
+          title="Oznámení a notifikace"
+          description="Povolte nebo zakžte zobrazování toast notifikací a upozornění v aplikaci."
+          icon={Bell}
+          iconBgColor="bg-emerald-50 dark:bg-emerald-900/30"
+          iconColor="text-emerald-600 dark:text-emerald-400"
+        >
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-widest">
+              Stav notifikací
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => saveSettings({ notificationsEnabled: true })}
+                className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center cursor-pointer ${
+                  settings.notificationsEnabled !== false
+                    ? 'border-emerald-500 bg-emerald-50/55 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                    : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 font-bold text-base">
+                  <Bell className="w-5 h-5" />
+                  <span>Zapnuto</span>
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Zobrazovat toasty a upozornění na časové milníky</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => saveSettings({ notificationsEnabled: false })}
+                className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center cursor-pointer ${
+                  settings.notificationsEnabled === false
+                    ? 'border-red-500 bg-red-50/55 dark:bg-red-950/20 text-red-700 dark:text-red-300 shadow-sm'
+                    : 'border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-800/40 hover:border-slate-200 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 font-bold text-base">
+                  <BellOff className="w-5 h-5" />
+                  <span>Vypnuto</span>
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">Potlačit všechny toasty a notifikace</span>
+              </button>
+            </div>
+          </div>
+        </SectionCard>
         {/* AI Configuration Card */}
         <SectionCard
           title="Nastavení AI"

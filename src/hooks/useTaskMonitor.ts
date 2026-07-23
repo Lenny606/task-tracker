@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useTasks, type Task } from './useTasks'
+import { useTasks } from './useTasks'
 import { toast } from '../store/toastStore'
 
 // Hardcoded constants for thresholds as requested
@@ -19,12 +19,18 @@ export function useTaskMonitor() {
 
   useEffect(() => {
     tasks.forEach((task) => {
-      if (!task.isRunning) return
+      if (!task.isRunning) {
+        if (getDisplayTime(task) === 0) {
+          delete triggeredRef.current[task.id]
+        }
+        return
+      }
 
       const currentTime = getDisplayTime(task)
+      const isFirstCheck = !triggeredRef.current[task.id]
 
       // Initialize tracker for this task if needed
-      if (!triggeredRef.current[task.id]) {
+      if (isFirstCheck) {
         triggeredRef.current[task.id] = new Set()
       }
 
@@ -33,7 +39,11 @@ export function useTaskMonitor() {
       THRESHOLDS.forEach((threshold) => {
         // If we crossed a threshold and haven't notified yet
         if (currentTime >= threshold.seconds && !taskTriggered.has(threshold.seconds)) {
-          toast.show(`Task "${task.name}": ${threshold.message}`, threshold.type)
+          // On initial check for an already-running task, only notify if crossed within the last 30s
+          const isRecentlyCrossed = currentTime - threshold.seconds <= 30
+          if (!isFirstCheck || isRecentlyCrossed) {
+            toast.show(`Task "${task.name}": ${threshold.message}`, threshold.type)
+          }
           taskTriggered.add(threshold.seconds)
         }
       })
