@@ -4,6 +4,8 @@ import { useTasks } from '../hooks/useTasks'
 import { useState } from 'react'
 import { formatFullTime } from '../utils/duration'
 
+import { ThemeToggle } from './ThemeToggle'
+
 export function Sidebar() {
   const {
     globalTimer,
@@ -211,15 +213,16 @@ export function Sidebar() {
         </Link>
       </nav>
 
-      <div className="p-6 border-t border-slate-900 space-y-1">
+      <div className="p-4 border-t border-slate-900 flex items-center justify-between gap-2">
         <Link
           to="/settings"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-slate-900 hover:text-white text-slate-400 group flex-1 min-w-0"
           activeProps={{ className: 'bg-indigo-600/10 text-indigo-400 ring-1 ring-indigo-500/30' }}
         >
-          <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-          <span className="font-medium">Nastavení</span>
+          <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform shrink-0" />
+          <span className="font-medium truncate">Nastavení</span>
         </Link>
+        <ThemeToggle />
       </div>
 
 

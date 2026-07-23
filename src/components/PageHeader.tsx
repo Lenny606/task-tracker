@@ -1,4 +1,5 @@
 import React from 'react'
+import { ThemeToggle } from './ThemeToggle'
 
 interface PageHeaderProps {
   title: string
@@ -37,11 +38,10 @@ export function PageHeader({
         </p>
       </div>
 
-      {rightContent && (
-        <div className="flex flex-col items-end justify-end gap-2">
-          {rightContent}
-        </div>
-      )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        {rightContent}
+        <ThemeToggle />
+      </div>
     </header>
   )
 }
