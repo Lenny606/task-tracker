@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2, Plus, X } from 'lucide-react'
+import { Settings, Bot, Check, ChevronDown, Timer, LayoutTemplate, Trash2, Plus, X, Bell, Shield } from 'lucide-react'
 import { useSettings } from '../store/settingsStore'
 import { AI_MODEL_LABELS, PROVIDER_MODELS } from '../services/ai'
 import type { AiModel } from '../services/ai'
@@ -31,6 +31,7 @@ const SECTIONS = [
 
 function SettingsPage() {
   const { settings, saveSettings } = useSettings()
+  const [activeSection, setActiveSection] = useState('notifications')
   const [extensionToken, setExtensionToken] = useState('')
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
   const [newTplName, setNewTplName] = useState('')
@@ -463,7 +464,6 @@ function SettingsPage() {
         </SectionCard>
       </div>
     </div>
-    </div >
   )
 }
 
