@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-08-31T10:02:54.565929+00:00",
+  "graph_id": "sse-clients-rollout-plus-2-plans-fca3eef2a4",
+  "plan_set_hash": "be68c72b81",
+  "selection_hash": "fca3eef2a4",
+  "plan_count": 3,
+  "edge_count": 2,
+  "plans_root": "/home/tomas/my-projects/task-tracker/.codex/plans",
+  "selected_globs": [],
+  "selected_plan_paths": [
+    "/home/tomas/my-projects/task-tracker/.codex/plans/sse-clients-rollout.plan.md",
+    "/home/tomas/my-projects/task-tracker/.codex/plans/sync-domain-contract.plan.md",
+    "/home/tomas/my-projects/task-tracker/.codex/plans/vps-security-foundation.plan.md"
+  ],
+  "edges": [
+    {
+      "source": "vps-security-foundation",
+      "target": "sync-domain-contract"
+    },
+    {
+      "source": "sync-domain-contract",
+      "target": "sse-clients-rollout"
+    }
+  ],
+  "plans": [
+    {
+      "path": "/home/tomas/my-projects/task-tracker/.codex/plans/sse-clients-rollout.plan.md",
+      "slug": "sse-clients-rollout",
+      "name": "SSE clients rollout",
+      "overview": "Nad hotov\u00fdm auth a sync domain kontraktem dodat snapshot/changes/commands API, durable authenticated SSE s replayem a napojen\u00ed webu, extension a mobile contract harness v\u010detn\u011b VPS proxy a observability.",
+      "todos": [
+        {
+          "id": "implement-sync-read-api",
+          "content": "Implementovat user-scoped snapshot a str\u00e1nkovan\u00e9 changes endpointy s konzistentn\u00edm cursorem, tombstones, retenc\u00ed a cursor_expired odpov\u011bd\u00ed.",
+          "status": "pending",
+          "ordinal": 1
+        },
+        {
+          "id": "expose-command-api",
+          "content": "Vystavit autorizovan\u00fd batch commands endpoint nad domain service a vracet receipts, validation chyby a 409 current-entity konflikty.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "implement-durable-sse",
+          "content": "P\u0159idat authenticated SSE route s id/event/data/retry framingem, Last-Event-ID replayem, heartbeatem, AbortSignal cleanupem a slow-consumer limitem.",
+          "status": "pending",
+          "ordinal": 3
+        },
+        {
+          "id": "configure-sse-proxy",
+          "content": "Nastavit reverse proxy bez bufferingu/transformace, s vhodn\u00fdm timeoutem a ov\u011b\u0159it reconnect p\u0159i graceful restartu Nitro procesu.",
+          "status": "pending",
+          "ordinal": 4
+        },
+        {
+          "id": "integrate-web-query-cache",
+          "content": "P\u0159idat jeden root SSE klient, cursor catch-up a c\u00edlen\u00e9 mapov\u00e1n\u00ed sync event\u016f na React Query keys s foreground/reconnect fallbackem.",
+          "status": "pending",
+          "ordinal": 5
+        },
+        {
+          "id": "migrate-extension-client",
+          "content": "P\u0159idat HTTPS base URL a device pairing extension, p\u0159ej\u00edt na explicitn\u00ed commandy a odstranit star\u00fd shared-token/file sync po rollout ov\u011b\u0159en\u00ed.",
+          "status": "pending",
+          "ordinal": 6
+        },
+        {
+          "id": "build-mobile-contract-harness",
+          "content": "Vytvo\u0159it referen\u010dn\u00ed headless klient simuluj\u00edc\u00ed local store, offline command queue, pull, cursor a foreground SSE bez volby konkr\u00e9tn\u00edho mobiln\u00edho UI stacku.",
+          "status": "pending",
+          "ordinal": 7
+        },
+        {
+          "id": "test-replay-and-failures",
+          "content": "Automatizovat E2E sc\u00e9n\u00e1\u0159e reconnect/replay, restart, retention gap, concurrent devices, duplicate POST, tenant isolation a slow consumer.",
+          "status": "pending",
+          "ordinal": 8
+        },
+        {
+          "id": "add-sync-observability",
+          "content": "P\u0159idat metriky active streams, reconnect rate, event lag, command latency/conflicts, resync count a alarmy pro backup age a disk.",
+          "status": "pending",
+          "ordinal": 9
+        },
+        {
+          "id": "stage-production-rollout",
+          "content": "Nasadit nejprve pull-only fallback, potom web SSE, extension a mobile harness; zdokumentovat feature-flag rollback, kter\u00fd vypne SSE bez ztr\u00e1ty sync correctness.",
+          "status": "pending",
+          "ordinal": 10
+        }
+      ],
+      "is_project": false,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "path": "/home/tomas/my-projects/task-tracker/.codex/plans/sync-domain-contract.plan.md",
+      "slug": "sync-domain-contract",
+      "name": "Sync domain contract",
+      "overview": "P\u0159estav\u011bt sou\u010dasn\u00e9 full-snapshot a file-based mutace na user-scoped, verzovan\u00e9 a idempotentn\u00ed domain commandy s transak\u010dn\u00edm change-logem, aby web, extension a budouc\u00ed mobil mohly bezpe\u010dn\u011b sd\u00edlet data.",
+      "todos": [
+        {
+          "id": "define-sync-contract-v1",
+          "content": "Definovat Zod a OpenAPI kontrakt pro entity, explicitn\u00ed commandy, receipts, conflicts, snapshot, changes a cursor semantics v\u010detn\u011b timezone pravidel.",
+          "status": "pending",
+          "ordinal": 1
+        },
+        {
+          "id": "add-sync-schema",
+          "content": "P\u0159idat user_id, version, dynamick\u00e9 timestamps a tombstones k syncovateln\u00fdm entit\u00e1m plus tabulky sync_events, mutation_receipts a pot\u0159ebn\u00e9 compound indexy.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "backfill-sync-schema",
+          "content": "Vytvo\u0159it additive migraci a backfill existuj\u00edc\u00edch dat na seeded usera, ov\u011b\u0159it constraints na kopii datab\u00e1ze a p\u0159ipravit rollback.",
+          "status": "pending",
+          "ordinal": 3
+        },
+        {
+          "id": "implement-command-transactions",
+          "content": "Implementovat transak\u010dn\u00ed command service, kter\u00e1 atomicky ov\u011b\u0159\u00ed receipt/baseVersion, zm\u011bn\u00ed entity, zv\u00fd\u0161\u00ed version a vlo\u017e\u00ed sync event.",
+          "status": "pending",
+          "ordinal": 4
+        },
+        {
+          "id": "make-timers-server-authoritative",
+          "content": "Nahradit toggle/full snapshot explicitn\u00edmi start, stop a adjust commandy a serverov\u011b vynutit nejv\u00fd\u0161e jeden aktivn\u00ed timer na u\u017eivatele.",
+          "status": "pending",
+          "ordinal": 5
+        },
+        {
+          "id": "harden-worklog-idempotency",
+          "content": "Opravit worklog primary key a zav\u00e9st idempotency/state machine pro Tempo tak, aby retry po \u010d\u00e1ste\u010dn\u00e9m selh\u00e1n\u00ed nevytv\u00e1\u0159el duplicity.",
+          "status": "pending",
+          "ordinal": 6
+        },
+        {
+          "id": "migrate-all-writers",
+          "content": "P\u0159esm\u011brovat web, agent tools a extension na stejnou command service a odstranit dvoj\u00ed JSON/DB timer persistence po ov\u011b\u0159en\u00ed parity.",
+          "status": "pending",
+          "ordinal": 7
+        },
+        {
+          "id": "add-sync-integration-tests",
+          "content": "P\u0159idat izolovan\u00e9 DB testy pro concurrency, duplicate retry, tombstones, ownership, midnight/DST a local SQLite/Turso contract parity.",
+          "status": "pending",
+          "ordinal": 8
+        }
+      ],
+      "is_project": false,
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "path": "/home/tomas/my-projects/task-tracker/.codex/plans/vps-security-foundation.plan.md",
+      "slug": "vps-security-foundation",
+      "name": "VPS security foundation",
+      "overview": "P\u0159ipravit single-user TanStack Start aplikaci na bezpe\u010dn\u00fd provoz jedn\u00e9 Nitro instance na VPS, zav\u00e9st spole\u010dnou autentiza\u010dn\u00ed a autoriza\u010dn\u00ed hranici, odd\u011blit secrets a vytvo\u0159it opakovateln\u00fd provozn\u00ed kontrakt p\u0159ed jak\u00fdmkoli mobile/SSE roz\u0161\u00ed\u0159en\u00edm.",
+      "todos": [
+        {
+          "id": "isolate-test-database",
+          "content": "Upravit DB factory a Vitest setup tak, aby v\u0161echny testy povinn\u011b pou\u017e\u00edvaly izolovanou temp SQLite DB a fail-fast odm\u00edtly remote URL.",
+          "status": "pending",
+          "ordinal": 1
+        },
+        {
+          "id": "establish-typecheck-baseline",
+          "content": "P\u0159idat typecheck script a opravit sou\u010dasn\u00e9 TypeScript chyby v produk\u010dn\u00edch souborech tak, aby nov\u00fd auth a sync kontrakt m\u011bl \u010dist\u00fd gate.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "add-single-user-auth",
+          "content": "P\u0159idat users a server-side sessions, seed/CLI pro jedin\u00fd \u00fa\u010det a login/logout s bezpe\u010dn\u00fdmi cookie parametry.",
+          "status": "pending",
+          "ordinal": 3
+        },
+        {
+          "id": "enforce-authorization",
+          "content": "Zav\u00e9st centr\u00e1ln\u00ed auth/ownership guard pro server functions, API routes, agent chat, extension pairing a budouc\u00ed SSE endpointy.",
+          "status": "pending",
+          "ordinal": 4
+        },
+        {
+          "id": "harden-secrets-and-boundaries",
+          "content": "Odd\u011blit synchronizovateln\u00e9 preference od server secrets, odstranit ve\u0159ejn\u00e9 vyd\u00e1v\u00e1n\u00ed extension tokenu, zp\u0159esnit CORS/SSRF a p\u0159idat body/rate limity.",
+          "status": "pending",
+          "ordinal": 5
+        },
+        {
+          "id": "create-vps-runtime",
+          "content": "P\u0159idat pinovan\u00fd production start/deployment, TLS reverse-proxy konfiguraci, liveness/readiness a explicitn\u00ed env kontrakt.",
+          "status": "pending",
+          "ordinal": 6
+        },
+        {
+          "id": "add-migrate-backup-restore",
+          "content": "Sjednotit produk\u010dn\u00ed migrace pro zvolen\u00fd DB adapter, zapnout referen\u010dn\u00ed integritu a dodat automatick\u00fd backup i ov\u011b\u0159en\u00fd restore drill.",
+          "status": "pending",
+          "ordinal": 7
+        },
+        {
+          "id": "remove-sensitive-runtime-artifacts",
+          "content": "Po review odstranit runtime exports a agent log z Git indexu, zav\u00e9st redakci/retenci log\u016f a zdokumentovat rotaci potenci\u00e1ln\u011b dot\u010den\u00fdch credentials.",
+          "status": "pending",
+          "ordinal": 8
+        }
+      ],
+      "is_project": false,
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "frontier": [
+    {
+      "plan_slug": "vps-security-foundation",
+      "plan_name": "VPS security foundation",
+      "plan_path": "/home/tomas/my-projects/task-tracker/.codex/plans/vps-security-foundation.plan.md",
+      "plan_status": "pending",
+      "state": "ready",
+      "blocked_by": [],
+      "active": [
+        {
+          "id": "isolate-test-database",
+          "content": "Upravit DB factory a Vitest setup tak, aby v\u0161echny testy povinn\u011b pou\u017e\u00edvaly izolovanou temp SQLite DB a fail-fast odm\u00edtly remote URL.",
+          "status": "pending",
+          "ordinal": 1
+        }
+      ],
+      "upcoming": [
+        {
+          "id": "establish-typecheck-baseline",
+          "content": "P\u0159idat typecheck script a opravit sou\u010dasn\u00e9 TypeScript chyby v produk\u010dn\u00edch souborech tak, aby nov\u00fd auth a sync kontrakt m\u011bl \u010dist\u00fd gate.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "add-single-user-auth",
+          "content": "P\u0159idat users a server-side sessions, seed/CLI pro jedin\u00fd \u00fa\u010det a login/logout s bezpe\u010dn\u00fdmi cookie parametry.",
+          "status": "pending",
+          "ordinal": 3
+        }
+      ],
+      "completed": 0,
+      "total": 8
+    },
+    {
+      "plan_slug": "sse-clients-rollout",
+      "plan_name": "SSE clients rollout",
+      "plan_path": "/home/tomas/my-projects/task-tracker/.codex/plans/sse-clients-rollout.plan.md",
+      "plan_status": "pending",
+      "state": "blocked",
+      "blocked_by": [
+        "sync-domain-contract"
+      ],
+      "active": [
+        {
+          "id": "implement-sync-read-api",
+          "content": "Implementovat user-scoped snapshot a str\u00e1nkovan\u00e9 changes endpointy s konzistentn\u00edm cursorem, tombstones, retenc\u00ed a cursor_expired odpov\u011bd\u00ed.",
+          "status": "pending",
+          "ordinal": 1
+        }
+      ],
+      "upcoming": [
+        {
+          "id": "expose-command-api",
+          "content": "Vystavit autorizovan\u00fd batch commands endpoint nad domain service a vracet receipts, validation chyby a 409 current-entity konflikty.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "implement-durable-sse",
+          "content": "P\u0159idat authenticated SSE route s id/event/data/retry framingem, Last-Event-ID replayem, heartbeatem, AbortSignal cleanupem a slow-consumer limitem.",
+          "status": "pending",
+          "ordinal": 3
+        }
+      ],
+      "completed": 0,
+      "total": 10
+    },
+    {
+      "plan_slug": "sync-domain-contract",
+      "plan_name": "Sync domain contract",
+      "plan_path": "/home/tomas/my-projects/task-tracker/.codex/plans/sync-domain-contract.plan.md",
+      "plan_status": "pending",
+      "state": "blocked",
+      "blocked_by": [
+        "vps-security-foundation"
+      ],
+      "active": [
+        {
+          "id": "define-sync-contract-v1",
+          "content": "Definovat Zod a OpenAPI kontrakt pro entity, explicitn\u00ed commandy, receipts, conflicts, snapshot, changes a cursor semantics v\u010detn\u011b timezone pravidel.",
+          "status": "pending",
+          "ordinal": 1
+        }
+      ],
+      "upcoming": [
+        {
+          "id": "add-sync-schema",
+          "content": "P\u0159idat user_id, version, dynamick\u00e9 timestamps a tombstones k syncovateln\u00fdm entit\u00e1m plus tabulky sync_events, mutation_receipts a pot\u0159ebn\u00e9 compound indexy.",
+          "status": "pending",
+          "ordinal": 2
+        },
+        {
+          "id": "backfill-sync-schema",
+          "content": "Vytvo\u0159it additive migraci a backfill existuj\u00edc\u00edch dat na seeded usera, ov\u011b\u0159it constraints na kopii datab\u00e1ze a p\u0159ipravit rollback.",
+          "status": "pending",
+          "ordinal": 3
+        }
+      ],
+      "completed": 0,
+      "total": 8
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "graph_source": "matched-plan-set"
+}
